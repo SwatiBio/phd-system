@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — logbook archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: rgb(0 0 0 / 100%);
+      --ink-2: rgb(0 0 0 / 64%);
+      --ink-3: rgb(0 0 0 / 56%);
+      --border: rgb(0 0 0 / 10%);
+      --hover: rgb(0 0 0 / 4%);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--ink);
+      background: #fff;
+      font-feature-settings: "tnum" 1;
+    }
+    main { max-width: 40rem; margin: 0 auto; padding: 40px 24px 96px; }
+    @media (min-width: 768px) { main { padding: 64px 24px 96px; } }
+    .crumb { display: inline-block; margin-bottom: 24px; color: var(--ink-3); font-size: 15px; text-decoration: none; }
+    .crumb:hover { color: var(--ink); }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+    .meta { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+    .year { font-size: 15px; font-weight: 600; margin-top: 40px; }
+    .week {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+      padding: 12px 10px; border-bottom: 1px solid var(--border);
+      text-decoration: none; color: var(--ink); border-radius: 6px;
+    }
+    .week:hover { background: var(--hover); }
+    .week .range { font-weight: 500; font-size: 16px; }
+    .week .stats { color: var(--ink-2); font-size: 14px; white-space: nowrap; }
+    .week.quiet .range { color: var(--ink-2); font-weight: 400; }
+    .thisweek { font-size: 13px; color: var(--ink-3); margin-left: 8px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="crumb" href="/">← Today</a>
+    <h1>Logbook archive</h1>
+    <p class="meta">Every week, oldest tool of the trade. Click a week to view or print it.</p>
+    <div id="list"><p class="meta">Loading…</p></div>
+  </main>
+
+  <script type="module">
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const mondayOf = (d) => { const m = new Date(d); m.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return m; };
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+    const now = new Date();
+    const thisMonday = mondayOf(now);
+
+    // start month: registration month (from milestones) with fallback
+    let startMonth = "2026-09";
+    try {
+      const m = await fetch("/system/milestones/milestones.md");
+      if (m.ok) {
+        const reg = (await m.text()).match(/^reg:\s*(\d{4}-\d{2})/m);
+        if (reg) startMonth = reg[1];
+      }
+    } catch {}
+
+    // probe monthly files forward until two consecutive misses after first hit
+    const months = [];
+    let cursor = new Date(startMonth + "-01T12:00:00");
+    let misses = 0, seen = false;
+    while (misses < 2) {
+      const key = iso(cursor).slice(0, 7);
+      const r = await fetch(`/daily/logs/${key}.md`);
+      if (r.ok) { months.push({ key, text: await r.text() }); seen = true; misses = 0; }
+      else if (seen) misses++;
+      else if (key >= iso(now).slice(0, 7)) break; // nothing ever logged
+      cursor.setMonth(cursor.getMonth() + 1);
+      if (cursor > now) break;
+    }
+
+    // collect logged dates + entry counts
+    const byDate = {}; // iso -> count
+    for (const m of months) {
+      let cur = null;
+      for (const line of m.text.split("\n")) {
+        const h = line.match(/^## (\d{4}-\d{2}-\d{2})\s*$/);
+        if (h) { cur = h[1]; byDate[cur] ||= 0; continue; }
+        if (cur && /^- \*\*\d{2}:\d{2}\*\* /.test(line)) byDate[cur]++;
+      }
+    }
+
+    // bucket into weeks (Monday-start) from first logged week to this week
+    const weeks = [];
+    if (Object.keys(byDate).length) {
+      const firstLogged = Object.keys(byDate).sort()[0];
+      let w = mondayOf(new Date(firstLogged + "T12:00:00"));
+      while (w <= thisMonday) {
+        const days = [];
+        for (let i = 0; i < 7; i++) { const d = new Date(w); d.setDate(w.getDate() + i); days.push(iso(d)); }
+        const entries = days.reduce((s, d) => s + (byDate[d] || 0), 0);
+        const logged = days.filter((d) => byDate[d]).length;
+        weeks.push({ monday: iso(w), entries, logged });
+        w = new Date(w); w.setDate(w.getDate() + 7);
+      }
+    }
+    weeks.reverse(); // newest first
+
+    // render grouped by year
+    const list = $("list");
+    if (!weeks.length) {
+      list.innerHTML = `<p class="meta">No weeks yet — log your first entry on the morning page.</p>`;
+    } else {
+      let html = "", lastYear = "";
+      for (const wk of weeks) {
+        const year = wk.monday.slice(0, 4);
+        if (year !== lastYear) { lastYear = year; html += `<div class="year">${year}</div>`; }
+        const end = new Date(wk.monday + "T12:00:00"); end.setDate(end.getDate() + 6);
+        const fmt = (s) => new Date(s + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+        const isThis = wk.monday === iso(thisMonday);
+        const quiet = wk.entries === 0 ? " quiet" : "";
+        const stats = wk.entries === 0 ? "no entries" : `${wk.entries} entr${wk.entries > 1 ? "ies" : "y"} · ${wk.logged}/7 days`;
+        html += `<a class="week${quiet}" href="/logbook.html?week=${wk.monday}">
+          <span class="range">${fmt(wk.monday)} – ${fmt(iso(end))}${isThis ? '<span class="thisweek">this week</span>' : ""}</span>
+          <span class="stats">${stats}</span></a>`;
+      }
+      list.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
