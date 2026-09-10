@@ -9,3 +9,6 @@ desktop.ini
 
 # sveltia schema cache
 .sveltia-schema.json
+
+# wrangler auth cache
+.wrangler/

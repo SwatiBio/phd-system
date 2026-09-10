@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
-# PhDOS — Sveltia CMS config
+# PhD-OS — Sveltia CMS config
 # Modeled on udit-001/workouts. Auth: udit's sveltia-cms-auth worker (same GitHub OAuth app).
 # Editing happens as commits to this repo. Laptop + pi must `git pull` before working.
 
-app_title: PhDOS
+app_title: PhD-OS
 logo:
   show_in_header: false
 editor:

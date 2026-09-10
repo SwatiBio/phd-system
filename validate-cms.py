@@ -10,7 +10,7 @@ from jsonschema import Draft7Validator
 
 SCHEMA_URL = "https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json"
 CACHE = pathlib.Path(".sveltia-schema.json")
-CONFIG = pathlib.Path("admin/config.yml")
+CONFIG = pathlib.Path("site/admin/config.yml")
 
 if not CACHE.exists():
     CACHE.write_bytes(urllib.request.urlopen(SCHEMA_URL).read())
