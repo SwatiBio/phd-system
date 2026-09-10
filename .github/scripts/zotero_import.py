@@ -89,7 +89,14 @@ def render(item, citekey_):
 
 def main():
     user = os.environ["ZOTERO_USER_ID"]
-    items = api(f"/users/{user}/items?format=json&limit=100&sort=dateModified&direction=desc")
+    # only import from the user's "Phd-OS" collection (user decision 2026-09-10)
+    colls = api(f"/users/{user}/collections")
+    coll = next((c for c in colls if (c.get("data", {}).get("name") or "").lower() == "phd-os"), None)
+    if not coll:
+        print("collection 'Phd-OS' not found in Zotero library — nothing to import")
+        return
+    coll_key = coll["data"]["key"]
+    items = api(f"/users/{user}/collections/{coll_key}/items?format=json&limit=100&sort=dateModified&direction=desc")
     have = existing_keys()
     SKIP_TYPES = {"attachment", "note", "annotation", "webpage"}
     created, updated = 0, 0
