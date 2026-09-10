@@ -1,0 +1,27 @@
+name: Zotero import
+
+on:
+  schedule:
+    - cron: "0 2 * * 1" # Monday 02:00 UTC = 07:30 IST (after paper digest)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import Zotero items to paper notes
+        env:
+          ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
+          ZOTERO_USER_ID: ${{ secrets.ZOTERO_USER_ID }}
+        run: python3 .github/scripts/zotero_import.py
+      - name: Commit
+        run: |
+          git config user.name "phd-os-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/papers/
+          git diff --cached --quiet || git commit -m "zotero: import new/changed items $(date -u +%F)"
+          git push
