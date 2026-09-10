@@ -69,6 +69,22 @@ collections:
       - { label: Citekey, name: citekey, widget: string, required: false, hint: "Zotero/Better BibTeX key — leave empty unless importing" }
       - { label: Zotero key, name: zotero-key, widget: string, required: false }
       - { label: Related papers, name: related, widget: list, required: false }
+      # Body sections are the module's interface for a Paper note — the importer
+      # (zotero_import.py) must produce these same sections. validate-cms.py checks it.
+      - label: Note
+        name: body
+        widget: markdown
+        required: false
+        default: |
+          ## What it did
+
+          ## How
+
+          ## Key result
+
+          ## What it means for me
+
+          ## Sparked
 
   - name: work-units
     label: Work Units
@@ -89,6 +105,16 @@ collections:
       - { label: Outputs, name: outputs, widget: list, required: false, hint: "Files this work produces — the orphan sweep checks these" }
       - { label: Material, name: material, widget: relation, collection: materials, value_field: id, display_fields: [id], search_fields: [id, question], multiple: true, required: false }
       - { label: Target, name: target, widget: relation, collection: targets, value_field: id, display_fields: [id], search_fields: [id, pathogen], multiple: true, required: false }
+      - label: Notes
+        name: body
+        widget: markdown
+        required: false
+        default: |
+          ## Log
+
+          ## Trouble
+
+          <!-- failed runs, wrong parameters, dead ends: first-class here, they feed the DAC report's "challenges encountered" -->
 
   - name: materials
     label: Materials
@@ -149,6 +175,20 @@ collections:
       - { label: First author, name: first-author, widget: boolean, default: true }
       - { label: Thesis related, name: thesis-related, widget: boolean, default: true }
       - { label: MAHE affiliation, name: mahe-affiliation, widget: boolean, default: true }
+      - label: Body
+        name: body
+        widget: markdown
+        required: false
+        default: |
+          ## Working title
+
+          ## Venue notes
+
+          ## Reviewer comments
+
+          ## Links
+
+          <!-- work-units, data, figures feeding this paper -->
 
   - name: conference-pubs
     label: Publications · Conference
@@ -165,6 +205,20 @@ collections:
       - { label: Venue, name: venue, widget: string, required: false }
       - { label: Submitted, name: submitted, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
       - { label: Accepted, name: accepted, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
+      - label: Body
+        name: body
+        widget: markdown
+        required: false
+        default: |
+          ## Working title
+
+          ## Abstract
+
+          ## Venue notes
+
+          ## Certificate
+
+          <!-- path in later/publications/certificates/ — the MAHE evidence -->
 
   # ---------- SYSTEM ----------
   - name: milestones

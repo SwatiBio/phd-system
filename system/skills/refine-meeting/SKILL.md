@@ -4,8 +4,9 @@ description: Refine rough meeting fragments into structured Meeting Notes. Use w
 ---
 
 <!-- SPEC LOCKED — build-pending. Build with the writing-great-skills skill (audit fixes already applied).
-     Activation requires: vault structure (wayfinder ticket 05) + Meeting Note template (ticket 08).
-     Until then the template path below is a placeholder.
+     Activation requires: vault structure (ticket 05, done) + Meeting Note spec (ticket 08, done:
+     system/templates/meeting-note.md). Remaining activation step: copy/symlink this skill into an
+     agent-discovery location, per the LOCATION RULE below.
      LOCATION RULE (user decision): all system content lives inside phd-system/ (this folder), git-versioned.
      This skill is NOT agent-discovered here — the build phase copies/symlinks it into an agent-discovery
      location (e.g. project .agents/skills/ or ~/.agents/skills/) as an activation step. -->
@@ -22,7 +23,7 @@ every fragment ends up shaped, deferred-with-reason, or struck. None silently sk
 
 ### 1. Read the pile
 
-Read `meetings/rough-YYYY-MM.md` for the current month end-to-end, plus any prior month's file that
+Read `daily/meetings/rough-YYYY-MM.md` for the current month end-to-end, plus any prior month's file that
 still holds unconsumed fragments. Fragments are separated by `---`.
 
 ✓ Done when: every fragment is inventoried — you can name each one and say which meeting it belongs to.
@@ -32,7 +33,7 @@ If fragments are ambiguous about which meeting they belong to, ask once, then pr
 
 For each unconsumed fragment: determine its type (`guide` or `dac` — a DAC meeting is any scheduled
 Doctoral Advisory Committee session; if unclear, ask once), then shape it into a Meeting Note at
-`meetings/<YYYY-MM-DD>-<type>.md`, using the Meeting Note template as the field spec — **never restate
+`daily/meetings/<YYYY-MM-DD>-<type>.md`, using the Meeting Note template as the field spec — **never restate
 the template's fields here**.
 
 **Default classification rules — apply silently, do not ask:**

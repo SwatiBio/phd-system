@@ -18,6 +18,8 @@ import urllib.request
 PAPERS_DIR = "research/papers"
 API = "https://api.zotero.org"
 
+# Field spec for a Paper note. These body sections must match the "papers" collection
+# default in site/admin/config.yml — validate-cms.py fails if they drift apart.
 TEMPLATE_BODY = """# {title}
 
 [Zotero]({zotero_uri})
@@ -27,6 +29,8 @@ TEMPLATE_BODY = """# {title}
 ## How
 
 ## Key result
+
+## What it means for me
 
 ## Sparked
 
