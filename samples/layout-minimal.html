@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — minimal layout preview</title>
+  <!--
+    Responsive shell preview for PhD-OS, minimal style (adopted from the
+    workouts-master app): gray-50 canvas, white cards, hairline borders,
+    one blue accent for the active sidebar item. Dark mode follows the
+    system by default, toggled with Basecoat's theme helper.
+    Stack: Basecoat UI CDN + Tailwind v4 browser CDN + Phosphor icons.
+  -->
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer></script>
+  <style>
+    /* ---- theme tokens: light (minimal) + dark ---- */
+    :root {
+      --background: #f9fafb;
+      --foreground: #111827;
+      --card: #ffffff;
+      --card-foreground: #111827;
+      --border: #e5e7eb;
+      --input: #d1d5db;
+      --muted: #f3f4f6;
+      --muted-foreground: #6b7280;
+      --primary: #111827;
+      --primary-foreground: #ffffff;
+      --accent: #f3f4f6;
+      --accent-foreground: #111827;
+      --ring: #111827;
+      --radius: .5rem;
+      --sidebar: #ffffff;
+      --sidebar-foreground: #374151;
+      --sidebar-accent: #eff6ff;
+      --sidebar-accent-foreground: #2563eb;
+      --sidebar-border: #e5e7eb;
+      --sidebar-ring: #93c5fd;
+      --sidebar-width: 15rem;
+      --sidebar-mobile-width: 17rem;
+      --color-background: var(--background);
+      --color-foreground: var(--foreground);
+      --color-card: var(--card);
+      --color-card-foreground: var(--card-foreground);
+      --color-border: var(--border);
+      --color-input: var(--input);
+      --color-muted: var(--muted);
+      --color-muted-foreground: var(--muted-foreground);
+      --color-primary: var(--primary);
+      --color-primary-foreground: var(--primary-foreground);
+      --color-accent: var(--accent);
+      --color-accent-foreground: var(--accent-foreground);
+      --color-ring: var(--ring);
+      --color-sidebar: var(--sidebar);
+      --color-sidebar-foreground: var(--sidebar-foreground);
+      --color-sidebar-accent: var(--sidebar-accent);
+      --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+      --color-sidebar-border: var(--sidebar-border);
+      --color-sidebar-ring: var(--sidebar-ring);
+    }
+    .dark {
+      --background: #0c1016;
+      --foreground: #e2e8f0;
+      --card: #131a24;
+      --card-foreground: #e2e8f0;
+      --border: #22304a;
+      --input: #334155;
+      --muted: #1a2434;
+      --muted-foreground: #94a3b8;
+      --primary: #e2e8f0;
+      --primary-foreground: #0c1016;
+      --accent: #1a2434;
+      --accent-foreground: #e2e8f0;
+      --ring: #64748b;
+      --sidebar: #0e141d;
+      --sidebar-foreground: #cbd5e1;
+      --sidebar-accent: #17263c;
+      --sidebar-accent-foreground: #93c5fd;
+      --sidebar-border: #22304a;
+      --sidebar-ring: #3b82f6;
+      --color-background: var(--background);
+      --color-foreground: var(--foreground);
+      --color-card: var(--card);
+      --color-card-foreground: var(--card-foreground);
+      --color-border: var(--border);
+      --color-input: var(--input);
+      --color-muted: var(--muted);
+      --color-muted-foreground: var(--muted-foreground);
+      --color-primary: var(--primary);
+      --color-primary-foreground: var(--primary-foreground);
+      --color-accent: var(--accent);
+      --color-accent-foreground: var(--accent-foreground);
+      --color-ring: var(--ring);
+      --color-sidebar: var(--sidebar);
+      --color-sidebar-foreground: var(--sidebar-foreground);
+      --color-sidebar-accent: var(--sidebar-accent);
+      --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+      --color-sidebar-border: var(--sidebar-border);
+      --color-sidebar-ring: var(--sidebar-ring);
+    }
+
+    /* ---- shell ---- */
+    body { font-feature-settings: "tnum" 1; }
+    .content { max-width: 72rem; margin-inline: auto; padding: 1.5rem 1.25rem 4rem; }
+
+    /* top row: hamburger + theme toggle */
+    .top-row {
+      display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+      max-width: 72rem; margin-inline: auto; padding: 1rem 1.25rem 0;
+    }
+    .iconbtn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius);
+      color: var(--muted-foreground); cursor: pointer; background: none; border: none; font-size: 1.25rem;
+    }
+    .iconbtn:hover { background: var(--muted); color: var(--foreground); }
+    .iconbtn i { line-height: 1; }
+    .menu-toggle { display: inline-flex; }
+    @media (min-width: 48rem) {
+      button.menu-toggle { display: none; }
+      .top-row { justify-content: flex-end; }
+    }
+    .theme-icons .icon-sun { display: none; }
+    .theme-icons .icon-moon { display: inline-block; }
+    .dark .theme-icons .icon-sun { display: inline-block; }
+    .dark .theme-icons .icon-moon { display: none; }
+
+    /* sidebar */
+    .sidebar nav li > a > i { font-size: 1.125rem; flex-shrink: 0; }
+    .sidebar nav h3 {
+      height: auto; padding: 1rem .5rem .25rem; border-radius: 0;
+      font-size: 11px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--muted-foreground);
+    }
+    .sidebar nav li > a:hover { background: var(--muted); color: inherit; }
+    .sidebar nav li > a[aria-current="page"]:hover { background: var(--color-sidebar-accent); color: var(--color-sidebar-accent-foreground); }
+
+    /* preview note */
+    .preview-note {
+      display: flex; gap: .5rem; align-items: flex-start;
+      border: 1px dashed var(--border); border-radius: var(--radius);
+      padding: .75rem 1rem; margin-bottom: 1.5rem;
+      color: var(--muted-foreground); font-size: .875rem;
+    }
+
+    /* task rows */
+    .task-list { padding: 0; margin: 0; list-style: none; }
+    .task-list li {
+      display: flex; align-items: baseline; gap: .75rem;
+      padding: .625rem .25rem; border-bottom: 1px solid var(--muted);
+    }
+    .task-list li:last-child { border-bottom: 0; }
+    .task-list a { display: flex; align-items: baseline; gap: .75rem; color: inherit; text-decoration: none; }
+    .task-list a:hover .t { text-decoration: underline; text-underline-offset: 3px; }
+    .task-list .t { font-weight: 500; color: var(--card-foreground); }
+    .task-list .w { margin-left: auto; white-space: nowrap; color: var(--muted-foreground); font-size: 13px; }
+    .task-list li.overdue .w { color: #dc2626; font-weight: 600; }
+    .dark .task-list li.overdue .w { color: #f87171; }
+
+    /* chips */
+    .chip-row { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .75rem; }
+
+    /* misc */
+    .card > header h3 { font-size: 1rem; font-weight: 600; color: var(--card-foreground); }
+    .card > header p { color: var(--muted-foreground); }
+    #viewport { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <!-- ================= Sidebar (Basecoat UI, Phosphor icons) ================= -->
+  <aside id="sidebar" class="sidebar" data-side="left">
+    <nav aria-label="Sidebar navigation">
+      <header>
+        <a href="/" class="flex items-center gap-2">
+          <span class="text-lg font-semibold" style="color: var(--sidebar-foreground)">PhD-OS</span>
+        </a>
+      </header>
+
+      <section class="scrollbar-sm">
+        <div role="group" aria-labelledby="grp-daily">
+          <h3 id="grp-daily">Daily</h3>
+          <ul>
+            <li>
+              <a href="/" data-active="true" aria-current="page">
+                <i class="ph ph-house"></i><span>Today</span>
+              </a>
+            </li>
+            <li>
+              <a href="/tasks.html">
+                <i class="ph ph-check-square"></i><span>Tasks</span>
+              </a>
+            </li>
+            <li>
+              <a href="/logbook.html">
+                <i class="ph ph-book-open"></i><span>Logbook</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div role="group" aria-labelledby="grp-progress">
+          <h3 id="grp-progress">Progress</h3>
+          <ul>
+            <li>
+              <a href="/timeline.html">
+                <i class="ph ph-calendar-dots"></i><span>Timeline</span>
+              </a>
+            </li>
+            <li>
+              <a href="/review.html">
+                <i class="ph ph-file-text"></i><span>Week in review</span>
+              </a>
+            </li>
+            <li>
+              <a href="/archive.html">
+                <i class="ph ph-archive"></i><span>Archive</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div role="group" aria-labelledby="grp-research">
+          <h3 id="grp-research">Research</h3>
+          <ul>
+            <li>
+              <a href="/digest.html">
+                <i class="ph ph-newspaper"></i><span>Paper digest</span>
+              </a>
+            </li>
+            <li>
+              <a href="/admin/">
+                <i class="ph ph-gear"></i><span>CMS</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <footer>
+        <ul>
+          <li>
+            <a href="/logout">
+              <i class="ph ph-sign-out"></i><span>Sign out</span>
+            </a>
+          </li>
+        </ul>
+      </footer>
+    </nav>
+  </aside>
+
+  <!-- ================= Main ================= -->
+  <main>
+    <div class="top-row">
+      <button type="button" class="iconbtn menu-toggle" aria-label="Open navigation"
+              onclick="document.getElementById('sidebar')?.toggle()">
+        <i class="ph ph-list"></i>
+      </button>
+      <button type="button" class="iconbtn theme-icons" aria-label="Toggle dark mode"
+              onclick="window.basecoat?.theme?.toggle()">
+        <i class="ph ph-sun icon-sun"></i>
+        <i class="ph ph-moon icon-moon"></i>
+      </button>
+    </div>
+
+    <div class="content">
+      <div class="preview-note">
+        <i class="ph ph-info shrink-0 mt-0.5" style="font-size: 1rem"></i>
+        <span><strong>Layout preview, not the real app.</strong> Minimal shell — Basecoat UI (sidebar, card, progress) + Tailwind utilities + Phosphor icons, styled after the workout tracker: gray-50 canvas, white cards, hairline borders, blue accent on the active sidebar item. Theme follows your system by default; toggle with the sun/moon button. On mobile the hamburger opens the sidebar.</span>
+      </div>
+
+      <!-- page header -->
+      <header class="flex items-center gap-3 mb-8">
+        <div class="min-w-0">
+          <h1 class="text-2xl font-semibold tracking-tight" style="color: var(--card-foreground)">Tuesday, 6 May</h1>
+          <p class="text-sm" style="color: var(--muted-foreground)">4 days logged this week <span aria-hidden="true">·</span> 6 day streak</p>
+        </div>
+        <span id="viewport" class="ml-auto text-xs" style="color: var(--muted-foreground)">desktop</span>
+      </header>
+
+      <!-- responsive card grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Due today -->
+        <div class="card">
+          <header class="px-5 py-4">
+            <h3>Due today</h3>
+          </header>
+          <section>
+            <ul class="task-list">
+              <li class="overdue">
+                <a href="/tasks.html?focus=Letter"><span class="t">Submit joining letter</span><span class="w">overdue 3d</span></a>
+              </li>
+              <li>
+                <a href="/tasks.html?focus=Coursework"><span class="t">Register coursework (Annexure 19)</span><span class="w">due today</span></a>
+              </li>
+              <li>
+                <a href="/tasks.html?focus=Spectra"><span class="t">Label NMR spectra batch 4</span><span class="w">21 May</span></a>
+              </li>
+            </ul>
+          </section>
+          <footer class="justify-between px-5 py-3">
+            <a class="btn" data-variant="ghost" data-size="sm" href="/tasks.html">All tasks</a>
+            <span class="text-xs" style="color: var(--muted-foreground)">Tick done on the Tasks page</span>
+          </footer>
+        </div>
+
+        <!-- Log what you did -->
+        <div class="card">
+          <header class="px-5 py-4">
+            <h3>Log what you did</h3>
+            <p>One line is enough — it becomes a logbook row.</p>
+          </header>
+          <section>
+            <form class="flex gap-2">
+              <input class="input flex-1 min-w-0" type="text" placeholder="One line is enough…" aria-label="Log entry" />
+              <button class="btn" type="submit">Log entry</button>
+            </form>
+            <div class="chip-row">
+              <span class="badge" data-variant="outline">#experiment</span>
+              <span class="badge" data-variant="outline">#paper</span>
+              <span class="badge" data-variant="outline">#reading</span>
+              <span class="badge" data-variant="outline">#idea</span>
+              <span class="badge" data-variant="outline">#meeting</span>
+              <span class="badge" data-variant="outline">#admin</span>
+            </div>
+            <p class="mt-2 text-xs" style="color: var(--muted-foreground)" aria-live="polite">Edits commit straight to your vault.</p>
+          </section>
+        </div>
+
+        <!-- Next milestone -->
+        <div class="card">
+          <header class="px-5 py-4">
+            <h3>Next milestone</h3>
+            <p>Computed from the registration date — nothing stored.</p>
+          </header>
+          <section>
+            <p class="font-medium" style="color: var(--card-foreground)">Joining &amp; registration</p>
+            <p class="text-sm" style="color: var(--muted-foreground)"><strong class="font-semibold" style="color: var(--card-foreground)">in 5 days</strong> · 2026-06-05</p>
+            <div class="progress mt-3" role="progressbar" aria-label="Progress to next milestone" aria-valuenow="28" aria-valuemin="0" aria-valuemax="100">
+              <span style="width: 28%"></span>
+            </div>
+            <p class="mt-2 text-xs" style="color: var(--muted-foreground)">Day 41 of 150 target</p>
+          </section>
+          <footer class="px-5 py-3">
+            <a class="btn" data-variant="outline" data-size="sm" href="/timeline.html">View timeline</a>
+          </footer>
+        </div>
+
+        <!-- Papers digest -->
+        <div class="card">
+          <header class="px-5 py-4">
+            <h3>New papers this week</h3>
+          </header>
+          <section>
+            <ul class="task-list">
+              <li>
+                <a href="/digest.html"><span class="t">Docking of labdane diterpenoids on PPAR-γ</span><span class="w">phyto · 3</span></a>
+              </li>
+              <li>
+                <a href="/digest.html"><span class="t">Isolation workflow for lichen depsides</span><span class="w">chem · 2</span></a>
+              </li>
+              <li>
+                <a href="/digest.html"><span class="t">In-vitro antibiofilm assay review</span><span class="w">bio · 1</span></a>
+              </li>
+            </ul>
+          </section>
+          <footer class="px-5 py-3">
+            <a class="btn" data-variant="ghost" data-size="sm" href="/digest.html">Open digest</a>
+          </footer>
+        </div>
+      </div>
+
+      <footer class="mt-10 text-xs" style="color: var(--muted-foreground)">
+        Sample card content only — the real pages hydrate these sections from the vault.
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    // live breakpoint chip — resize the window to see the layout respond
+    const chip = document.getElementById("viewport");
+    const sync = () => {
+      const w = window.innerWidth;
+      chip.textContent = w < 768 ? "mobile · " + w + "px" : w < 1024 ? "tablet · " + w + "px" : "desktop · " + w + "px";
+    };
+    window.addEventListener("resize", sync);
+    sync();
+  </script>
+</body>
+</html>
