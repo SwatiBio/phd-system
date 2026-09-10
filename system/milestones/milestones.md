@@ -73,5 +73,5 @@ reg-note: "PROVISIONAL — replace with the real date when the registration lett
 
 ## Recurring anchors (Section 19)
 - **Daily:** attendance recorded (workstation 9–5)
-- **Weekly:** logbook → guide for review/approval — `phd week` generates the page
+- **Weekly:** logbook → guide for review/approval — the app's Logbook view generates the page
 - **Before NOC:** full logbook submitted with documents

@@ -8,7 +8,7 @@
 
 | Folder | Job | Your move |
 |---|---|---|
-| `daily/logs/` | Daily log (MAHE §19 compliance doc) | `phd log "..."` — one line, any time |
+| `daily/logs/` | Daily log (MAHE §19 compliance doc) | Log box in the app — one line, any time |
 | `daily/tasks/` | All tasks | Add; check off. Sorting + recurrence automatic |
 | `daily/meetings/` | Rough piles → refined notes | Dump fragments after meetings. I shape them. `print/` = guide's logbook page |
 
@@ -32,5 +32,6 @@
 
 ---
 
-**Commands:** `phd log` · `phd task` · `phd save` · `phd week` (logbook for guide)
+**Capture lives in the app:** https://phd-os.swatibio.workers.dev — log line, one task, logbook for your guide; longer forms at `/admin` (Sveltia).
+**Retired 2026-09-10:** the `phd` CLI (`log` / `task` / `save` / `week`). `system/scripts/phd.py` stays as a helper library for Actions.
 **Loop:** capture anywhere → dashboard shows next → weekly review prints logbook → I refine meetings

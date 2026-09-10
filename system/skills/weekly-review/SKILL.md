@@ -58,7 +58,7 @@ Verify it shows THIS week (Monday-today; a save takes ~1 min to appear after dep
 ## Step 5 · Wrap (agent)
 
 - Name **next week's one thing** — derive it: earliest due date among open tasks, or the next milestone's prep task. One line, ask the user to confirm or replace.
-- Commit everything the review touched (git add + commit + push, or `phd save`).
+- Commit everything the review touched (git add + commit + push).
 - **Push prompt** (PHDOS-28): if anything is uncommitted or unpushed, ask "push your work to remote?" — one yes/no, then do it.
 
 **Done when:** git is clean (or the user explicitly said "not now"), next week's one thing is agreed, and the logbook file exists.

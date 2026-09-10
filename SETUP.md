@@ -1,36 +1,23 @@
-# SETUP — 15 minutes, 6 steps
+# SETUP — how to reach your system
 
-**Do step 2 first** — it lights up the dashboard. The rest is any order, any pace.
+Obsidian, Syncthing and Remotely Save are **gone** (decision 2026-09-10). GitHub is the storage, the Cloudflare app is the face, Sveltia is the editor. Nothing to install on the laptop.
 
-## 1 · Open the vault ✅
-Obsidian → *Open folder as vault* → `C:\Users\hp\Dev\playground\phd-system`. Reading this in Obsidian = done.
+## Use it
 
-## 2 · Two plugins → dashboard alive
-Community plugins → turn off **Restricted mode** → Browse:
-1. **Dataview** — install, enable → open `Home.md` → deadline strip + streak render
-2. **Tasks** — install, enable → task dates go smart (red when overdue)
+1. **App** — https://phd-os.swatibio.workers.dev — sign in with GitHub (allowlist: `SwatiBio` only). Morning brief, digest, archive, logbook.
+2. **Editor** — https://phd-os.swatibio.workers.dev/admin/ — Sveltia CMS; edits commit straight to the repo.
+3. **Phone** — same URL in the browser; add to home screen. (Installable PWA polish still pending.)
 
-Errors on Home.md? Settings → Dataview → enable **JavaScript Queries**.
+## How it is wired
 
-## 3 · Rest of the plugins (any order)
-Calendar · Heatmap Calendar · Kanban · Templater · QuickAdd · Homepage (set to `Home.md`) · Shell Commands · PDF++ · ZotLit
+- **Storage:** private repo `SwatiBio/phd-system`, branch `main`. The laptop copy is the agent workspace — you never touch git.
+- **Worker:** `worker.js` on Cloudflare, name `phd-os` — GitHub OAuth gate, `/api/write`, `/api/zotero/save`, `/api/whoami`, path mapping onto `site/`.
+- **Deploy:** `npx wrangler deploy` from the vault root. Pushing to GitHub does **not** deploy.
+- **Secrets and vars:** listed in PHDOS-DOC-7 (handoff page). Do not re-decide them.
 
-## 4 · Zotero (literature autofill)
-Create account (zotero.org) → install Zotero app → install **Better BibTeX** in Zotero → ZotLit in Obsidian → connect. Template: `system/templates/paper-note.md`.
+## Verify it is alive
 
-## 5 · GitHub backup
-Create **private** repo → in vault folder:
-`git remote add origin git@github.com:<you>/phd-system.git && git push -u origin main`
-After this: `phd save` does everything.
-
-## 6 · Phone capture + sync
-Install **Obsidian mobile** → install **Remotely Save** on both devices → same OneDrive account → same remote folder → set E2E sync password on both.
-Phone capture = open `daily/meetings/rough-YYYY-MM.md` or daily log → one line → done.
-
----
-
-## Verify alive
-- `Home.md`: 🔴 strip renders, streak shows 🟩
-- Terminal: `phd log "test"` → appears in `daily/logs/2026-09.md`
-- `phd week` → logbook page opens in browser
-- Write a rough fragment → say "refine the meeting pile" → I shape it
+- Signed out, `https://phd-os.swatibio.workers.dev/` → 401 (the gate)
+- Signed in: morning brief shows deadline strip, one task card, streak
+- Digest → `-> Zotero` puts the paper in the Phd-OS collection; Monday's robot imports it as a paper note
+- `/logbook.html?week=` → printable logbook with the guide signature block

@@ -1,0 +1,9 @@
+# The assets directory is the repo root, so everything here is a candidate for
+# upload to the CDN. Exclude tooling and repo internals — they are not content.
+# (Format is the same as .gitignore.)
+.git
+.github
+.wrangler
+.stfolder
+.sveltia-schema.json
+**/__pycache__
