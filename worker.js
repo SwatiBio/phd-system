@@ -103,6 +103,9 @@ export default {
     }
     // public routes
     if (isPublic(url.pathname)) {
+      if (url.pathname === "/login") {
+        return new Response(loginPage("Your vault, one glance a day.", next), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      }
       if (url.pathname === "/logout") {
         return new Response(null, { status: 302, headers: { Location: "/login", "Set-Cookie": `${cfg.cookieName}=; Max-Age=0; Path=/; HttpOnly; Secure` } });
       }
