@@ -56,12 +56,15 @@ def search_openalex(topic, since):
         auths = p.get("authorships") or []
         first = ((auths[0].get("author") or {}).get("display_name") or "?") if auths else "?"
         venue = ((p.get("primary_location") or {}).get("source") or {}).get("display_name") or "—"
+        oa = (p.get("best_oa_location") or {})
+        oa_url = oa.get("pdf_url") or oa.get("landing_page_url") or ""
         papers.append({
             "title": (p.get("display_name") or "").strip(),
             "link": link,
             "venue": venue,
             "year": (pub[:4]) or "",
             "first": first,
+            "oa_url": oa_url,
         })
     seen, uniq = set(), []
     for p in papers:
@@ -95,7 +98,8 @@ def main():
         for p in papers:
             total += 1
             title = f"[{p['title']}]({p['link']})" if p["link"] else p["title"]
-            lines.append(f"- **{title}** — {p['first']} et al., {p['venue']} {p['year']}")
+            oa = f" · [read free]({p['oa_url']})" if p.get("oa_url") else ""
+            lines.append(f"- **{title}** — {p['first']} et al., {p['venue']} {p['year']}{oa}")
         lines.append("")
     if total == 0:
         lines.append("*No new papers matched this week.*")
