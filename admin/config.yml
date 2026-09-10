@@ -24,7 +24,6 @@ collections:
     label: Daily Log
     description: Your Section 19 research logbook — monthly files, one line per entry. Append at the END of today's date section.
     folder: daily/logs
-    format: md
     create: false
     icon: edit_note
     summary: "{{title}}"
@@ -46,7 +45,6 @@ collections:
     label: Meetings
     description: Rough piles (fragments separated by ---). pi refines these into Meeting Notes.
     folder: daily/meetings
-    format: md
     create: true
     slug: "rough-{{year}}-{{month}}"
     icon: forum
@@ -59,7 +57,6 @@ collections:
     label: Papers
     description: Papers you read. Mostly created via Zotero import / paper pipeline — edit status, tags, Sparked here.
     folder: research/papers
-    format: md
     create: true
     slug: "{{title}}"
     icon: menu_book
@@ -77,7 +74,6 @@ collections:
     label: Work Units
     description: Pieces of research work (docking runs, experiments, analyses). Question is the only required field.
     folder: research/work-units
-    format: md
     create: true
     slug: "{{id}}"
     icon: science
@@ -98,7 +94,6 @@ collections:
     label: Materials
     description: Samples / extracts / compounds — one object, type tag decides the fields.
     folder: research/materials
-    format: md
     create: true
     slug: "{{id}}"
     icon: category
@@ -123,7 +118,6 @@ collections:
     label: Targets
     description: Pathogen proteins docked against.
     folder: research/targets
-    format: md
     create: true
     slug: "{{id}}"
     icon: coronavirus
@@ -139,7 +133,6 @@ collections:
   - name: journal-pubs
     label: Publications · Journal
     folder: later/publications
-    format: md
     create: true
     slug: "{{title}}"
     icon: article
@@ -160,7 +153,6 @@ collections:
   - name: conference-pubs
     label: Publications · Conference
     folder: later/publications
-    format: md
     create: true
     slug: "{{title}}"
     icon: co_present
