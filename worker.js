@@ -78,6 +78,7 @@ async function ghApi(token, repo, path, init = {}) {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github.raw",
       "Content-Type": "application/json",
+      "User-Agent": "phd-os-auth",
       ...(init.headers || {}),
     },
   });
