@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhD Management System · Swimlane</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1400px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1100px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Swimlane · PhD Management System</p>
+    <h1>Computational Studies of Lichen-Derived Compounds — MAHE PhD Workflow</h1>
+
+    <svg viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="swimlane-title swimlane-desc">
+      <title id="swimlane-title">PhD Management System Workflow</title>
+      <desc id="swimlane-desc">Swimlane diagram showing six workstreams across a 3.5-year PhD at MAHE: Formalities, Research, Literature, Publications, Writing, and Collaboration — from registration through thesis defense.</desc>
+
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+        </marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+        </marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+        </marker>
+      </defs>
+
+      <!-- Background -->
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- Phase headers (top bar) -->
+      <rect x="160" y="0" width="260" height="32" rx="0" fill="rgba(45,49,66,0.04)"/>
+      <rect x="420" y="0" width="280" height="32" rx="0" fill="rgba(45,49,66,0.06)"/>
+      <rect x="700" y="0" width="260" height="32" rx="0" fill="rgba(45,49,66,0.04)"/>
+      <rect x="960" y="0" width="240" height="32" rx="0" fill="rgba(45,49,66,0.08)"/>
+
+      <text x="290" y="21" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">PHASE 1 · MONTHS 1–6</text>
+      <text x="560" y="21" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">PHASE 2 · MONTHS 7–18</text>
+      <text x="830" y="21" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">PHASE 3 · MONTHS 19–30</text>
+      <text x="1080" y="21" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">PHASE 4 · MONTHS 31–42</text>
+
+      <!-- Phase dividers -->
+      <line x1="420" y1="0" x2="420" y2="680" stroke="rgba(45,49,66,0.08)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="700" y1="0" x2="700" y2="680" stroke="rgba(45,49,66,0.08)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="960" y1="0" x2="960" y2="680" stroke="rgba(45,49,66,0.08)" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- Lane dividers -->
+      <line x1="160" y1="32" x2="1200" y2="32" stroke="rgba(45,49,66,0.15)" stroke-width="1"/>
+      <line x1="160" y1="144" x2="1200" y2="144" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="160" y1="256" x2="1200" y2="256" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="160" y1="368" x2="1200" y2="368" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="160" y1="480" x2="1200" y2="480" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="160" y1="592" x2="1200" y2="592" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="160" y1="680" x2="1200" y2="680" stroke="rgba(45,49,66,0.15)" stroke-width="1"/>
+
+      <!-- Actor column divider -->
+      <line x1="160" y1="32" x2="160" y2="680" stroke="rgba(45,49,66,0.15)" stroke-width="1"/>
+
+      <!-- Lane labels -->
+      <text x="80" y="94" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">FORMALITIES</text>
+      <text x="80" y="206" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">RESEARCH</text>
+      <text x="80" y="318" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">LITERATURE</text>
+      <text x="80" y="430" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">PUBLICATIONS</text>
+      <text x="80" y="542" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">WRITING</text>
+      <text x="80" y="644" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">COLLABORATION</text>
+
+      <!-- ============================================ -->
+      <!-- FORMALITIES LANE -->
+      <!-- ============================================ -->
+      <!-- Registration -->
+      <rect x="180" y="64" width="120" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="240" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Registration</text>
+      <text x="240" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">day 0 · anchor date</text>
+
+      <!-- Coursework -->
+      <rect x="320" y="64" width="100" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="370" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Coursework</text>
+      <text x="370" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">mandatory graded</text>
+
+      <!-- DAC Setup -->
+      <rect x="440" y="64" width="100" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="490" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">DAC Setup</text>
+      <text x="490" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">~month 1</text>
+
+      <!-- IPAC Protocol -->
+      <rect x="560" y="64" width="120" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="620" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">IPAC Protocol</text>
+      <text x="620" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">~month 2 · critical</text>
+
+      <!-- DAC Reports (recurring) -->
+      <rect x="720" y="64" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="780" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">DAC Reports</text>
+      <text x="780" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">every 6 months</text>
+
+      <!-- Registration Renewal -->
+      <rect x="860" y="64" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="920" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Renewal</text>
+      <text x="920" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">annual · don't miss</text>
+
+      <!-- Synopsis -->
+      <rect x="1000" y="64" width="120" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="1060" y="86" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Synopsis</text>
+      <text x="1060" y="100" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">pre-defense · months 30+</text>
+
+      <!-- Arrows within Formalities -->
+      <line x1="300" y1="88" x2="320" y2="88" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="420" y1="88" x2="440" y2="88" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="540" y1="88" x2="560" y2="88" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="680" y1="88" x2="720" y2="88" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="840" y1="88" x2="860" y2="88" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="980" y1="88" x2="1000" y2="88" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ============================================ -->
+      <!-- RESEARCH LANE -->
+      <!-- ============================================ -->
+      <!-- Read Guide's Papers -->
+      <rect x="180" y="168" width="130" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="245" y="190" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Read Guide's Papers</text>
+      <text x="245" y="204" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">understand lichen work</text>
+
+      <!-- Field Collection -->
+      <rect x="340" y="168" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="190" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Field Collection</text>
+      <text x="400" y="204" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">lichen samples · flex</text>
+
+      <!-- Public Database Mining -->
+      <rect x="480" y="168" width="140" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="550" y="190" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Database Mining</text>
+      <text x="550" y="204" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PubChem · PDB · lit</text>
+
+      <!-- Computational Analysis -->
+      <rect x="640" y="168" width="140" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="710" y="190" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Computational Work</text>
+      <text x="710" y="204" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">docking · MD · ADMET</text>
+
+      <!-- Results & Validation -->
+      <rect x="800" y="168" width="130" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="865" y="190" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Results & Validation</text>
+      <text x="865" y="204" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">analyze · reproduce</text>
+
+      <!-- Arrows within Research -->
+      <line x1="310" y1="192" x2="340" y2="192" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="460" y1="192" x2="480" y2="192" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="620" y1="192" x2="640" y2="192" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <line x1="780" y1="192" x2="800" y2="192" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ============================================ -->
+      <!-- LITERATURE LANE -->
+      <!-- ============================================ -->
+      <!-- Literature Review Start -->
+      <rect x="180" y="280" width="130" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="245" y="302" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Start Lit Review</text>
+      <text x="245" y="316" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">from day 1 · ongoing</text>
+
+      <!-- Annotated Reading -->
+      <rect x="340" y="280" width="130" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="405" y="302" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Annotated Reading</text>
+      <text x="405" y="316" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">notes · tags · links</text>
+
+      <!-- Review Paper Draft -->
+      <rect x="500" y="280" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="560" y="302" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Review Paper</text>
+      <text x="560" y="316" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">1 of 2 required pubs</text>
+
+      <!-- Ongoing Collection -->
+      <rect x="660" y="280" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="720" y="302" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Ongoing Collect</text>
+      <text x="720" y="316" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">as research evolves</text>
+
+      <!-- Arrows within Literature -->
+      <line x1="310" y1="304" x2="340" y2="304" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="470" y1="304" x2="500" y2="304" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="620" y1="304" x2="660" y2="304" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ============================================ -->
+      <!-- PUBLICATIONS LANE -->
+      <!-- ============================================ -->
+      <!-- Conference 1 -->
+      <rect x="340" y="392" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="414" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Conference 1</text>
+      <text x="400" y="428" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">poster · presentation</text>
+
+      <!-- Conference 2 -->
+      <rect x="500" y="392" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="560" y="414" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Conference 2</text>
+      <text x="560" y="428" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">required · cert needed</text>
+
+      <!-- Original Research Paper -->
+      <rect x="660" y="392" width="140" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="730" y="414" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Original Research</text>
+      <text x="730" y="428" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Scopus/WoS · 1st author</text>
+
+      <!-- Submission Tracker -->
+      <rect x="840" y="392" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="900" y="414" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Submit & Track</text>
+      <text x="900" y="428" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">status · revisions</text>
+
+      <!-- Arrows within Publications -->
+      <line x1="460" y1="416" x2="500" y2="416" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="620" y1="416" x2="660" y2="416" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <line x1="800" y1="416" x2="840" y2="416" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ============================================ -->
+      <!-- WRITING LANE -->
+      <!-- ============================================ -->
+      <!-- Thesis Outline -->
+      <rect x="340" y="504" width="110" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="395" y="526" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Thesis Outline</text>
+      <text x="395" y="540" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">structure early</text>
+
+      <!-- Draft Chapters -->
+      <rect x="480" y="504" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="540" y="526" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Draft Chapters</text>
+      <text x="540" y="540" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">LaTeX/Markdown</text>
+
+      <!-- Paper Manuscripts -->
+      <rect x="620" y="504" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="680" y="526" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Manuscripts</text>
+      <text x="680" y="540" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">journal format</text>
+
+      <!-- Final Thesis -->
+      <rect x="800" y="504" width="120" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="860" y="526" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Final Thesis</text>
+      <text x="860" y="540" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Annexure 37–40</text>
+
+      <!-- Defense Prep -->
+      <rect x="960" y="504" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1020" y="526" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Defense Prep</text>
+      <text x="1020" y="540" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">public defense</text>
+
+      <!-- Arrows within Writing -->
+      <line x1="450" y1="528" x2="480" y2="528" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="600" y1="528" x2="620" y2="528" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="740" y1="528" x2="800" y2="528" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <line x1="920" y1="528" x2="960" y2="528" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ============================================ -->
+      <!-- COLLABORATION LANE -->
+      <!-- ============================================ -->
+      <!-- Guide Meetings -->
+      <rect x="180" y="616" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="240" y="638" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Guide Meetings</text>
+      <text x="240" y="652" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">regular cadence</text>
+
+      <!-- DAC Presentations -->
+      <rect x="340" y="616" width="130" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="405" y="638" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">DAC Presentations</text>
+      <text x="405" y="652" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">every 6 months</text>
+
+      <!-- Daily Log -->
+      <rect x="500" y="616" width="100" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="550" y="638" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Daily Log</text>
+      <text x="550" y="652" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">fast · fun · ADHD OK</text>
+
+      <!-- Weekly Review -->
+      <rect x="620" y="616" width="110" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="675" y="638" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Weekly Review</text>
+      <text x="675" y="652" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">plan · reflect</text>
+
+      <!-- Semester Review -->
+      <rect x="760" y="616" width="120" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="820" y="638" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Semester Review</text>
+      <text x="820" y="652" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">6-month cadence</text>
+
+      <!-- Arrows within Collaboration -->
+      <line x1="300" y1="640" x2="340" y2="640" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="470" y1="640" x2="500" y2="640" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="600" y1="640" x2="620" y2="640" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="730" y1="640" x2="760" y2="640" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ============================================ -->
+      <!-- CROSS-LANE HANDOFFS (coral = critical) -->
+      <!-- ============================================ -->
+      <!-- Lit Review feeds into Review Paper -->
+      <path d="M 245 328 L 245 340 Q 245 348 253 348 L 552 348 Q 560 348 560 340 L 560 328" stroke="#eb6c36" stroke-width="1.2" fill="none" stroke-dasharray="5,4" marker-end="url(#arrow-accent)"/>
+      <rect x="370" y="340" width="96" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="418" y="350" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FEEDS PAPER</text>
+
+      <!-- Review Paper feeds into Publication -->
+      <path d="M 560 328 L 560 368 Q 560 376 568 376 L 722 376 Q 730 376 730 368 L 730 440" stroke="#4f5d75" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+      <rect x="620" y="368" width="80" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="660" y="378" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MANUSCRIPT</text>
+
+      <!-- Research feeds into Original Research Paper -->
+      <path d="M 865 216 L 865 376 Q 865 384 857 384 L 740 384 Q 732 384 732 376 L 732 440" stroke="#4f5d75" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+      <rect x="820" y="280" width="60" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="850" y="290" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
+
+      <!-- Publications feed into Thesis -->
+      <path d="M 900 440 L 900 504" stroke="#4f5d75" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+      <rect x="880" y="460" width="60" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="910" y="470" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CHAPTERS</text>
+
+      <!-- Daily Log feeds into DAC Reports -->
+      <path d="M 550 616 L 550 600 Q 550 592 542 592 L 788 592 Q 780 592 780 584 L 780 112" stroke="#4f5d75" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="640" y="584" width="72" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="676" y="594" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">POPS DATA</text>
+
+      <!-- ============================================ -->
+      <!-- LEGEND -->
+      <!-- ============================================ -->
+      <line x1="40" y1="700" x2="1160" y2="700" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="716" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="40" y="732" width="14" height="10" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="60" y="740" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
+
+      <rect x="132" y="732" width="14" height="10" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="152" y="740" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Critical milestone</text>
+
+      <line x1="288" y1="738" x2="316" y2="738" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <text x="324" y="740" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Within-lane flow</text>
+
+      <line x1="460" y1="738" x2="488" y2="738" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <text x="496" y="740" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Critical path</text>
+
+      <line x1="620" y1="738" x2="648" y2="738" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="656" y="740" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Cross-lane handoff</text>
+
+      <rect x="812" y="732" width="14" height="10" rx="2" fill="rgba(45,49,66,0.04)" stroke="rgba(45,49,66,0.15)" stroke-width="1"/>
+      <text x="832" y="740" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Phase boundary</text>
+    </svg>
+  </div>
+</body>
+</html>
