@@ -54,7 +54,8 @@ const env_ = (env) => ({
   cookieName: "phdos_session",
 });
 const isPublic = (p) =>
-  p === "/login" || p === "/logout" || p.startsWith("/oauth/") || p.startsWith("/admin");
+  p === "/login" || p === "/logout" || p.startsWith("/oauth/") || p.startsWith("/admin") ||
+  p === "/digest.html" || p === "/site/digest.html" || p === "/research/papers/digest-latest.md";
 
 /* ---------- login page (quiet) ---------- */
 const loginPage = (msg, next) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
