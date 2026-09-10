@@ -126,6 +126,7 @@ export default {
           headers: { Accept: "application/json", "Content-Type": "application/json" },
           body: JSON.stringify({ client_id: cfg.clientId, client_secret: cfg.clientSecret, code: url.searchParams.get("code") }),
         }).then((r) => r.json());
+        console.log("[DEBUG-oauth] exchange keys:", Object.keys(tok), "err:", tok.error || "none", "desc:", (tok.error_description || "").slice(0, 120));
         if (!tok.access_token) return new Response(loginPage(`GitHub sign-in failed — no token returned. ${tok.error || ""} ${tok.error_description || ""}`.trim(), "/"), { status: 401, headers: { "content-type": "text/html" } });
         const me = await fetch(`${GH}/user`, { headers: { Authorization: `Bearer ${tok.access_token}` } }).then((r) => r.json());
         if (!cfg.allowed.has((me.login || "").toLowerCase())) {
