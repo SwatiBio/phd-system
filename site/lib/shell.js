@@ -85,8 +85,6 @@ const titleFor = (page) => {
   return "PhD-OS";
 };
 
-const REPO = "SwatiBio/phd-system";
-
 const topRowHTML = `
 <div class="app-bar">
   <div class="app-bar-side">
@@ -97,13 +95,6 @@ const topRowHTML = `
     <span class="app-bar-title">${titleFor(current())}</span>
   </div>
   <div class="app-bar-side">
-    <a class="iconbtn bar-help" id="bar-help" href="https://github.com/${REPO}"
-       aria-label="PhD-OS on GitHub" title="PhD-OS on GitHub">
-      <i class="ph ph-question"></i>
-    </a>
-    <a class="avatar" id="bar-avatar" href="/login" aria-label="Sign in">
-      <span id="bar-avatar-letter" aria-hidden="true">?</span>
-    </a>
     <button type="button" class="iconbtn theme-icons" id="theme-toggle" aria-label="Toggle dark mode"
             onclick="window.basecoat?.theme?.toggle()">
       <i class="ph ph-sun icon-sun"></i>
@@ -139,20 +130,10 @@ if (pageH1) {
 /* let basecoat initialize the freshly injected sidebar */
 try { window.basecoat?.initAll?.(); } catch (_) {}
 
-/* fill the avatar with the GitHub initial; hide Sign out when anonymous */
+/* hide Sign out when anonymous */
 fetch("/api/whoami")
   .then((r) => (r.ok ? r.json() : {}))
   .then((j) => {
-    if (!j.login) {
-      document.querySelectorAll('a[href="/logout"]').forEach((a) => (a.hidden = true));
-      return;
-    }
-    const avatar = document.getElementById("bar-avatar");
-    const letter = document.getElementById("bar-avatar-letter");
-    if (avatar && letter) {
-      avatar.href = "https://github.com/" + encodeURIComponent(j.login);
-      avatar.setAttribute("aria-label", "GitHub profile — " + j.login);
-      letter.textContent = (j.login[0] || "?").toUpperCase();
-    }
+    if (!j.login) document.querySelectorAll('a[href="/logout"]').forEach((a) => (a.hidden = true));
   })
   .catch(() => {});

@@ -142,9 +142,6 @@
     .iconbtn i { line-height: 1; }
     .menu-toggle { display: inline-flex; }
     @media (min-width: 48rem) { button.menu-toggle { display: none; } }
-    /* less clutter on mobile: only title + avatar + theme toggle */
-    .bar-help { display: none; }
-    @media (min-width: 48rem) { .bar-help { display: inline-flex; } }
     .theme-icons .icon-sun { display: none; }
     .theme-icons .icon-moon { display: inline-block; }
     .dark .theme-icons .icon-sun { display: inline-block; }
@@ -201,14 +198,6 @@
       color: var(--color-sidebar-accent-foreground);
       font-weight: 500;
     }
-    /* avatar in the top bar */
-    .avatar {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 2.25rem; height: 2.25rem; border-radius: 999px;
-      background: var(--sidebar-accent); color: var(--sidebar-accent-foreground);
-      font-weight: 600; font-size: .8125rem; text-decoration: none;
-    }
-    .avatar:hover { box-shadow: 0 0 0 2px var(--sidebar-accent-foreground); }
 
     /* preview note */
     .preview-note {
@@ -352,13 +341,6 @@
         <span class="app-bar-title">Today</span>
       </div>
       <div class="app-bar-side">
-        <a class="iconbtn bar-help" href="https://github.com/SwatiBio/phd-system"
-           aria-label="PhD-OS on GitHub" title="PhD-OS on GitHub">
-          <i class="ph ph-question"></i>
-        </a>
-        <a class="avatar" href="/login" aria-label="Sign in">
-          <span aria-hidden="true">?</span>
-        </a>
         <button type="button" class="iconbtn theme-icons" aria-label="Toggle dark mode"
                 onclick="window.basecoat?.theme?.toggle()">
           <i class="ph ph-sun icon-sun"></i>

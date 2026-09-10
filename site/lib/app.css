@@ -117,14 +117,6 @@ body { font-feature-settings: "tnum" 1; }
   color: var(--card-foreground); padding-left: .375rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* avatar in the top bar (GitHub initial; links to profile / login) */
-.avatar {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; border-radius: 999px;
-  background: var(--sidebar-accent); color: var(--sidebar-accent-foreground);
-  font-weight: 600; font-size: .8125rem; text-decoration: none;
-}
-.avatar:hover { box-shadow: 0 0 0 2px var(--sidebar-accent-foreground); }
 
 .content {
   max-width: 72rem; margin-inline: auto;
@@ -141,9 +133,6 @@ body { font-feature-settings: "tnum" 1; }
 
 .menu-toggle { display: inline-flex; }
 @media (min-width: 48rem) { button.menu-toggle { display: none; } }
-/* less clutter on mobile: only title + avatar + theme toggle */
-.bar-help { display: none; }
-@media (min-width: 48rem) { .bar-help { display: inline-flex; } }
 
 /* theme toggle icon swap */
 .theme-icons .icon-sun { display: none; }
