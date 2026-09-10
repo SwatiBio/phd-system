@@ -1,7 +1,8 @@
-// PhDOS Worker — GitHub OAuth gate + /api proxy (pattern: udit-001/workouts).
-// Gate: only allowlisted GitHub users see the app. /admin stays public (Sveltia
-// has its own login). Vault data never sits here: /api reads/writes the private
-// repo server-side with GITHUB_TOKEN, so the browser holds no credentials.
+// PhDOS Worker — GitHub OAuth gate + write proxy (pattern: udit-001/workouts).
+// READS: vault files deploy with the site (assets dir = repo root) and are
+// gated by login — same as workouts' content/. WRITES: the user's own OAuth
+// token (scope: repo), returned at login, is stored in the signed session and
+// used server-side by /api/write. Browser holds no credentials; no PAT needed.
 
 const encoder = new TextEncoder();
 const SESSION_DAYS = 30;
@@ -50,7 +51,6 @@ const env_ = (env) => ({
   clientId: env.GITHUB_CLIENT_ID,
   clientSecret: env.GITHUB_CLIENT_SECRET,
   sessionSecret: env.AUTH_SESSION_SECRET,
-  ghToken: env.GITHUB_TOKEN,
   cookieName: "phdos_session",
 });
 const isPublic = (p) =>
@@ -71,12 +71,11 @@ text-decoration:none;font-weight:500}a:hover{background:rgb(0 0 0/82%)}small{dis
 
 /* ---------- github helpers ---------- */
 const GH = "https://api.github.com";
-async function ghApi(env, path, init = {}) {
-  const cfg = env_(env);
+async function ghApi(token, repo, path, init = {}) {
   const r = await fetch(`${GH}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${cfg.ghToken}`,
+      Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github.raw",
       "Content-Type": "application/json",
       ...(init.headers || {}),
@@ -102,7 +101,6 @@ export default {
     if (!cfg.sessionSecret || !cfg.clientId || !cfg.clientSecret) {
       return new Response(loginPage("Setup incomplete — worker secrets are missing (GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, AUTH_SESSION_SECRET).", "/"), { headers: { "content-type": "text/html" } });
     }
-
     // public routes
     if (isPublic(url.pathname)) {
       if (url.pathname === "/logout") {
@@ -113,7 +111,7 @@ export default {
         const auth = new URL("https://github.com/login/oauth/authorize");
         auth.searchParams.set("client_id", cfg.clientId);
         auth.searchParams.set("redirect_uri", `${url.origin}/oauth/callback`);
-        auth.searchParams.set("scope", "");
+        auth.searchParams.set("scope", "repo");
         auth.searchParams.set("state", state);
         return redirect(auth.toString());
       }
@@ -130,7 +128,7 @@ export default {
         if (!cfg.allowed.has((me.login || "").toLowerCase())) {
           return new Response(loginPage(`Signed in as ${me.login || "?"}, but this app is private. Ask the owner to allowlist you.`, "/"), { status: 403, headers: { "content-type": "text/html" } });
         }
-        const session = await signSession(cfg.sessionSecret, { login: me.login, exp: Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400 });
+        const session = await signSession(cfg.sessionSecret, { login: me.login, gh: tok.access_token, exp: Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400 });
         return new Response(null, { status: 302, headers: { Location: state.next || "/", "Set-Cookie": `${cfg.cookieName}=${encodeURIComponent(session)}; Max-Age=${SESSION_DAYS * 86400}; Path=/; HttpOnly; Secure; SameSite=Lax` } });
       }
       // /admin and other public paths → static assets
@@ -146,34 +144,24 @@ export default {
       return new Response(JSON.stringify({ error: "authentication required" }), { status: 401, headers: { "content-type": "application/json" } });
     }
 
-    // /api proxy
-    if (url.pathname === "/api/file") {
-      const p = safePath(url.searchParams.get("path"));
-      if (!p) return new Response(JSON.stringify({ error: "bad path" }), { status: 400, headers: { "content-type": "application/json" } });
-      if (request.method === "GET") {
-        const r = await ghApi(env, `/repos/${cfg.repo}/contents/${p}`);
-        if (r.status === 404) return new Response(JSON.stringify({ error: "not found" }), { status: 404, headers: { "content-type": "application/json" } });
-        if (!r.ok) return new Response(JSON.stringify({ error: `github ${r.status}` }), { status: 502, headers: { "content-type": "application/json" } });
-        return new Response(await r.text(), { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
-      }
-      if (request.method === "PUT") {
-        const body = await request.json();
-        const p2 = safePath(body.path);
-        if (!p2 || typeof body.text !== "string") return new Response(JSON.stringify({ error: "bad request" }), { status: 400, headers: { "content-type": "application/json" } });
-        const meta = await ghApi(env, `/repos/${cfg.repo}/contents/${p2}`).then((r) => (r.status === 404 ? null : r.json()));
-        const put = await ghApi(env, `/repos/${cfg.repo}/contents/${p2}`, {
-          method: "PUT",
-          body: JSON.stringify({
-            message: (body.message || "app edit").slice(0, 200),
-            content: btoa(unescape(encodeURIComponent(body.text))),
-            branch: cfg.branch,
-            ...(meta?.sha ? { sha: meta.sha } : {}),
-          }),
-        });
-        if (!put.ok) return new Response(JSON.stringify({ error: `github ${put.status}` }), { status: 502, headers: { "content-type": "application/json" } });
-        return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
-      }
-      return new Response(JSON.stringify({ error: "method" }), { status: 405, headers: { "content-type": "application/json" } });
+    // /api/write — commit via the user's own OAuth token (stored in session)
+    if (url.pathname === "/api/write") {
+      if (request.method !== "PUT") return new Response(JSON.stringify({ error: "method" }), { status: 405, headers: { "content-type": "application/json" } });
+      const body = await request.json();
+      const p = safePath(body.path);
+      if (!p || typeof body.text !== "string") return new Response(JSON.stringify({ error: "bad request" }), { status: 400, headers: { "content-type": "application/json" } });
+      const meta = await ghApi(session.gh, cfg.repo, `/repos/${cfg.repo}/contents/${p}`).then((r) => (r.status === 404 ? null : r.json()));
+      const put = await ghApi(session.gh, cfg.repo, `/repos/${cfg.repo}/contents/${p}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          message: (body.message || "app edit").slice(0, 200),
+          content: btoa(unescape(encodeURIComponent(body.text))),
+          branch: cfg.branch,
+          ...(meta?.sha ? { sha: meta.sha } : {}),
+        }),
+      });
+      if (!put.ok) return new Response(JSON.stringify({ error: `github ${put.status}` }), { status: 502, headers: { "content-type": "application/json" } });
+      return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
     // gated static assets

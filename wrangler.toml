@@ -1,5 +1,8 @@
 name = "phdos"
 compatibility_date = "2026-09-01"
+# Static assets = the whole repo (workouts model): vault files deploy with the
+# site and are gated by login (worker.js); the CMS shell at /admin stays public
+# (Sveltia has its own login). No vault data is ever served unauthenticated.
 main = "worker.js"
 
 # Static assets: site/ holds the morning brief (index.html) + the CMS (admin/).
@@ -7,7 +10,7 @@ main = "worker.js"
 # reads/writes to the private GitHub repo server-side (GITHUB_TOKEN secret),
 # so the browser holds no credentials.
 [assets]
-directory = "./site"
+directory = "."
 binding = "ASSETS"
 
 [vars]
