@@ -59,13 +59,13 @@ const isPublic = (p) =>
 /* ---------- login page (quiet) ---------- */
 const loginPage = (msg, next) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>PhDOS — sign in</title>
+<title>PhD-OS — sign in</title>
 <style>*{box-sizing:border-box;margin:0}body{font-family:Inter,system-ui,sans-serif;background:#fff;color:#000;
 min-height:100vh;display:grid;place-items:center;padding:24px}main{max-width:22rem;width:100%}
 h1{font-size:22px;font-weight:600;letter-spacing:-.01em}p{color:rgb(0 0 0/64%);font-size:15px;margin-top:8px}
 a{display:block;text-align:center;margin-top:24px;padding:12px 20px;background:#000;color:#fff;border-radius:8px;
 text-decoration:none;font-weight:500}a:hover{background:rgb(0 0 0/82%)}small{display:block;margin-top:16px;color:rgb(0 0 0/56%)}</style>
-</head><body><main><h1>PhDOS</h1><p>${msg}</p>
+</head><body><main><h1>PhD-OS</h1><p>${msg}</p>
 <a href="/oauth/start?next=${encodeURIComponent(next || "/")}">Sign in with GitHub</a>
 <small>Your vault stays private — this gate only proves who you are.</small></main></body></html>`;
 
