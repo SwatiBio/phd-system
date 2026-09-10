@@ -1,8 +1,16 @@
 name = "phdos"
 compatibility_date = "2026-09-01"
+main = "worker.js"
 
 # Static assets: site/ holds the morning brief (index.html) + the CMS (admin/).
-# No vault data is deployed — both views render repo content client-side
-# via the user's GitHub token.
+# worker.js gates everything except /admin, /login, /oauth — and proxies vault
+# reads/writes to the private GitHub repo server-side (GITHUB_TOKEN secret),
+# so the browser holds no credentials.
 [assets]
 directory = "./site"
+binding = "ASSETS"
+
+[vars]
+GITHUB_REPO = "SwatiBio/phd-system"
+GITHUB_BRANCH = "main"
+AUTH_ALLOWED_GITHUB_LOGINS = "SwatiBio"

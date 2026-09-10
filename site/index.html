@@ -146,16 +146,6 @@
 </head>
 <body>
   <main>
-    <div id="gate" class="gate" hidden>
-      <h1 class="today" style="margin-bottom: 16px;">PhDOS</h1>
-      <p>One-time setup: paste a GitHub token with <strong>Contents: read and write</strong> access to <code>SwatiBio/phd-system</code>. It stays in this browser only.</p>
-      <div class="log-row">
-        <input id="token" class="log-input" type="password" autocomplete="off" placeholder="github_pat_…" />
-      </div>
-      <button class="primary" id="save-token">Start</button>
-      <p style="margin-top: 16px; font-size: 15px;"><a href="?demo=1">Look around in demo mode</a> — no token needed.</p>
-    </div>
-
     <div id="app" hidden>
       <div class="date-row">
         <h1 class="today" id="today-date"></h1>
@@ -184,20 +174,31 @@
 
       <footer>
         <a href="./admin/">Open CMS</a>
-        <a href="#" id="reset-token">Sign out</a>
+        <a href="/logout">Sign out</a>
       </footer>
     </div>
   </main>
 
   <script type="module">
-    const REPO = "SwatiBio/phd-system";
-    const TOKEN_KEY = "phdos-gh-token";
-    const TAGS = ["experiment", "paper", "reading", "idea", "coursework", "meeting", "admin"];
-
-    const $ = (id) => document.getElementById(id);
     const demo = new URLSearchParams(location.search).get("demo") === "1";
-    let token = demo ? null : localStorage.getItem(TOKEN_KEY);
 
+    /* ---------- vault api (server-proxied, no credentials in browser) ---------- */
+    async function ghGet(path) {
+      const r = await fetch(`/api/file?path=${encodeURIComponent(path)}`);
+      if (r.status === 404) return null;
+      if (r.status === 401) { location.href = "/login"; return new Promise(() => {}); }
+      if (!r.ok) throw new Error(`GET ${path}: ${r.status}`);
+      return { text: await r.text(), meta: {} };
+    }
+    async function ghPut(path, text, _sha, msg) {
+      const r = await fetch("/api/file", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path, text, message: msg }),
+      });
+      if (r.status === 401) { location.href = "/login"; return new Promise(() => {}); }
+      if (!r.ok) throw new Error(`PUT ${path}: ${r.status} ${await r.text()}`);
+    }
     /* ---------- date helpers ---------- */
     const iso = (d) => d.toISOString().slice(0, 10);
     const today = new Date();
@@ -205,30 +206,8 @@
     const fmtDay = (d) => d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
     const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
 
-    /* ---------- github api ---------- */
-    const headers = () => ({
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github.raw",
-    });
-    async function ghGet(path) {
-      const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { headers: headers() });
-      if (r.status === 404) return null;
-      if (!r.ok) throw new Error(`GET ${path}: ${r.status}`);
-      return { text: await r.text(), meta: await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { headers: { Authorization: `Bearer ${token}` } }).then((x) => x.json()) };
-    }
-    async function ghPut(path, text, sha, msg) {
-      const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: msg,
-          content: btoa(unescape(encodeURIComponent(text))),
-          sha,
-          branch: "main",
-        }),
-      });
-      if (!r.ok) throw new Error(`PUT ${path}: ${r.status} ${await r.text()}`);
-    }
+    const TAGS = ["experiment", "paper", "reading", "idea", "coursework", "meeting", "admin"];
+    const $ = (id) => document.getElementById(id);
 
     /* ---------- parsers ---------- */
     function parseTasks(text) {
@@ -385,7 +364,6 @@
       $("task-body").innerHTML = `<p class="task-none">Could not load: ${e.message.slice(0, 100)}</p>`;
     }
     function boot(demoData) {
-      $("gate").hidden = true;
       $("app").hidden = false;
       $("today-date").textContent = fmtDay(today);
       if (demoData) {
@@ -406,23 +384,10 @@
       const d = new Date(); const mk = (n) => { const x = new Date(d); x.setDate(d.getDate() + n); return iso(x); };
       const dates = new Set([iso(d), mk(-1), mk(-2), mk(-4), mk(-5), mk(-6)]);
       boot({ tasks: [{ done: false, due: mk(2), text: "Register coursework — Annexure 19, 12 credits" }], milestone: { title: "Joining & Registration", date: mk(5), days: 5 }, dates });
-    } else if (token) {
-      boot();
     } else {
-      $("gate").hidden = false;
-      $("save-token").addEventListener("click", () => {
-        const v = $("token").value.trim();
-        if (!v) return;
-        localStorage.setItem(TOKEN_KEY, v);
-        token = v;
-        boot();
-      });
-      $("reset-token").addEventListener("click", (e) => { e.preventDefault(); localStorage.removeItem(TOKEN_KEY); location.reload(); });
+      boot();
     }
     renderChips();
-    $("reset-token").addEventListener("click", (e) => {
-      if (demo) { e.preventDefault(); location.href = "./"; }
-    });
   </script>
 </body>
 </html>
