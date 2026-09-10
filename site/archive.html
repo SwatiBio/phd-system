@@ -140,7 +140,7 @@
         const quiet = wk.entries === 0 ? " quiet" : "";
         const stats = wk.entries === 0 ? "no entries" : `${wk.entries} entr${wk.entries > 1 ? "ies" : "y"} · ${wk.logged}/7 days`;
         html += `<a class="week${quiet}" href="/logbook.html?week=${wk.monday}">
-          <span class="range">${fmt(wk.monday)} – ${fmt(iso(end))}${isThis ? '<span class="thisweek">this week</span>' : ""}</span>
+          <span class="range">${fmt(wk.monday)} – ${fmt(iso(end))}${isThis ? ' <span class="thisweek">this week</span>' : ""}</span>
           <span class="stats">${stats}</span></a>`;
       }
       list.innerHTML = html;
