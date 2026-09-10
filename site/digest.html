@@ -129,3 +129,8 @@
   </script>
 </body>
 </html>
+
+  <script type="module">
+    try { const j = await (await fetch("/api/whoami")).json(); if (!j.login) document.querySelectorAll('a[href="/logout"]').forEach((a) => (a.hidden = true)); } catch {}
+  </script>
+</body>

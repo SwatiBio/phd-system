@@ -19,3 +19,6 @@ binding = "ASSETS"
 GITHUB_REPO = "SwatiBio/phd-system"
 GITHUB_BRANCH = "main"
 AUTH_ALLOWED_GITHUB_LOGINS = "SwatiBio"
+
+# Zotero save target collection (Phd-OS)
+ZOTERO_COLLECTION_KEY = "SBTY2T5N"
