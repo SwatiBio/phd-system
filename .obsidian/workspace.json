@@ -206,6 +206,7 @@
   },
   "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
+    "system/scripts/syncthing-add-phone.py",
     "system/scripts/debug-rest.py",
     "system/scripts/syncthing-add-folder.py",
     "Home.md",
@@ -233,7 +234,6 @@
     "system/harbor/mahe-guidelines-console.html",
     "system/harbor/mahe-guidelines-checklist.html",
     "system/harbor",
-    "later/money",
     "system/wayfinder/tickets/R1-mahe-annexure-28-fields.md",
     "system/wayfinder/tickets/15-month-1-reality-checkpoint.md",
     "system/wayfinder/tickets/14-final-build-plan-assembly.md",
