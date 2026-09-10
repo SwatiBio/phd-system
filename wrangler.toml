@@ -1,4 +1,4 @@
-name = "phdos"
+name = "phd-os"
 compatibility_date = "2026-09-01"
 # Static assets = the whole repo (workouts model): vault files deploy with the
 # site and are gated by login (worker.js); the CMS shell at /admin stays public
