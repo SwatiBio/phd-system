@@ -45,15 +45,15 @@ Order:
 
 ## Step 4 · Logbook for the guide (compliance)
 
-Generate the printable logbook page for this week (Section 19 mandate):
+Trigger the logbook job (PHDOS-29): run the generator so this week's printable page exists in `daily/meetings/print/` (week's dated entries, compact table, guide signature line — Section 19 mandate).
 
 ```
-uv run system/scripts/phd.py week
+gh workflow run logbook || uv run --no-project .github/scripts/logbook.py
 ```
 
-Confirm the file exists in `daily/meetings/print/` and tell the user exactly which file to print and hand over. The hard copy is the compliance artifact — the digital log stays the master record.
+Confirm the file exists and tell the user exactly which file to print and hand over. The hard copy is the compliance artifact — the digital log stays the master record.
 
-**Done when:** the file exists on disk and the user knows to print it. If the script fails, fix it — do not skip the step.
+**Done when:** the file exists on disk and the user knows to print it. If the generator fails, fix it — do not skip the step.
 
 ## Step 5 · Wrap (agent)
 
