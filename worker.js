@@ -126,7 +126,7 @@ export default {
           headers: { Accept: "application/json", "Content-Type": "application/json" },
           body: JSON.stringify({ client_id: cfg.clientId, client_secret: cfg.clientSecret, code: url.searchParams.get("code") }),
         }).then((r) => r.json());
-        if (!tok.access_token) return new Response(loginPage("GitHub sign-in failed — no token returned.", "/"), { status: 401, headers: { "content-type": "text/html" } });
+        if (!tok.access_token) return new Response(loginPage(`GitHub sign-in failed — no token returned. ${tok.error || ""} ${tok.error_description || ""}`.trim(), "/"), { status: 401, headers: { "content-type": "text/html" } });
         const me = await fetch(`${GH}/user`, { headers: { Authorization: `Bearer ${tok.access_token}` } }).then((r) => r.json());
         if (!cfg.allowed.has((me.login || "").toLowerCase())) {
           return new Response(loginPage(`Signed in as ${me.login || "?"}, but this app is private. Ask the owner to allowlist you.`, "/"), { status: 403, headers: { "content-type": "text/html" } });
