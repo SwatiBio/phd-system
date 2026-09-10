@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — tasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: rgb(0 0 0 / 100%);
+      --ink-2: rgb(0 0 0 / 64%);
+      --ink-3: rgb(0 0 0 / 56%);
+      --border: rgb(0 0 0 / 12%);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 15px; line-height: 1.5; color: var(--ink); background: #fff;
+      font-feature-settings: "tnum" 1;
+    }
+    main { max-width: 46rem; margin: 0 auto; padding: 40px 24px 96px; }
+    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; flex-wrap: wrap; }
+    .nav .brand { font-weight: 600; margin-right: 10px; }
+    .nav a { color: var(--ink-3); text-decoration: none; }
+    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
+    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+    h2 { font-size: 14px; font-weight: 500; color: var(--ink-3); margin: 32px 0 6px; text-transform: none; }
+    .meta { color: var(--ink-2); font-size: 14px; margin-top: 6px; }
+    ul { list-style: none; padding: 0; }
+    li {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 11px 4px; border-bottom: 1px solid var(--border);
+    }
+    li:last-child { border-bottom: none; }
+    .tick {
+      flex: none; width: 20px; height: 20px; margin-top: 2px;
+      border: 1px solid var(--ink-3); border-radius: 5px; background: #fff;
+      cursor: pointer; padding: 0; color: transparent; font-size: 13px; line-height: 1;
+    }
+    .tick:hover { border-color: var(--ink); }
+    .tick:disabled { opacity: .4; cursor: default; }
+    .body { flex: 1; min-width: 0; }
+    .when { white-space: nowrap; color: var(--ink-3); font-size: 13px; margin-top: 2px; }
+    .when.overdue { color: var(--ink); font-weight: 600; }
+    .rec { color: var(--ink-3); font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; margin-left: 6px; }
+    .src { color: var(--ink-3); font-size: 12px; }
+    li.done .body { color: var(--ink-3); text-decoration: line-through; }
+    .empty { color: var(--ink-2); margin-top: 20px; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--ink-2); font-size: 14px; }
+    .footer a { color: var(--ink); }
+    .saved { color: var(--ink-2); font-size: 13px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <main>
+        <nav class="nav" aria-label="Site">
+      <a class="brand" href="/">PhD-OS</a>
+      <a href="/">Today</a>
+      <a href="/tasks.html" aria-current="page">Tasks</a>
+      <a href="/timeline.html">Timeline</a>
+      <a href="/review.html">Review</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/digest.html">Digest</a>
+      <a href="/admin/">CMS</a>
+      <a href="/logout">Sign out</a>
+    </nav>
+    <h1>Tasks</h1>
+    <p class="meta" id="meta">Loading…</p>
+    <div id="content"></div>
+    <div class="footer">
+      Tick done here — it commits straight to <code>daily/tasks/tasks.md</code>.
+      To add or edit tasks, use <a href="/admin/#/collections/tasks">the CMS</a>.
+    </div>
+  </main>
+
+  <script type="module">
+    import { parseTasks, withTaskDone } from "/site/lib/tasks.js";
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const $ = (id) => document.getElementById(id);
+    const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
+    const fmt = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+    async function ghGet(path) {
+      const r = await fetch(`/${path}`);
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error(`GET ${path}: ${r.status}`);
+      return { text: await r.text(), meta: {} };
+    }
+    async function ghPut(path, text, msg) {
+      const r = await fetch("/api/write", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path, text, message: msg }),
+      });
+      if (r.status === 401) { location.href = "/login"; return new Promise(() => {}); }
+      if (!r.ok) throw new Error(`PUT ${path}: ${r.status}`);
+    }
+
+    function row(t) {
+      const li = document.createElement("li");
+      if (t.done) li.className = "done";
+      const btn = document.createElement("button");
+      btn.className = "tick";
+      btn.type = "button";
+      btn.textContent = "✓";
+      btn.setAttribute("aria-label", t.done ? "Mark not done" : "Mark done");
+      btn.disabled = true;                       // enabled after render, so a failed save cannot double-fire
+      const body = document.createElement("div");
+      body.className = "body";
+      const label = document.createElement("div");
+      label.textContent = t.text;
+      if (t.recurring) {
+        const rec = document.createElement("span");
+        rec.className = "rec";
+        rec.textContent = "recurring";
+        label.appendChild(rec);
+      }
+      body.appendChild(label);
+      if (t.due) {
+        const when = document.createElement("div");
+        const d = daysUntil(t.due);
+        when.className = "when" + (d < 0 && !t.done ? " overdue" : "");
+        when.textContent = t.done ? `was due ${fmt(t.due)}`
+          : d < 0 ? `overdue by ${-d} day${-d === 1 ? "" : "s"} · ${fmt(t.due)}`
+          : d === 0 ? "due today"
+          : `due ${fmt(t.due)} (in ${d} day${d === 1 ? "" : "s"})`;
+        body.appendChild(when);
+      } else {
+        const when = document.createElement("div");
+        when.className = "when";
+        when.textContent = "no date";
+        body.appendChild(when);
+      }
+      if (t.section) {
+        const src = document.createElement("div");
+        src.className = "src";
+        src.textContent = t.section;
+        body.appendChild(src);
+      }
+      li.append(btn, body);
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        try {
+          const f = await ghGet("daily/tasks/tasks.md");
+          await ghPut("daily/tasks/tasks.md", withTaskDone(f.text, t.raw, !t.done), `${t.done ? "task reopened" : "task done"}: ${t.text.slice(0, 50)}`);
+          await load(true);
+        } catch (e) {
+          btn.disabled = false;
+          $("meta").textContent = `Could not save: ${e.message.slice(0, 80)}`;
+        }
+      });
+      return li;
+    }
+
+    function group(title, items) {
+      if (!items.length) return null;
+      const wrap = document.createElement("section");
+      const h = document.createElement("h2");
+      h.textContent = `${title} · ${items.length}`;
+      const ul = document.createElement("ul");
+      for (const t of items) ul.appendChild(row(t));
+      wrap.append(h, ul);
+      return wrap;
+    }
+
+    async function load(isReload) {
+      const box = $("content");
+      if (!isReload) box.innerHTML = "";
+      let text;
+      try {
+        const f = await ghGet("daily/tasks/tasks.md");
+        text = f ? f.text : "";
+      } catch (e) {
+        $("meta").textContent = "";
+        box.innerHTML = `<p class="empty">Could not load tasks: ${e.message}</p>`;
+        return;
+      }
+      const all = parseTasks(text);
+      const open = all.filter((t) => !t.done);
+      const overdue = open.filter((t) => t.due && daysUntil(t.due) < 0).sort((a, b) => a.due.localeCompare(b.due));
+      const soon = open.filter((t) => t.due && daysUntil(t.due) >= 0 && daysUntil(t.due) <= 14).sort((a, b) => a.due.localeCompare(b.due));
+      const later = open.filter((t) => t.due && daysUntil(t.due) > 14).sort((a, b) => a.due.localeCompare(b.due));
+      const undated = open.filter((t) => !t.due);
+      const done = all.filter((t) => t.done);
+      done.sort((a, b) => (b.due || "").localeCompare(a.due || ""));
+
+      $("meta").textContent = `${open.length} open · ${overdue.length} overdue · ${done.length} done`;
+      box.innerHTML = "";
+      if (!all.length) {
+        box.innerHTML = `<p class="empty">No tasks in the file yet.</p>`;
+        return;
+      }
+      for (const [title, items] of [["Overdue", overdue], ["Next 14 days", soon], ["Later", later], ["No date", undated], ["Done", done]]) {
+        const g = group(title, items);
+        if (g) box.appendChild(g);
+      }
+      for (const b of box.querySelectorAll(".tick")) b.disabled = false;
+    }
+
+    await load(false);
+  </script>
+</body>
+</html>

@@ -154,12 +154,13 @@
 <body>
   <main>
     <div id="app" hidden>
-    <nav class="nav" aria-label="Site">
+        <nav class="nav" aria-label="Site">
       <a class="brand" href="/">PhD-OS</a>
       <a href="/" aria-current="page">Today</a>
-      <a href="/archive.html">Archive</a>
+      <a href="/tasks.html">Tasks</a>
       <a href="/timeline.html">Timeline</a>
       <a href="/review.html">Review</a>
+      <a href="/archive.html">Archive</a>
       <a href="/digest.html">Digest</a>
       <a href="/admin/">CMS</a>
       <a href="/logout">Sign out</a>
@@ -202,6 +203,7 @@
 
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
+    import { parseTasks, withTaskDone } from "/site/lib/tasks.js";
 
     const demo = new URLSearchParams(location.search).get("demo") === "1";
 
@@ -234,17 +236,6 @@
     const $ = (id) => document.getElementById(id);
 
     /* ---------- parsers ---------- */
-    function parseTasks(text) {
-      const out = [];
-      for (const line of text.split("\n")) {
-        const m = line.match(/^- \[( |x)\] (.+)$/);
-        if (!m) continue;
-        const done = m[1] === "x";
-        const d = m[2].match(/📅 (\d{4}-\d{2}-\d{2})/);
-        out.push({ done, text: m[2].replace(/📅.*/, "").replace(/🔁.*/, "").trim(), due: d ? d[1] : null, raw: line });
-      }
-      return out;
-    }
     function nextMilestone(text) {
       const m = parseMilestones(text).items.find((i) => daysUntil(i.date) >= 0);
       return m ? { title: m.title, date: m.date, days: daysUntil(m.date) } : null;
@@ -279,7 +270,7 @@
         <p class="task-due${days <= 3 ? " urgent" : ""}">${dueTxt} · ${one.due}</p>
         <div class="task-actions">
           <button class="primary" id="task-done">Done</button>
-          <a class="ghost done-task" href="/admin/#/collections/tasks" style="align-self:center;">All tasks</a>
+          <a class="ghost done-task" href="/tasks.html" style="align-self:center;">All tasks</a>
         </div>`;
       $("task-body").querySelector(".task-text").textContent = one.text;
       $("task-done").addEventListener("click", () => markDone(one));
@@ -288,7 +279,7 @@
       if (demo) { $("task-body").innerHTML = `<p class="task-none">Done (demo).</p>`; return; }
       try {
         const { text, meta } = await ghGet("daily/tasks/tasks.md");
-        const fixed = text.split("\n").map((l) => (l === task.raw ? l.replace("- [ ]", "- [x]") : l)).join("\n");
+        const fixed = withTaskDone(text, task.raw, true);
         await ghPut("daily/tasks/tasks.md", fixed, meta.sha, `task done: ${task.text.slice(0, 60)}`);
         renderTask(parseTasks(fixed).filter((t) => !t.done));
       } catch (e) { showError(e); }
