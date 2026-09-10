@@ -116,17 +116,15 @@
     body { font-feature-settings: "tnum" 1; }
     .content { max-width: 72rem; margin-inline: auto; padding: 1.5rem 1.25rem 4rem; }
 
-    /* top row: hamburger + theme toggle */
-    /* fixed app bar (references: workspaces-style 48px top bar) */
+    /* app bar: static header inside <main>, beside the full-height sidebar (Pharos-style) */
     .app-bar {
-      position: fixed; inset: 0 0 auto 0; height: 3rem; z-index: 1050;
       display: flex; align-items: center; justify-content: space-between; gap: .5rem;
-      padding: 0 .75rem;
-      background: var(--background);
+      min-height: 3rem; padding: .625rem 1rem;
+      background: var(--card);
       border-bottom: 1px solid var(--border);
     }
     @media (min-width: 48rem) {
-      .app-bar { padding: 0 calc(.75rem + 15rem); }
+      .app-bar { padding: .625rem 1.5rem; }
     }
     .app-bar-side { display: flex; align-items: center; gap: .25rem; min-width: 0; }
     .app-bar-title {
@@ -134,7 +132,7 @@
       color: var(--card-foreground); padding-left: .375rem;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .content { padding: calc(3rem + 1.25rem) 1.25rem 4rem; }
+    .content { max-width: 72rem; margin-inline: auto; padding: 1.5rem 1.25rem 4rem; }
     .iconbtn {
       display: inline-flex; align-items: center; justify-content: center;
       width: 2.25rem; height: 2.25rem; border-radius: var(--radius);
@@ -144,15 +142,18 @@
     .iconbtn i { line-height: 1; }
     .menu-toggle { display: inline-flex; }
     @media (min-width: 48rem) { button.menu-toggle { display: none; } }
+    /* less clutter on mobile: only title + avatar + theme toggle */
+    .bar-help { display: none; }
+    @media (min-width: 48rem) { .bar-help { display: inline-flex; } }
     .theme-icons .icon-sun { display: none; }
     .theme-icons .icon-moon { display: inline-block; }
     .dark .theme-icons .icon-sun { display: inline-block; }
     .dark .theme-icons .icon-moon { display: none; }
 
-    /* sidebar */
-    .sidebar nav { top: 3rem; }
+    /* sidebar: full-height fixed panel */
     .sidebar nav header {
       padding: 1rem .5rem .5rem;
+      border-bottom: 1px solid var(--sidebar-border);
     }
     .sidebar nav header a {
       display: flex; align-items: center; gap: .5rem;
@@ -176,8 +177,38 @@
       font-size: 11px; font-weight: 600; letter-spacing: .06em;
       text-transform: uppercase; color: var(--muted-foreground);
     }
+    .sidebar nav h3 { display: flex; align-items: center; gap: .375rem; }
+    .sidebar nav h3 > span:first-child { margin-right: auto; }
+    .sidebar nav h3 .grp-tools { display: inline-flex; align-items: center; gap: .375rem; }
+    .sidebar nav h3 .grp-tools i { font-size: .8125rem; opacity: .6; }
+    .grp-badge {
+      font-size: 11px; font-weight: 600; line-height: 1;
+      padding: 2px 6px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+    }
     .sidebar nav li > a:hover { background: var(--muted); color: inherit; }
     .sidebar nav li > a[aria-current="page"]:hover { background: var(--color-sidebar-accent); color: var(--color-sidebar-accent-foreground); }
+    /* sidebar links: flat full-bleed rows, Pharos-style — a 2px accent edge on the
+       active item (transparent 2px border on all links so nothing shifts) */
+    .sidebar nav li > a, .sidebar nav footer li > a {
+      border-left: 2px solid transparent; border-radius: 0;
+      padding: .375rem 1rem;
+      transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
+    }
+    .sidebar nav li > a[aria-current="page"] {
+      border-left-color: var(--color-sidebar-accent-foreground);
+      background: var(--color-sidebar-accent);
+      color: var(--color-sidebar-accent-foreground);
+      font-weight: 500;
+    }
+    /* avatar in the top bar */
+    .avatar {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2.25rem; height: 2.25rem; border-radius: 999px;
+      background: var(--sidebar-accent); color: var(--sidebar-accent-foreground);
+      font-weight: 600; font-size: .8125rem; text-decoration: none;
+    }
+    .avatar:hover { box-shadow: 0 0 0 2px var(--sidebar-accent-foreground); }
 
     /* preview note */
     .preview-note {
@@ -222,7 +253,13 @@
 
       <section class="scrollbar-sm">
         <div role="group" aria-labelledby="grp-daily">
-          <h3 id="grp-daily">Daily</h3>
+          <h3 id="grp-daily">
+            <span>Daily</span>
+            <span class="grp-tools">
+              <span class="grp-badge">3</span>
+              <i class="ph ph-caret-down" aria-hidden="true"></i>
+            </span>
+          </h3>
           <ul>
             <li>
               <a href="/" data-active="true" aria-current="page">
@@ -243,7 +280,13 @@
         </div>
 
         <div role="group" aria-labelledby="grp-progress">
-          <h3 id="grp-progress">Progress</h3>
+          <h3 id="grp-progress">
+            <span>Progress</span>
+            <span class="grp-tools">
+              <span class="grp-badge">3</span>
+              <i class="ph ph-caret-down" aria-hidden="true"></i>
+            </span>
+          </h3>
           <ul>
             <li>
               <a href="/timeline.html">
@@ -264,7 +307,13 @@
         </div>
 
         <div role="group" aria-labelledby="grp-research">
-          <h3 id="grp-research">Research</h3>
+          <h3 id="grp-research">
+            <span>Research</span>
+            <span class="grp-tools">
+              <span class="grp-badge">2</span>
+              <i class="ph ph-caret-down" aria-hidden="true"></i>
+            </span>
+          </h3>
           <ul>
             <li>
               <a href="/digest.html">
@@ -303,6 +352,13 @@
         <span class="app-bar-title">Today</span>
       </div>
       <div class="app-bar-side">
+        <a class="iconbtn bar-help" href="https://github.com/SwatiBio/phd-system"
+           aria-label="PhD-OS on GitHub" title="PhD-OS on GitHub">
+          <i class="ph ph-question"></i>
+        </a>
+        <a class="avatar" href="/login" aria-label="Sign in">
+          <span aria-hidden="true">?</span>
+        </a>
         <button type="button" class="iconbtn theme-icons" aria-label="Toggle dark mode"
                 onclick="window.basecoat?.theme?.toggle()">
           <i class="ph ph-sun icon-sun"></i>
@@ -317,10 +373,9 @@
         <span><strong>Layout preview, not the real app.</strong> Minimal shell — Basecoat UI (sidebar, card, progress) + Tailwind utilities + Phosphor icons, styled after the workout tracker: gray-50 canvas, white cards, hairline borders, blue accent on the active sidebar item. Theme follows your system by default; toggle with the sun/moon button. On mobile the hamburger opens the sidebar.</span>
       </div>
 
-      <!-- page header -->
+      <!-- page header: meta line only; the title lives in the top bar -->
       <header class="flex items-center gap-3 mb-8">
         <div class="min-w-0">
-          <h1 class="text-2xl font-semibold tracking-tight" style="color: var(--card-foreground)">Tuesday, 6 May</h1>
           <p class="text-sm" style="color: var(--muted-foreground)">4 days logged this week <span aria-hidden="true">·</span> 6 day streak</p>
         </div>
         <span id="viewport" class="ml-auto text-xs" style="color: var(--muted-foreground)">desktop</span>
@@ -434,16 +489,6 @@
     };
     window.addEventListener("resize", sync);
     sync();
-
-    // app bar mirrors the page's h1, like the real shell
-    const barTitle = document.querySelector(".app-bar-title");
-    const h1 = document.querySelector("main h1");
-    if (barTitle && h1) {
-      barTitle.textContent = h1.textContent.trim();
-      new MutationObserver(() => (barTitle.textContent = h1.textContent.trim())).observe(h1, {
-        childList: true, characterData: true, subtree: true,
-      });
-    }
   </script>
 </body>
 </html>
