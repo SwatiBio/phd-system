@@ -102,6 +102,12 @@ export default {
     if (!cfg.sessionSecret || !cfg.clientId || !cfg.clientSecret) {
       return new Response(loginPage("Setup incomplete — worker secrets are missing (GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, AUTH_SESSION_SECRET).", "/"), { headers: { "content-type": "text/html" } });
     }
+    // map root paths onto site/ (assets dir = repo root)
+    let assetPath = url.pathname;
+    if (assetPath === "/") assetPath = "/site/index.html";
+    else if (assetPath.startsWith("/admin")) assetPath = "/site" + assetPath;
+    const assetRequest = new Request(new URL(assetPath, url.origin), request);
+
     // public routes
     if (isPublic(url.pathname)) {
       if (url.pathname === "/login") {
@@ -148,7 +154,7 @@ export default {
         return new Response(null, { status: 302, headers: { Location: state.next || "/", "Set-Cookie": `${cfg.cookieName}=${encodeURIComponent(session)}; Max-Age=${SESSION_DAYS * 86400}; Path=/; HttpOnly; Secure; SameSite=Lax` } });
       }
       // /admin and other public paths → static assets
-      return env.ASSETS.fetch(request);
+      return env.ASSETS.fetch(assetRequest);
     }
 
     // gated: session required
@@ -180,10 +186,7 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
-    // gated static assets — map root paths onto site/ (assets dir = repo root)
-    let assetPath = url.pathname;
-    if (assetPath === "/") assetPath = "/site/index.html";
-    else if (assetPath.startsWith("/admin")) assetPath = "/site" + assetPath;
-    return env.ASSETS.fetch(new URL(assetPath, url.origin));
+    // gated static assets — already mapped above
+    return env.ASSETS.fetch(assetRequest);
   },
 };
