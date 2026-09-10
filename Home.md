@@ -79,7 +79,7 @@ if (piles.length) {
 
 ## 🔗 Quick links
 
-- [[system/milestones/milestones|Milestones (full MAHE requirements)]] · [[daily/tasks/tasks|All tasks]] · [[SETUP|Setup checklist]]
+- [[system/milestones/milestones|Milestones (full MAHE requirements)]] · [[daily/tasks/tasks|All tasks]] · [[SETUP|Setup checklist]] · [[later/publications/Publications|📚 Publications tracker]]
 - Capture: `phd log "..."` in a terminal · or just tell the agent
 
 ## 🗂️ Where things live

@@ -1,14 +1,20 @@
 ---
 map: map.md
 type: grilling
-status: open
-assignee: "" 
-
-## Note (pivot)
-
-Unclaimed — Publication/Money/etc. now get resolved **just-in-time** as the build reaches them (map Destination amended). First in frontier when decision work resumes. Design sketch already discussed: one note per publication, journal 8-state / conference 5-state machines, certificates as MAHE evidence.
+status: resolved
+assignee: hp + agent (this session)
 blocked-by: []
 ---
+
+## Resolution
+
+RESOLVED — **Publication object:** one note per publication (few per PhD; each carries reviewer comments, dates, certificates).
+
+- **Journal status machine (8 states):** `idea → drafting → guide-review → submitted → under-review → revision → accepted → published` — user chose detailed: months of limbo get precisely named, states cost nothing (frontmatter flips).
+- **Conference machine (5 states):** `abstract → submitted → accepted → presented → certificate` — certificate is the real final state (MAHE evidence, filed in `later/publications/certificates/`).
+- **Fields (frontmatter):** type · status · venue · index (Scopus/WoS/Q1) · submitted/accepted dates · requirement flags (first-author, thesis-related, MAHE-affiliation). Custom fields allowed (same pattern as Paper notes).
+- **Built:** template `system/templates/publication-note.md` + tracker `later/publications/Publications.md` (Bases table with All/Journals/Conferences views).
+- Distinctly named from the Paper object (papers-you-read) — no shapeshifter.
 
 ## Question
 

@@ -11,7 +11,7 @@ assignee: hp (user checklist; agent assists)
 - [ ] Enable plugins per SETUP.md + verify Home.md dashboard renders (Dataview first!)
 - [ ] Install Obsidian mobile on phone
 - [ ] Create Zotero account + install Zotero + Better BibTeX
-- [ ] Create private GitHub repo + connect remote + first push
+- [x] Create private GitHub repo + connect remote — DONE (SwatiBio/phd-system, pushed c285ac0). **Rule discovered:** `.obsidian/plugins/` is gitignored — plugin installs are re-downloadable and their code trips GitHub push protection (Remotely Save embeds OAuth credentials). Version only vault content + config.
 - [ ] Verify OneDrive signed in with space to spare
 - [ ] Configure Remotely Save (laptop + phone) with E2E password
 ---

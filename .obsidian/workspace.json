@@ -202,6 +202,8 @@
   },
   "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
+    "system/templates/publication-note.md",
+    "later/publications/Publications.md",
     "daily/logs/2026-09.md",
     "daily/meetings/rough-2026-09.md",
     "system/skills/refine-meeting/SKILL.md",
@@ -235,8 +237,6 @@
     "system/wayfinder/tickets/10-dac-report-assembler-spec.md",
     "system/wayfinder/tickets/09-sweep-contract.md",
     "system/wayfinder/tickets/08-object-templates.md",
-    "system/wayfinder/tickets/07-obsidian-configuration.md",
-    "system/wayfinder/tickets/06-script-cli-contract.md",
-    "system/wayfinder/tickets/05-vault-folder-structure.md"
+    "system/wayfinder/tickets/07-obsidian-configuration.md"
   ]
 }
