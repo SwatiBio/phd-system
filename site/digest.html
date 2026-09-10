@@ -76,6 +76,7 @@
       else {
         const md = (await r.text()).split("\n");
         const out = [];
+        const pending = [];
         let list = null;
         const closeList = () => { list = null; };
         for (const line of md) {
@@ -87,12 +88,15 @@
             const li = document.createElement("li");
             li.innerHTML = inline(line.slice(2));
             const doi = (line.match(/https:\/\/doi\.org\/(10\.[^)]+)/) || [])[1];
-            if (doi) {
-              li.appendChild(makeSaveBtn(doi));
-            }
+            if (doi) { li.dataset.doi = doi; pending.push(li); }
             list.appendChild(li);
           } else if (line.trim()) { closeList(); out.push(el("p", inline(line))); }
         }
+        // "→ Zotero" buttons appear only when signed in (PHDOS flow: saves are you-only)
+        try {
+          const w = await fetch("/api/whoami");
+          if (w.ok) for (const li of pending) li.appendChild(makeSaveBtn(li.dataset.doi));
+        } catch {}
         function makeSaveBtn(doi) {
           const b = document.createElement("button");
           b.className = "zsave";

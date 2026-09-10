@@ -189,6 +189,12 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
+    // /api/whoami — lets public pages know if this browser has a session
+    if (url.pathname === "/api/whoami") {
+      const s = await verifySession(cfg.sessionSecret, parseCookies(request)[cfg.cookieName] || "");
+      return new Response(JSON.stringify(s ? { login: s.login } : { login: null }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
+    }
+
     // /api/zotero/save — DOI -> metadata from doi.org -> Zotero item in Phd-OS collection
     if (url.pathname === "/api/zotero/save") {
       if (request.method !== "POST") return new Response(JSON.stringify({ error: "method" }), { status: 405, headers: { "content-type": "application/json" } });
