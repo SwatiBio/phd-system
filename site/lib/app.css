@@ -132,6 +132,15 @@ body { font-feature-settings: "tnum" 1; }
   transition: background 120ms ease;
 }
 .sidebar nav header a:hover { background: var(--muted); }
+.sidebar nav footer {
+  padding: .5rem;
+  border-top: 1px solid var(--sidebar-border);
+}
+.sidebar nav footer li > a {
+  padding: .625rem .75rem; border-radius: .5rem;
+  transition: background 120ms ease;
+}
+.sidebar nav footer li > a:hover { background: var(--muted); }
 .sidebar nav li > a > i { font-size: 1.125rem; flex-shrink: 0; }
 .sidebar nav h3 {
   height: auto; padding: 1rem .5rem .25rem; border-radius: 0;
