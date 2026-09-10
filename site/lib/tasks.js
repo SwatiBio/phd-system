@@ -7,6 +7,7 @@
    en dashes are kept — only emoji/symbol ranges are stripped. */
 
 const TASK_GLYPHS = /[\u{1F000}-\u{1FAFF}\u2700-\u27BF\u2B00-\u2BFF\uFE0F]/gu;
+const DUE = "\u{1F4C5}";
 
 export function parseTasks(text) {
   const out = [];
@@ -40,4 +41,21 @@ export function withTaskDone(text, raw, done = true) {
     .split("\n")
     .map((l) => (l === raw ? l.replace(done ? "- [ ]" : "- [x]", done ? "- [x]" : "- [ ]") : l))
     .join("\n");
+}
+
+/* Adding a task = a correctly-formed line at the end of the Active section,
+   so nobody has to remember the Tasks syntax. */
+export function withTaskAdded(text, taskText, due = null) {
+  const line = `- [ ] ${taskText.trim()}${due ? ` ${DUE} ${due}` : ""}`;
+  const lines = text.split("\n");
+  const head = lines.findIndex((l) => /^##\s+active\b/i.test(l));
+  if (head === -1) {
+    return `${text.replace(/\s*$/, "")}\n\n## Active\n\n${line}\n`;
+  }
+  let end = lines.findIndex((l, i) => i > head && /^##\s/.test(l));
+  if (end === -1) end = lines.length;
+  let at = end;
+  while (at > head + 1 && lines[at - 1].trim() === "") at--;   // sit with the items, not after the blanks
+  lines.splice(at, 0, line);
+  return lines.join("\n");
 }

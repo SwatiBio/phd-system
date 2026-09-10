@@ -32,7 +32,7 @@ collections:
 
   - name: tasks
     label: Tasks
-    description: One file, Tasks syntax. Check off + edit lines; sorting is automatic.
+    description: One file, Tasks syntax. Quick-add at /tasks.html; check off + edit lines here. Sorting is automatic.
     icon: checklist
     files:
       - name: tasks

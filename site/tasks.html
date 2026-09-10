@@ -49,6 +49,17 @@
     .rec { color: var(--ink-3); font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; margin-left: 6px; }
     .src { color: var(--ink-3); font-size: 12px; }
     li.done .body { color: var(--ink-3); text-decoration: line-through; }
+    .add { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+    .add input, .add button {
+      font: inherit; padding: 10px 12px; border: 1px solid var(--ink-3);
+      border-radius: 8px; background: #fff; color: var(--ink); min-height: 44px;
+    }
+    .add input[type=text] { flex: 1 1 16rem; min-width: 0; }
+    .add input[type=date] { flex: 0 0 10.5rem; }
+    .add input:focus-visible, .add button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+    .add button { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 500; cursor: pointer; }
+    .add button:disabled { opacity: .5; cursor: default; }
+    .add-note { color: var(--ink-3); font-size: 13px; margin-top: 6px; min-height: 18px; }
     .empty { color: var(--ink-2); margin-top: 20px; }
     .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--ink-2); font-size: 14px; }
     .footer a { color: var(--ink); }
@@ -70,6 +81,12 @@
     </nav>
     <h1>Tasks</h1>
     <p class="meta" id="meta">Loading…</p>
+    <form class="add" id="add-form">
+      <input type="text" id="add-text" placeholder="Add a task — one line" autocomplete="off" aria-label="New task" />
+      <input type="date" id="add-due" aria-label="Due date (optional)" />
+      <button type="submit" id="add-btn">Add</button>
+    </form>
+    <p class="add-note" id="add-note"></p>
     <div id="content"></div>
     <div class="footer">
       Tick done here — it commits straight to <code>daily/tasks/tasks.md</code>.
@@ -78,7 +95,7 @@
   </main>
 
   <script type="module">
-    import { parseTasks, withTaskDone } from "/site/lib/tasks.js";
+    import { parseTasks, withTaskDone, withTaskAdded } from "/site/lib/tasks.js";
 
     const todayIso = new Date().toISOString().slice(0, 10);
     const $ = (id) => document.getElementById(id);
@@ -201,6 +218,27 @@
       }
       for (const b of box.querySelectorAll(".tick")) b.disabled = false;
     }
+
+    $("add-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = $("add-text").value.trim();
+      if (!text) return;
+      const btn = $("add-btn");
+      btn.disabled = true;
+      $("add-note").textContent = "";
+      try {
+        const f = await ghGet("daily/tasks/tasks.md");
+        const updated = withTaskAdded(f ? f.text : "# Tasks\n", text, $("add-due").value || null);
+        await ghPut("daily/tasks/tasks.md", updated, `task added: ${text.slice(0, 50)}`);
+        $("add-text").value = "";
+        $("add-due").value = "";
+        $("add-note").textContent = "Added.";
+        await load(true);
+      } catch (err) {
+        $("add-note").textContent = `Could not add: ${err.message.slice(0, 90)}`;
+      }
+      btn.disabled = false;
+    });
 
     await load(false);
   </script>
