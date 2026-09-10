@@ -128,7 +128,18 @@ export default {
         }).then((r) => r.json());
         console.log("[DEBUG-oauth] exchange keys:", Object.keys(tok), "err:", tok.error || "none", "desc:", (tok.error_description || "").slice(0, 120));
         if (!tok.access_token) return new Response(loginPage(`GitHub sign-in failed — no token returned. ${tok.error || ""} ${tok.error_description || ""}`.trim(), "/"), { status: 401, headers: { "content-type": "text/html" } });
-        const me = await fetch(`${GH}/user`, { headers: { Authorization: `Bearer ${tok.access_token}` } }).then((r) => r.json());
+        console.log("[DEBUG-oauth] exchange ok, fetching /user");
+        const meRes = await fetch(`${GH}/user`, { headers: { Authorization: `Bearer ${tok.access_token}`, "User-Agent": "phd-os-auth", Accept: "application/vnd.github+json" } });
+        const meText = await meRes.text();
+        let me = {};
+        try { me = JSON.parse(meText); } catch { console.log("[DEBUG-oauth] /user non-json:", meRes.status, meText.slice(0, 120)); }
+        if (!me.login && meRes.status !== 200) {
+          // one retry — GitHub API occasionally 502s from Workers egress
+          await new Promise((r) => setTimeout(r, 800));
+          const r2 = await fetch(`${GH}/user`, { headers: { Authorization: `Bearer ${tok.access_token}`, "User-Agent": "phd-os-auth", Accept: "application/vnd.github+json" } });
+          try { me = await r2.json(); } catch { me = {}; }
+        }
+        console.log("[DEBUG-oauth] /user:", meRes.status, "login:", me.login || "?");
         if (!cfg.allowed.has((me.login || "").toLowerCase())) {
           return new Response(loginPage(`Signed in as ${me.login || "?"}, but this app is private. Ask the owner to allowlist you.`, "/"), { status: 403, headers: { "content-type": "text/html" } });
         }
