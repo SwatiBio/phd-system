@@ -49,9 +49,11 @@ def citekey(item):
     d = item.get("data", {})
     creators = d.get("creators") or []
     last = (creators[0].get("lastName") or creators[0].get("name") or "unknown") if creators else "unknown"
-    year = (d.get("date") or "nd")[:4] or "nd"
+    m = re.search(r"\d{4}", d.get("date") or "")
+    year = m.group(0) if m else "nd"
     word = re.sub(r"[^A-Za-z]", "", (d.get("title") or "untitled").split()[0] if d.get("title") else "untitled")
-    return f"{last.lower().replace(' ', '')}{year}{word.lower()}"
+    key = f"{last.lower().replace(' ', '')}{year}{word.lower()}"
+    return re.sub(r"[^a-z0-9]", "", key) or "untitled"
 
 def existing_keys():
     keys = {}
@@ -87,12 +89,13 @@ def render(item, citekey_):
 
 def main():
     user = os.environ["ZOTERO_USER_ID"]
-    items = api(f"/users/{user}/items?format=json&limit=100&itemType=journalArticle%20||%20conferencePaper%20||%20preport%20||%20report%20||%20thesis%20||%20preprint&sort=dateModified&direction=desc")
+    items = api(f"/users/{user}/items?format=json&limit=100&sort=dateModified&direction=desc")
     have = existing_keys()
+    SKIP_TYPES = {"attachment", "note", "annotation", "webpage"}
     created, updated = 0, 0
     for it in items:
         d = it.get("data", {})
-        if d.get("title") in (None, ""):
+        if d.get("itemType") in SKIP_TYPES or d.get("title") in (None, ""):
             continue
         zk = d["key"]
         ck = citekey(it)

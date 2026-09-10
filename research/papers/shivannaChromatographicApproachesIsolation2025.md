@@ -1,8 +1,9 @@
 ---
-title: Chromatographic approaches for the isolation and detection of a new antifungal phenolic compound from lichen Heterodermia leucomelos (L.) Poelt
-related: []
-collections: []
-citekey: shivannaChromatographicApproachesIsolation2025
+title: "Chromatographic approaches for the isolation and detection of a new antifungal phenolic compound from lichen Heterodermia leucomelos (L.) Poelt"
+category: phd
+status: to-read
+tags: []
+citekey: "shivanna2025chromatographic"
 zotero-key: FD94GS3J
 ---
 # Chromatographic approaches for the isolation and detection of a new antifungal phenolic compound from lichen Heterodermia leucomelos (L.) Poelt
