@@ -5,6 +5,7 @@ Deterministic: it collects and counts, it does not summarise or judge. The
 verdicts (Step 3 of the weekly-review skill) happen with pi in chat.
 
 Writes daily/reviews/<ISO-week>.md and daily/reviews/latest.md.
+Log files are one per ISO week (daily/logs/2026-W37.md).
 
 Run locally:  uv run --no-project .github/scripts/weekly_review.py
               uv run --no-project .github/scripts/weekly_review.py --date 2026-09-13
@@ -39,24 +40,25 @@ def week_window(day):
     return day - dt.timedelta(days=day.weekday()), day
 
 
-def logged_days(start, end):
-    """{date: [log lines]} for every dated section in the window, plus every
-    section seen this month (so a zero-entry day still counts as logged)."""
-    seen, entries = set(), {}
-    months = {start.strftime("%Y-%m"), end.strftime("%Y-%m")}
-    for month in sorted(months):
-        current = None
-        for raw in read(f"{LOGS}/{month}.md").split("\n"):
-            head = re.match(r"^## (\d{4}-\d{2}-\d{2})\s*$", raw.strip())
-            if head:
-                current = head.group(1)
-                seen.add(current)
-                continue
-            if current and raw.startswith("- "):
-                entries.setdefault(current, []).append(raw.rstrip())
-    inside = lambda d: start.strftime(ISO) <= d <= end.strftime(ISO)
-    days = {d: entries.get(d, []) for d in sorted(seen, key=lambda x: x, reverse=True) if inside(d)}
-    return days
+def week_key(day):
+    """The log file name for a week: daily/logs/2026-W37.md (ISO week)."""
+    y, w, _ = day.isocalendar()
+    return f"{y}-W{w:02d}"
+
+
+def logged_days(day):
+    """{date: [log lines]} from THIS week's file — one file per ISO week, so there is
+    no window to filter and no month boundary to straddle. Newest day first."""
+    days, current = {}, None
+    for raw in read(f"{LOGS}/{week_key(day)}.md").split(chr(10)):
+        head = re.match(r"^## (\d{4}-\d{2}-\d{2})\s*$", raw.strip())
+        if head:
+            current = head.group(1)
+            days[current] = []
+            continue
+        if current and raw.startswith("- "):
+            days[current].append(raw.rstrip())
+    return dict(sorted(days.items(), reverse=True))
 
 
 def tasks():
@@ -99,7 +101,7 @@ def rough_piles(day):
 
 def build(day):
     start, end = week_window(day)
-    days = logged_days(start, end)
+    days = logged_days(day)
     all_tasks = tasks()
     entries = sum(len(v) for v in days.values())
     done = [t for t in all_tasks if t["done"] and t["due"] and start.strftime(ISO) <= t["due"] <= end.strftime(ISO)]

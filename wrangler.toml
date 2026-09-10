@@ -14,6 +14,11 @@ keep_vars = true
 [assets]
 directory = "."
 binding = "ASSETS"
+# MUST stay true: with the default (false) Cloudflare serves any matching file
+# straight from the CDN, so the worker never runs and the login gate is skipped
+# -- that exposed the whole vault (daily logs, papers, worker.js) publicly.
+# true = every request hits worker.js, which gates and then proxies to ASSETS.
+run_worker_first = true
 
 [vars]
 GITHUB_REPO = "SwatiBio/phd-system"

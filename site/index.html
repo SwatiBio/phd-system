@@ -213,6 +213,7 @@
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
     import { parseTasks } from "/site/lib/tasks.js";
+    import { weekPath, appendEntry, weekStart } from "/site/lib/logs.js";
 
     const demo = new URLSearchParams(location.search).get("demo") === "1";
 
@@ -254,19 +255,7 @@
       for (const m of text.matchAll(/^## (\d{4}-\d{2}-\d{2})$/gm)) set.add(m[1]);
       return set;
     }
-    function appendLogEntry(text, entry) {
-      const heading = `## ${todayIso}`;
-      const stamp = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-      const line = `- **${stamp}** ${entry}`;
-      if (!text.includes(heading)) return `${text.replace(/\s*$/, "\n")}\n${heading}\n\n${line}\n`;
-      const idx = text.indexOf(heading);
-      const next = text.indexOf("\n## ", idx + 1);
-      const at = next === -1 ? text.length : next;
-      return text.slice(0, at).replace(/\s*$/, "\n") + line + "\n" + text.slice(next === -1 ? text.length : at);
-    }
-
     /* ---------- render ---------- */
-    const monthPath = (d) => `daily/logs/${iso(d).slice(0, 7)}.md`;
 
     /* Everything due today, overdue included. Read-only here: each row links to the
        tasks page, which is the one place ticking happens. */
@@ -364,17 +353,18 @@
     }
     async function loadStreakData() {
       const dates = new Set();
-      let thisMonth = "";
-      for (const offset of [0, 1]) {
-        const d = new Date(today.getFullYear(), today.getMonth() - offset, 1);
-        const f = await ghGet(monthPath(d)).catch(() => null);
-        if (f) {
-          if (offset === 0) thisMonth = f.text;
-          for (const x of loggedDates(f.text)) dates.add(x);
-        }
+      let thisWeek = null;
+      const monday = weekStart(today);
+      for (let offset = 0; offset < 52; offset++) {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - offset * 7);
+        const f = await ghGet(weekPath(d)).catch(() => null);
+        const found = f ? [...loggedDates(f.text)] : [];
+        for (const x of found) dates.add(x);
+        if (offset === 0) thisWeek = f ? f.text : null;
+        if (offset > 0 && !found.length) break;   // a quiet completed week ends the streak
       }
       renderStreak(dates, weekCount(dates));
-      return thisMonth;
+      return thisWeek;
     }
 
     $("log-form").addEventListener("submit", async (e) => {
@@ -389,9 +379,10 @@
         if (demo) {
           $("log-saved").textContent = "Saved (demo).";
         } else {
-          const path = monthPath(today);
+          const path = weekPath(today);
           const f = await ghGet(path);
-          const updated = appendLogEntry(f ? f.text : `# Log · ${today.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}\n`, entry);
+          const stamp = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+          const updated = appendEntry(f ? f.text : null, todayIso, `- **${stamp}** ${entry}`);
           await ghPut(path, updated, f?.meta.sha, `log: ${entry.slice(0, 60)}`);
           $("log-saved").textContent = "Saved.";
           await loadStreakData();

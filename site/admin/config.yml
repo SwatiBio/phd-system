@@ -22,7 +22,7 @@ collections:
   # ---------- DAILY ----------
   - name: daily-log
     label: Daily Log
-    description: Your Section 19 research logbook — monthly files, one line per entry. Append at the END of today's date section.
+    description: Your Section 19 research logbook — one file per ISO week (2026-W37.md), one line per entry. Append at the END of today's date section.
     folder: daily/logs
     create: false
     icon: edit_note

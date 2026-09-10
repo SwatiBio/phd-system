@@ -1,6 +1,6 @@
 # Week 37 · Mon 7 Sep – Sun 13 Sep 2026
 
-*Prepared 2026-09-10 17:22 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
+*Prepared 2026-09-10 18:07 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
 
 ## The week in numbers
 

@@ -69,8 +69,8 @@
   </main>
 
   <script type="module">
+    import { weekPath, weekStart, parseLog } from "/site/lib/logs.js";
     const iso = (d) => d.toISOString().slice(0, 10);
-    const mondayOf = (d) => { const m = new Date(d); m.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return m; };
     const $ = (id) => document.getElementById(id);
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
@@ -78,55 +78,35 @@
     const thisMonday = mondayOf(now);
 
     // start month: registration month (from milestones) with fallback
-    let startMonth = "2026-09";
+    let startDate = "2026-09-15";
     try {
       const m = await fetch("/system/milestones/milestones.md");
       if (m.ok) {
-        const reg = (await m.text()).match(/^reg:\s*(\d{4}-\d{2})/m);
-        if (reg) startMonth = reg[1];
+        const reg = (await m.text()).match(/^reg:\s*(\d{4}-\d{2}-\d{2})/m);
+        if (reg) startDate = reg[1];
       }
     } catch {}
 
-    // probe monthly files forward until two consecutive misses after first hit
-    const months = [];
-    let cursor = new Date(startMonth + "-01T12:00:00");
-    let misses = 0, seen = false;
-    while (misses < 2) {
-      const key = iso(cursor).slice(0, 7);
-      const r = await fetch(`/daily/logs/${key}.md`);
-      if (r.ok) { months.push({ key, text: await r.text() }); seen = true; misses = 0; }
-      else if (seen) misses++;
-      else if (key >= iso(now).slice(0, 7)) break; // nothing ever logged
-      cursor.setMonth(cursor.getMonth() + 1);
-      if (cursor > now) break;
-    }
-
-    // collect logged dates + entry counts
-    const byDate = {}; // iso -> count
-    for (const m of months) {
-      let cur = null;
-      for (const line of m.text.split("\n")) {
-        const h = line.match(/^## (\d{4}-\d{2}-\d{2})\s*$/);
-        if (h) { cur = h[1]; byDate[cur] ||= 0; continue; }
-        if (cur && /^- \*\*\d{2}:\d{2}\*\* /.test(line)) byDate[cur]++;
-      }
-    }
-
-    // bucket into weeks (Monday-start) from first logged week to this week
+    // Weeks are files, and nothing can list a directory — so probe backwards from this
+    // week and stop after a run of quiet ones. A week with no entries has no file.
+    const floor = new Date(weekStart(startDate));
+    floor.setDate(floor.getDate() - 28);
     const weeks = [];
-    if (Object.keys(byDate).length) {
-      const firstLogged = Object.keys(byDate).sort()[0];
-      let w = mondayOf(new Date(firstLogged + "T12:00:00"));
-      while (w <= thisMonday) {
-        const days = [];
-        for (let i = 0; i < 7; i++) { const d = new Date(w); d.setDate(w.getDate() + i); days.push(iso(d)); }
-        const entries = days.reduce((s, d) => s + (byDate[d] || 0), 0);
-        const logged = days.filter((d) => byDate[d]).length;
-        weeks.push({ monday: iso(w), entries, logged });
-        w = new Date(w); w.setDate(w.getDate() + 7);
-      }
-    }
-    weeks.reverse(); // newest first
+    let misses = 0;
+    for (let i = 0; i < 120 && misses < 8; i++) {
+      const monday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() - i * 7);
+      if (monday < floor) break;
+      const r = await fetch("/" + weekPath(monday));
+      if (!r.ok) { if (weeks.length) misses++; continue; }
+      const days = parseLog(await r.text());
+      const dates = Object.keys(days);
+      weeks.push({
+        monday: iso(monday),
+        entries: dates.reduce((s, d) => s + days[d].length, 0),
+        logged: dates.length,
+      });
+      misses = 0;
+    }   // already newest-first
 
     // render grouped by year
     const list = $("list");

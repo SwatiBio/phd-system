@@ -18,7 +18,7 @@ newest-first, what slipped, and the three piles. Read that file first, after `gi
 
 Read the raw sources only for what the prep cannot answer:
 
-- **Logs:** `daily/logs/` — if a day looks missing, check both monthly files (a week spans two).
+- **Logs:** `daily/logs/2026-W37.md` — one file per ISO week, so there is no second file to check and nothing to filter.
 - **Meetings:** `daily/meetings/` — count rough fragments; do NOT refine them (that is `refine-meeting`).
 - **Milestones:** `system/milestones/milestones.md` — the review page shows the next three; derive more as `reg + offset` (see `/timeline.html`).
 

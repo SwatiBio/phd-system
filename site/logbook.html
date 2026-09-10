@@ -96,42 +96,29 @@
   </main>
 
   <script type="module">
+    import { weekPath, weekStart, weekLabel, parseLog } from "/site/lib/logs.js";
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
     const iso = (d) => d.toISOString().slice(0, 10);
 
     const now = new Date();
     const param = new URLSearchParams(location.search).get("week");
-    let monday;
-    if (param && /^\d{4}-\d{2}-\d{2}$/.test(param)) {
-      monday = new Date(param + "T12:00:00"); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-    } else {
-      monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-    }
-    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    const monday = /^\d{4}-\d{2}-\d{2}$/.test(param || "") ? weekStart(param) : weekStart(now);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
     const weekDays = [];
-    for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDays.push(iso(d)); }
-    const months = [...new Set([...weekDays, iso(now)].map((s) => s.slice(0, 7)))];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+      weekDays.push(iso(d));
+    }
 
-    $("week-label").textContent = `Week ${monday.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} – ${sunday.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · Section 19 record`;
+    $("week-label").textContent = `${weekLabel(monday)} · Section 19 record`;
+
     function $(id) { return document.getElementById(id); }
 
-    // parse monthly log files: ## YYYY-MM-DD headings, - **HH:MM** text #tags entries
-    const entries = {}; // date -> [{time, text, tags}]
-    for (const m of months) {
-      const r = await fetch(`/daily/logs/${m}.md`);
-      if (!r.ok) continue;
-      const text = await r.text();
-      let cur = null;
-      for (const line of text.split("\n")) {
-        const h = line.match(/^## (\d{4}-\d{2}-\d{2})\s*$/);
-        if (h) { cur = h[1]; entries[cur] ||= []; continue; }
-        if (!cur) continue;
-        const e = line.match(/^- \*\*(\d{2}:\d{2})\*\* (.+)$/);
-        if (e) {
-          const tags = (e[2].match(/#\S+/g) || []).join(" ");
-          entries[cur].push({ time: e[1], text: e[2].replace(/#\S+/g, "").trim(), tags });
-        }
-      }
+    // One file per ISO week — no date filtering left to do.
+    const entries = {};
+    {
+      const r = await fetch("/" + weekPath(monday));
+      if (r.ok) Object.assign(entries, parseLog(await r.text()));
     }
 
     const rows = [];
