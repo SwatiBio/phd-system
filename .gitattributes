@@ -1,0 +1,9 @@
+# Keep line endings LF in the working tree, whatever the platform.
+#
+# Why this matters here: the repo root is also the deployed asset directory, and
+# the app's parsers are line-based. With core.autocrlf=true (the Windows default)
+# every checkout rewrote daily/tasks/tasks.md and friends to CRLF, and patterns
+# like /^- \[( |x)\] (.+)$/ stop matching because `.` never matches \r — the
+# tasks page silently showed zero tasks. The parsers now normalise CRLF too, but
+# LF on disk keeps the served assets and GitHub Actions identical to local.
+* text=auto eol=lf

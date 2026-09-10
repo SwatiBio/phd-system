@@ -6,6 +6,10 @@
 
 export const iso = (d) => d.toISOString().slice(0, 10);
 
+/* CRLF-proof: git's autocrlf can hand us CRLF, and the frontmatter fence
+   /^---\n/ would then never match, blanking the whole timeline. */
+const norm = (t) => String(t).replace(/\r\n?/g, "\n");
+
 export function daysUntil(dStr, todayIso) {
   return Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
 }
@@ -25,6 +29,7 @@ export function addOffset(regIso, n, unit) {
 }
 
 export function parseMilestones(text) {
+  text = norm(text);
   const fm = text.match(/^---\n([\s\S]*?)\n---/);
   const reg = fm && (fm[1].match(/^reg:\s*(\d{4}-\d{2}-\d{2})/m) || [])[1];
   const note = fm && (fm[1].match(/^reg-note:\s*"?([^"\n]*)"?/m) || [])[1];

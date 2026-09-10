@@ -15,4 +15,4 @@
 - [ ] Present at DAC 🔁 every 6 months 📅 2027-08-25
 - [ ] Print logbook for guide — Logbook in the app 🔁 every week 📅 2026-09-18
 - [ ] Check conference tracker 🔁 every month 📅 2026-10-01
-- [x] Record attendance — workstation 9–5 🔁 every day 📅 2026-09-16
+- [ ] Record attendance — workstation 9–5 🔁 every day 📅 2026-09-16
