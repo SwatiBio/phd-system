@@ -13,6 +13,10 @@ keep_vars = true
 # Static assets: site/ holds the morning brief (index.html) + the CMS (admin/).
 [assets]
 directory = "."
+# "none" matters: the default (auto-trailing-slash) redirects /site/digest.html to
+# /site/digest, which is not a public path — so the public digest 401d once the worker
+# took over asset serving. With none, the path the worker asks for is the path it gets.
+html_handling = "none"
 binding = "ASSETS"
 # MUST stay true: with the default (false) Cloudflare serves any matching file
 # straight from the CDN, so the worker never runs and the login gate is skipped

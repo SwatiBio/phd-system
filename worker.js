@@ -55,6 +55,7 @@ const env_ = (env) => ({
 });
 const isPublic = (p) =>
   p === "/login" || p === "/logout" || p.startsWith("/oauth/") || p.startsWith("/admin") ||
+  p.startsWith("/site/admin") ||
   p === "/digest.html" || p === "/site/digest.html" || p === "/research/papers/digest-latest.md";
 
 /* ---------- login page (quiet) ---------- */
