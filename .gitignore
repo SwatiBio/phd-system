@@ -12,3 +12,7 @@ desktop.ini
 
 # wrangler auth cache
 .wrangler/
+
+# compiled python
+__pycache__/
+*.pyc
