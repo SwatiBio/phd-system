@@ -7,6 +7,7 @@
 - [ ] Set real registration date in milestones 📅 2026-10-15
 - [ ] Create Zotero account + Better BibTeX 📅 2026-09-20
 - [ ] Create GitHub repo + connect remote 📅 2026-09-20
+- [ ] okokok 📅 2026-09-03
 
 ## Recurring (MAHE mandates)
 
