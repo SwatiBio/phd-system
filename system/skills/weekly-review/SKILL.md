@@ -45,15 +45,15 @@ Order:
 
 ## Step 4 · Logbook for the guide (compliance)
 
-Trigger the logbook job (PHDOS-29): run the generator so this week's printable page exists in `daily/meetings/print/` (week's dated entries, compact table, guide signature line — Section 19 mandate).
+Open the live logbook view and have the user print it from the browser (PHDOS-29: this is a site view now, not a file):
 
 ```
-gh workflow run logbook || uv run --no-project .github/scripts/logbook.py
+/logbook.html
 ```
 
-Confirm the file exists and tell the user exactly which file to print and hand over. The hard copy is the compliance artifact — the digital log stays the master record.
+Verify it shows THIS week (Monday-today; a save takes ~1 min to appear after deploy). Then tell the user: print -> sign -> hand to the guide weekly. The hard copy is the compliance artifact; the digital log stays the master record.
 
-**Done when:** the file exists on disk and the user knows to print it. If the generator fails, fix it — do not skip the step.
+**Done when:** the user has the logbook view open on screen with this week's entries visible and knows to print it. If a day's entries are missing, check they were actually logged and deployed.
 
 ## Step 5 · Wrap (agent)
 

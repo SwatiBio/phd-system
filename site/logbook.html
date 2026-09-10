@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — research logbook (week)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: rgb(0 0 0 / 100%);
+      --ink-2: rgb(0 0 0 / 64%);
+      --ink-3: rgb(0 0 0 / 56%);
+      --border: rgb(0 0 0 / 12%);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: #fff;
+      font-feature-settings: "tnum" 1;
+    }
+    main { max-width: 52rem; margin: 0 auto; padding: 40px 24px 96px; }
+    .crumb { display: inline-block; margin-bottom: 24px; color: var(--ink-3); font-size: 15px; text-decoration: none; }
+    .crumb:hover { color: var(--ink); }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+    .meta { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 32px; }
+    th {
+      text-align: left; font-weight: 500; font-size: 13px; color: var(--ink-3);
+      border-bottom: 1px solid var(--ink); padding: 8px 10px 6px;
+    }
+    td { border-bottom: 1px solid var(--border); padding: 8px 10px; vertical-align: top; }
+    td.date, td.time { white-space: nowrap; color: var(--ink-2); font-size: 14px; }
+    tr.daysep td { border-top: 1px solid var(--ink); }
+    .tag { color: var(--ink-3); font-size: 13px; }
+    .empty { color: var(--ink-2); margin-top: 24px; }
+
+    .signatures { margin-top: 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+    .sig { text-align: left; }
+    .sig .line { border-bottom: 1px solid var(--ink); height: 48px; }
+    .sig .who { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+    .sig .who strong { color: var(--ink); font-weight: 500; }
+
+    .noprint { margin-top: 32px; }
+    button.print {
+      font: inherit; font-weight: 500; border: none; border-radius: 8px;
+      padding: 12px 20px; background: var(--ink); color: #fff; cursor: pointer;
+      min-height: 48px;
+    }
+    button.print:hover { background: rgb(0 0 0 / 82%); }
+    p.warn { color: var(--ink-2); font-size: 14px; margin-top: 12px; }
+
+    @media print {
+      .crumb, .noprint { display: none !important; }
+      main { padding: 0; max-width: none; }
+      body { font-size: 12px; }
+      .signatures { margin-top: 48px; }
+    }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="crumb" href="/">← Today</a>
+    <h1>Research logbook</h1>
+    <p class="meta" id="week-label"></p>
+    <div id="content"><p class="meta">Loading…</p></div>
+    <div class="signatures">
+      <div class="sig"><div class="line"></div><div class="who"><strong>Scholar:</strong> Swati · Date:</div></div>
+      <div class="sig"><div class="line"></div><div class="who"><strong>Guide review &amp; approval (Section 19):</strong></div></div>
+    </div>
+    <div class="noprint">
+      <button class="print" onclick="window.print()">Print this page</button>
+      <p class="warn">Print -> hand to guide weekly. This view reads the deployed vault; a save takes ~1 min to appear here.</p>
+    </div>
+  </main>
+
+  <script type="module">
+    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const iso = (d) => d.toISOString().slice(0, 10);
+
+    // current week: Monday .. Sunday
+    const now = new Date();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDays.push(iso(d)); }
+    const months = [...new Set([...weekDays, iso(now)].map((s) => s.slice(0, 7)))];
+
+    $("week-label").textContent = `Week ${monday.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} – ${sunday.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · Section 19 record`;
+    function $(id) { return document.getElementById(id); }
+
+    // parse monthly log files: ## YYYY-MM-DD headings, - **HH:MM** text #tags entries
+    const entries = {}; // date -> [{time, text, tags}]
+    for (const m of months) {
+      const r = await fetch(`/daily/logs/${m}.md`);
+      if (!r.ok) continue;
+      const text = await r.text();
+      let cur = null;
+      for (const line of text.split("\n")) {
+        const h = line.match(/^## (\d{4}-\d{2}-\d{2})\s*$/);
+        if (h) { cur = h[1]; entries[cur] ||= []; continue; }
+        if (!cur) continue;
+        const e = line.match(/^- \*\*(\d{2}:\d{2})\*\* (.+)$/);
+        if (e) {
+          const tags = (e[2].match(/#\S+/g) || []).join(" ");
+          entries[cur].push({ time: e[1], text: e[2].replace(/#\S+/g, "").trim(), tags });
+        }
+      }
+    }
+
+    const rows = [];
+    let any = false;
+    for (const d of weekDays) {
+      const dayEntries = entries[d] || [];
+      const label = new Date(d + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+      if (!dayEntries.length) {
+        rows.push(`<tr class="daysep"><td class="date">${label}</td><td class="meta" colspan="3">—</td></tr>`);
+        continue;
+      }
+      any = true;
+      dayEntries.forEach((en, i) => {
+        rows.push(`<tr${i === 0 ? ' class="daysep"' : ""}><td class="date">${i === 0 ? label : ""}</td><td class="time">${en.time}</td><td>${esc(en.text)}${en.tags ? ` <span class="tag">${esc(en.tags)}</span>` : ""}</td><td></td></tr>`);
+      });
+    }
+    if (!any) {
+      $("content").innerHTML = `<p class="empty">No entries this week yet. Log from the morning page — they appear here within a minute of saving.</p>`;
+    } else {
+      $("content").innerHTML = `
+        <table>
+          <thead><tr><th>Date</th><th>Time</th><th>Work carried out</th><th>Status / result</th></tr></thead>
+          <tbody>${rows.join("")}</tbody>
+        </table>`;
+    }
+  </script>
+</body>
+</html>
