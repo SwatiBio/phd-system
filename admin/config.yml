@@ -27,10 +27,9 @@ collections:
     create: false
     icon: edit_note
     sortable_fields: [title]
-    view_filters:
-      - field: title
-        pattern: "*"
     summary: "{{title}}"
+    fields:
+      - { label: Log entries, name: body, widget: markdown }
 
   - name: tasks
     label: Tasks
@@ -52,6 +51,8 @@ collections:
     slug: "rough-{{year}}-{{month}}"
     icon: forum
     summary: "{{title}}"
+    fields:
+      - { label: Fragments, name: body, widget: markdown }
 
   # ---------- RESEARCH ----------
   - name: papers
