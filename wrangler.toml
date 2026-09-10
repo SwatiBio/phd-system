@@ -1,0 +1,7 @@
+name = "phdos"
+compatibility_date = "2026-09-01"
+
+# Static assets = the CMS shell (admin/). No vault data is deployed —
+# Sveltia renders repo content client-side via the user's GitHub token.
+[assets]
+directory = "./admin"
