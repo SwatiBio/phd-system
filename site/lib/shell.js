@@ -102,6 +102,25 @@ const main = document.querySelector("main");
 document.body.insertAdjacentHTML("afterbegin", sidebarHTML);
 if (main) main.insertAdjacentHTML("afterbegin", topRowHTML);
 
+/* keep the app bar title in sync with the page's <h1> — so "Tasks" shows
+   on tasks.html, and the Today page shows the live date once it renders.
+   Falls back to the nav label until/unless the h1 has content. */
+const syncBarTitle = () => {
+  const el = document.querySelector(".app-bar-title");
+  const h1 = document.querySelector("main h1");
+  const text = (h1 && h1.textContent.trim()) || titleFor(current());
+  if (el && el.textContent !== text) el.textContent = text;
+};
+syncBarTitle();
+const pageH1 = document.querySelector("main h1");
+if (pageH1) {
+  new MutationObserver(syncBarTitle).observe(pageH1, {
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+}
+
 /* let basecoat initialize the freshly injected sidebar */
 try { window.basecoat?.initAll?.(); } catch (_) {}
 

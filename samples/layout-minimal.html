@@ -431,6 +431,16 @@
     };
     window.addEventListener("resize", sync);
     sync();
+
+    // app bar mirrors the page's h1, like the real shell
+    const barTitle = document.querySelector(".app-bar-title");
+    const h1 = document.querySelector("main h1");
+    if (barTitle && h1) {
+      barTitle.textContent = h1.textContent.trim();
+      new MutationObserver(() => (barTitle.textContent = h1.textContent.trim())).observe(h1, {
+        childList: true, characterData: true, subtree: true,
+      });
+    }
   </script>
 </body>
 </html>
