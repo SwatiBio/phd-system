@@ -5,10 +5,12 @@ compatibility_date = "2026-09-01"
 # (Sveltia has its own login). No vault data is ever served unauthenticated.
 main = "worker.js"
 
+# Preserve dashboard-managed variables/secrets across wrangler deploys.
+# (Without this, every deploy wipes GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET /
+# AUTH_SESSION_SECRET added in the Cloudflare dashboard.)
+keep_vars = true
+
 # Static assets: site/ holds the morning brief (index.html) + the CMS (admin/).
-# worker.js gates everything except /admin, /login, /oauth — and proxies vault
-# reads/writes to the private GitHub repo server-side (GITHUB_TOKEN secret),
-# so the browser holds no credentials.
 [assets]
 directory = "."
 binding = "ASSETS"
