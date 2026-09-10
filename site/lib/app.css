@@ -95,11 +95,22 @@
 body { font-feature-settings: "tnum" 1; }
 [hidden] { display: none !important; }
 
-.top-row {
+/* fixed app bar (references: workspaces-style 48px top bar) */
+.app-bar {
+  position: fixed; inset: 0 0 auto 0; height: 3rem; z-index: 1050;
   display: flex; align-items: center; justify-content: space-between; gap: .5rem;
-  max-width: 72rem; margin-inline: auto; padding: 1rem 1.25rem 0;
+  padding: 0 .75rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
 }
-.content { max-width: 72rem; margin-inline: auto; padding: 1.25rem 1.25rem 4rem; }
+.app-bar-side { display: flex; align-items: center; gap: .25rem; min-width: 0; }
+.app-bar-title {
+  font-weight: 600; font-size: .9375rem; letter-spacing: -0.01em;
+  color: var(--card-foreground); padding-left: .375rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.content { max-width: 72rem; margin-inline: auto; padding: calc(3rem + 1.25rem) 1.25rem 4rem; }
 
 .iconbtn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -110,10 +121,7 @@ body { font-feature-settings: "tnum" 1; }
 .iconbtn i { line-height: 1; }
 
 .menu-toggle { display: inline-flex; }
-@media (min-width: 48rem) {
-  button.menu-toggle { display: none; }
-  .top-row { justify-content: flex-end; }
-}
+@media (min-width: 48rem) { button.menu-toggle { display: none; } }
 
 /* theme toggle icon swap */
 .theme-icons .icon-sun { display: none; }
@@ -122,6 +130,8 @@ body { font-feature-settings: "tnum" 1; }
 .dark .theme-icons .icon-moon { display: none; }
 
 /* ---- sidebar ---- */
+/* the fixed panel starts below the fixed app bar */
+.sidebar nav { top: 3rem; }
 .sidebar nav header {
   padding: 1rem .5rem .5rem;
 }
@@ -320,7 +330,7 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 .sig .who strong { color: var(--card-foreground); font-weight: 500; }
 
 @media print {
-  .sidebar, .top-row, .noprint { display: none !important; }
+  .sidebar, .app-bar, .noprint { display: none !important; }
   main { margin-left: 0 !important; }
   .content { max-width: none; padding: 0; }
   body { font-size: 12px; background: #fff; }

@@ -74,17 +74,27 @@ const sidebarHTML = `
   </nav>
 </aside>`;
 
+const titleFor = (page) => {
+  for (const g of NAV) for (const i of g.items) if (i.page === page) return i.title;
+  return "PhD-OS";
+};
+
 const topRowHTML = `
-<div class="top-row">
-  <button type="button" class="iconbtn menu-toggle" aria-label="Open navigation"
-          onclick="document.getElementById('sidebar')?.toggle()">
-    <i class="ph ph-list"></i>
-  </button>
-  <button type="button" class="iconbtn theme-icons" id="theme-toggle" aria-label="Toggle dark mode"
-          onclick="window.basecoat?.theme?.toggle()">
-    <i class="ph ph-sun icon-sun"></i>
-    <i class="ph ph-moon icon-moon"></i>
-  </button>
+<div class="app-bar">
+  <div class="app-bar-side">
+    <button type="button" class="iconbtn menu-toggle" aria-label="Open navigation"
+            onclick="document.getElementById('sidebar')?.toggle()">
+      <i class="ph ph-list"></i>
+    </button>
+    <span class="app-bar-title">${titleFor(current())}</span>
+  </div>
+  <div class="app-bar-side">
+    <button type="button" class="iconbtn theme-icons" id="theme-toggle" aria-label="Toggle dark mode"
+            onclick="window.basecoat?.theme?.toggle()">
+      <i class="ph ph-sun icon-sun"></i>
+      <i class="ph ph-moon icon-moon"></i>
+    </button>
+  </div>
 </div>`;
 
 /* inject: sidebar before <main>, top row as first child of <main> */

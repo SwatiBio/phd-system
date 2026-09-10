@@ -117,10 +117,21 @@
     .content { max-width: 72rem; margin-inline: auto; padding: 1.5rem 1.25rem 4rem; }
 
     /* top row: hamburger + theme toggle */
-    .top-row {
+    /* fixed app bar (references: workspaces-style 48px top bar) */
+    .app-bar {
+      position: fixed; inset: 0 0 auto 0; height: 3rem; z-index: 1050;
       display: flex; align-items: center; justify-content: space-between; gap: .5rem;
-      max-width: 72rem; margin-inline: auto; padding: 1rem 1.25rem 0;
+      padding: 0 .75rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
     }
+    .app-bar-side { display: flex; align-items: center; gap: .25rem; min-width: 0; }
+    .app-bar-title {
+      font-weight: 600; font-size: .9375rem; letter-spacing: -0.01em;
+      color: var(--card-foreground); padding-left: .375rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .content { padding: calc(3rem + 1.25rem) 1.25rem 4rem; }
     .iconbtn {
       display: inline-flex; align-items: center; justify-content: center;
       width: 2.25rem; height: 2.25rem; border-radius: var(--radius);
@@ -129,16 +140,14 @@
     .iconbtn:hover { background: var(--muted); color: var(--foreground); }
     .iconbtn i { line-height: 1; }
     .menu-toggle { display: inline-flex; }
-    @media (min-width: 48rem) {
-      button.menu-toggle { display: none; }
-      .top-row { justify-content: flex-end; }
-    }
+    @media (min-width: 48rem) { button.menu-toggle { display: none; } }
     .theme-icons .icon-sun { display: none; }
     .theme-icons .icon-moon { display: inline-block; }
     .dark .theme-icons .icon-sun { display: inline-block; }
     .dark .theme-icons .icon-moon { display: none; }
 
     /* sidebar */
+    .sidebar nav { top: 3rem; }
     .sidebar nav header {
       padding: 1rem .5rem .5rem;
     }
@@ -282,16 +291,21 @@
 
   <!-- ================= Main ================= -->
   <main>
-    <div class="top-row">
-      <button type="button" class="iconbtn menu-toggle" aria-label="Open navigation"
-              onclick="document.getElementById('sidebar')?.toggle()">
-        <i class="ph ph-list"></i>
-      </button>
-      <button type="button" class="iconbtn theme-icons" aria-label="Toggle dark mode"
-              onclick="window.basecoat?.theme?.toggle()">
-        <i class="ph ph-sun icon-sun"></i>
-        <i class="ph ph-moon icon-moon"></i>
-      </button>
+    <div class="app-bar">
+      <div class="app-bar-side">
+        <button type="button" class="iconbtn menu-toggle" aria-label="Open navigation"
+                onclick="document.getElementById('sidebar')?.toggle()">
+          <i class="ph ph-list"></i>
+        </button>
+        <span class="app-bar-title">Today</span>
+      </div>
+      <div class="app-bar-side">
+        <button type="button" class="iconbtn theme-icons" aria-label="Toggle dark mode"
+                onclick="window.basecoat?.theme?.toggle()">
+          <i class="ph ph-sun icon-sun"></i>
+          <i class="ph ph-moon icon-moon"></i>
+        </button>
+      </div>
     </div>
 
     <div class="content">
