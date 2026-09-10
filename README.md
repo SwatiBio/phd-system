@@ -1,5 +1,7 @@
 # PhD System — the map of your vault
 
+**All project context, tickets, and docs live in Lific** (local tracker, http://localhost:3456/PHDOS/). Start: page **PHDOS-DOC-7** (handoff) + **PHDOS-DOC-4** (map). Agent sessions: read those first.
+
 **Rule zero: only `daily/` needs you.** Everything else is machinery or parked.
 
 ## 🫵 daily/ — touch daily
@@ -22,7 +24,7 @@
 
 ## ⚙️ system/ — mine, ignore
 
-`scripts/` (phd.py) · `skills/` (agent skills) · `templates/` · `wayfinder/` (decisions map) · `milestones/` (MAHE requirements) · `harbor/` (visuals)
+`scripts/` (phd.py) · `skills/` (agent skills) · `templates/` · `milestones/` (MAHE requirements) — visuals live in harbor workspace `phd-system`, context/tickets in Lific
 
 ## ⏳ later/ — parked, designed just-in-time
 

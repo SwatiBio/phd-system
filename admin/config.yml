@@ -1,0 +1,186 @@
+# PhDOS — Sveltia CMS config
+# Modeled on udit-001/workouts. Auth: udit's sveltia-cms-auth worker (same GitHub OAuth app).
+# Editing happens as commits to this repo. Laptop + pi must `git pull` before working.
+
+app_title: PhDOS
+logo:
+  show_in_header: false
+editor:
+  preview: false
+
+backend:
+  name: github
+  repo: SwatiBio/phd-system
+  branch: main
+  base_url: https://sveltia-cms-auth.aurax.workers.dev
+
+media_folder: research/papers/pdf
+public_folder: research/papers/pdf
+
+collections:
+  # ---------- DAILY ----------
+  - name: daily-log
+    label: Daily Log
+    description: Your Section 19 research logbook — monthly files, one line per entry. Append at the END of today's date section.
+    folder: daily/logs
+    format: md
+    create: false
+    icon: edit_note
+    sortable_fields: [title]
+    view_filters:
+      - field: title
+        pattern: "*"
+    summary: "{{title}}"
+
+  - name: tasks
+    label: Tasks
+    description: One file, Tasks syntax. Check off + edit lines; sorting is automatic.
+    icon: checklist
+    files:
+      - name: tasks
+        label: Task list
+        file: daily/tasks/tasks.md
+        fields:
+          - { label: Tasks, name: body, widget: markdown }
+
+  - name: meetings
+    label: Meetings
+    description: Rough piles (fragments separated by ---). pi refines these into Meeting Notes.
+    folder: daily/meetings
+    format: md
+    create: true
+    slug: "rough-{{year}}-{{month}}"
+    icon: forum
+    summary: "{{title}}"
+
+  # ---------- RESEARCH ----------
+  - name: papers
+    label: Papers
+    description: Papers you read. Mostly created via Zotero import / paper pipeline — edit status, tags, Sparked here.
+    folder: research/papers
+    format: md
+    create: true
+    slug: "{{title}}"
+    icon: menu_book
+    sortable_fields: [status, title, updated]
+    summary: "{{title}} — {{status}}"
+    fields:
+      - { label: Category, name: category, widget: select, options: [{label: PhD (shareable), value: phd}, {label: Personal (private), value: personal}], default: phd }
+      - { label: Status, name: status, widget: select, options: [to-read, reading, read, parked], default: to-read, required: false }
+      - { label: Subject tags, name: tags, widget: list, required: false, hint: "Subject areas — the reading queue groups by these" }
+      - { label: Citekey, name: citekey, widget: string, required: false, hint: "Zotero/Better BibTeX key — leave empty unless importing" }
+      - { label: Zotero key, name: zotero-key, widget: string, required: false }
+      - { label: Related papers, name: related, widget: list, required: false }
+
+  - name: work-units
+    label: Work Units
+    description: Pieces of research work (docking runs, experiments, analyses). Question is the only required field.
+    folder: research/work-units
+    format: md
+    create: true
+    slug: "{{id}}"
+    icon: science
+    summary: "{{id}} — {{question}} [{{status}}]"
+    fields:
+      - { label: ID, name: id, widget: string, hint: "wu-XXXX — next number" }
+      - { label: Question, name: question, widget: string, hint: "One line, short naming convention e.g. docking — usnic vs DHFR" }
+      - { label: Type, name: type, widget: select, options: [comp, wetlab, field, analysis], default: comp }
+      - { label: Status, name: status, widget: select, options: [planned, running, done, written-up], default: planned }
+      - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
+      - { label: Method, name: method, widget: string, required: false }
+      - { label: Inputs, name: inputs, widget: list, required: false }
+      - { label: Outputs, name: outputs, widget: list, required: false, hint: "Files this work produces — the orphan sweep checks these" }
+      - { label: Material, name: material, widget: relation, collection: materials, value_field: id, display_fields: [id], search_fields: [id, question], multiple: true, required: false }
+      - { label: Target, name: target, widget: relation, collection: targets, value_field: id, display_fields: [id], search_fields: [id, pathogen], multiple: true, required: false }
+
+  - name: materials
+    label: Materials
+    description: Samples / extracts / compounds — one object, type tag decides the fields.
+    folder: research/materials
+    format: md
+    create: true
+    slug: "{{id}}"
+    icon: category
+    summary: "{{id}} [{{type}}]"
+    fields:
+      - { label: ID, name: id, widget: string, hint: "mat-XXXX" }
+      - { label: Type, name: type, widget: select, options: [sample, extract, compound], default: sample }
+      - { label: Derived from, name: derived-from, widget: relation, collection: materials, value_field: id, display_fields: [id], search_fields: [id], required: false, hint: "For extracts: parent sample" }
+      - { label: Site, name: site, widget: string, required: false, hint: "sample: collection site" }
+      - { label: GPS, name: gps, widget: string, required: false, hint: "sample: coordinates" }
+      - { label: Collected, name: collected, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false, hint: "sample" }
+      - { label: Collector, name: collector, widget: string, required: false, hint: "sample: you or inherited" }
+      - { label: Storage, name: storage, widget: string, required: false, hint: "sample: where it lives" }
+      - { label: SMILES, name: smiles, widget: string, required: false, hint: "compound" }
+      - { label: CAS, name: cas, widget: string, required: false, hint: "compound" }
+      - { label: PubChem CID, name: cid, widget: string, required: false, hint: "compound" }
+      - { label: MW, name: mw, widget: string, required: false, hint: "compound" }
+      - { label: Origin, name: origin, widget: relation, collection: materials, value_field: id, display_fields: [id], search_fields: [id], required: false, hint: "compound: source sample" }
+      - { label: Notes, name: notes, widget: text, required: false }
+
+  - name: targets
+    label: Targets
+    description: Pathogen proteins docked against.
+    folder: research/targets
+    format: md
+    create: true
+    slug: "{{id}}"
+    icon: coronavirus
+    summary: "{{id}} — {{pathogen}} / {{protein}}"
+    fields:
+      - { label: ID, name: id, widget: string, hint: "tgt-XXXX" }
+      - { label: Pathogen, name: pathogen, widget: string }
+      - { label: Protein / structure, name: protein, widget: string }
+      - { label: PDB / source ID, name: pdb, widget: string, required: false }
+      - { label: Notes, name: notes, widget: text, required: false }
+
+  # ---------- LATER ----------
+  - name: journal-pubs
+    label: Publications · Journal
+    folder: later/publications
+    format: md
+    create: true
+    slug: "{{title}}"
+    icon: article
+    summary: "{{title}} — {{status}}"
+    filter: { field: type, value: journal }
+    fields:
+      - { label: Type, name: type, widget: hidden, default: journal }
+      - { label: Title, name: title, widget: string }
+      - { label: Status, name: status, widget: select, options: [idea, drafting, guide-review, submitted, under-review, revision, accepted, published], default: idea }
+      - { label: Venue, name: venue, widget: string, required: false }
+      - { label: Index, name: index, widget: string, required: false, hint: "Scopus / WoS-JCR / Q1" }
+      - { label: Submitted, name: submitted, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
+      - { label: Accepted, name: accepted, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
+      - { label: First author, name: first-author, widget: boolean, default: true }
+      - { label: Thesis related, name: thesis-related, widget: boolean, default: true }
+      - { label: MAHE affiliation, name: mahe-affiliation, widget: boolean, default: true }
+
+  - name: conference-pubs
+    label: Publications · Conference
+    folder: later/publications
+    format: md
+    create: true
+    slug: "{{title}}"
+    icon: co_present
+    summary: "{{title}} — {{status}}"
+    filter: { field: type, value: conference }
+    fields:
+      - { label: Type, name: type, widget: hidden, default: conference }
+      - { label: Title, name: title, widget: string }
+      - { label: Status, name: status, widget: select, options: [abstract, submitted, accepted, presented, certificate], default: abstract, hint: "Certificate is the real final state — MAHE evidence" }
+      - { label: Venue, name: venue, widget: string, required: false }
+      - { label: Submitted, name: submitted, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
+      - { label: Accepted, name: accepted, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
+
+  # ---------- SYSTEM ----------
+  - name: milestones
+    label: Milestones
+    description: 10 MAHE milestones with exact annexure requirements. Dates PROVISIONAL until registration letter.
+    icon: flag
+    files:
+      - name: milestones
+        label: Milestone list
+        file: system/milestones/milestones.md
+        fields:
+          - { label: Milestones, name: body, widget: markdown }
