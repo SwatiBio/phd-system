@@ -1,0 +1,24 @@
+name: Paper digest
+
+on:
+  schedule:
+    - cron: "30 1 * * 1" # Monday 01:00 UTC = 07:00 IST
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build digest
+        run: python3 .github/scripts/paper_digest.py
+      - name: Commit digest
+        run: |
+          git config user.name "phd-os-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/papers/digest-latest.md
+          git diff --cached --quiet || git commit -m "digest: weekly paper digest $(date -u +%F)"
+          git push

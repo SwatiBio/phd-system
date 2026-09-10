@@ -172,6 +172,11 @@
         <div id="deadline-body"><p class="skeleton">Loading…</p></div>
       </section>
 
+      <section id="digest-section" hidden>
+        <div class="label">New papers this week</div>
+        <p class="task-none" id="digest-line"></p>
+      </section>
+
       <footer>
         <a href="./admin/">Open CMS</a>
         <a href="/logout">Sign out</a>
@@ -359,6 +364,17 @@
       btn.disabled = false;
     });
 
+    async function loadDigest() {
+      try {
+        const r = await fetch("/research/papers/digest-latest.md");
+        if (!r.ok) return;
+        const n = ((await r.text()).match(/^- \*\*/gm) || []).length;
+        if (!n) return;
+        $("digest-section").hidden = false;
+        $("digest-line").innerHTML = `<strong>${n} new papers</strong> matched your topics · <a href="/digest.html">open digest</a>`;
+      } catch {}
+    }
+
     /* ---------- boot ---------- */
     function showError(e) {
       $("app").hidden = false;
@@ -377,6 +393,7 @@
           renderTask(parseTasks(t.text));
           renderDeadline(nextMilestone(m.text));
           await loadStreakData();
+          await loadDigest();
         })
         .catch(showError);
     }

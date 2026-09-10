@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — paper digest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: rgb(0 0 0 / 100%);
+      --ink-2: rgb(0 0 0 / 64%);
+      --ink-3: rgb(0 0 0 / 56%);
+      --border: rgb(0 0 0 / 10%);
+      --hover: rgb(0 0 0 / 5%);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+      background: #fff;
+    }
+    main { max-width: 44rem; margin: 0 auto; padding: 40px 24px 96px; }
+    @media (min-width: 768px) { main { padding: 64px 24px 96px; } }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+    h2 { font-size: 17px; font-weight: 600; margin-top: 48px; }
+    .meta { color: var(--ink-3); font-size: 14px; margin-top: 6px; }
+    .em { color: var(--ink-2); font-style: italic; }
+    ul { list-style: none; padding: 0; margin-top: 8px; }
+    li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+    li:last-child { border-bottom: none; }
+    a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border); }
+    a:hover { text-decoration-color: var(--ink-3); }
+    .who { color: var(--ink-2); font-size: 15px; }
+    .crumb { display: inline-block; margin-bottom: 32px; color: var(--ink-3); font-size: 15px; text-decoration: none; }
+    .crumb:hover { color: var(--ink); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="crumb" href="/">← Today</a>
+    <div id="content"><p style="color: var(--ink-3)">Loading…</p></div>
+  </main>
+  <script type="module">
+    const el = (h, c) => { const d = document.createElement(h); d.innerHTML = c; return d; };
+    try {
+      const r = await fetch("/research/papers/digest-latest.md");
+      if (r.status === 404) { document.getElementById("content").innerHTML = "<p class='em'>No digest yet — the robot runs Monday mornings.</p>"; }
+      else {
+        const md = (await r.text()).split("\n");
+        const out = [];
+        let list = null;
+        const closeList = () => { list = null; };
+        for (const line of md) {
+          if (line.startsWith("# ")) { closeList(); out.push(el("h1", esc(line.slice(2)))); }
+          else if (line.startsWith("## ")) { closeList(); out.push(el("h2", esc(line.slice(3)))); }
+          else if (line.startsWith("*") && line.endsWith("*")) { out.push(el("p", `<span class="em">${inline(line.replace(/^\*|\*$/g, ""))}</span>`)); }
+          else if (line.startsWith("- ")) {
+            if (!list) { list = document.createElement("ul"); out.push(list); }
+            const li = document.createElement("li");
+            li.innerHTML = inline(line.slice(2));
+            list.appendChild(li);
+          } else if (line.trim()) { closeList(); out.push(el("p", inline(line))); }
+        }
+        function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+        function inline(s) {
+          return esc(s)
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        }
+        const box = document.getElementById("content");
+        box.innerHTML = "";
+        for (const n of out) box.appendChild(n);
+      }
+    } catch (e) {
+      document.getElementById("content").innerHTML = `<p class="em">Could not load digest: ${e.message}</p>`;
+    }
+  </script>
+</body>
+</html>
