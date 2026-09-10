@@ -5,31 +5,34 @@ description: Run the weekly review — walk the week's logs, tasks, questions an
 
 # Weekly review
 
-Fifteen minutes, five steps. The robot work is yours (the agent's); the verdicts are the user's. Rule zero: **no guilt** — skipped days, unfinished tasks, and low-energy weeks are data, not failures. Say so if the review starts sounding like a report card.
+Fifteen minutes, five steps. The gathering is a Sunday job; the verdicts are made together. Rule zero: **no guilt** — skipped days, unfinished tasks, and low-energy weeks are data, not failures. Say so if the review starts sounding like a report card.
 
 Every step below ends on a completion criterion. Do not move on before it is met.
 
-## Step 1 · Gather (prep — agent only)
+## Step 1 · Read the prep (agent only)
 
-`git pull` first (PHDOS-28). Then read, silently:
+The **weekly-review job runs Sunday 18:00 IST** and has already gathered the week into
+`daily/reviews/<ISO-week>.md` and `daily/reviews/latest.md` — the numbers, the log lines
+newest-first, what slipped, and the three piles. Read that file first, after `git pull`
+(PHDOS-28). It only counts; it never judges, so nothing in it is a verdict.
 
-- **Logs:** `daily/logs/` — every file that could hold entries from this week (a week can span two monthly files; scan both, not just the current one). Newest-first.
-- **Tasks:** `daily/tasks/tasks.md` — done this week, overdue, and rolling over.
-- **Tagged lines:** every `#question`, `#idea`, `#admin`-ish entry from the week's logs.
-- **Meetings:** any rough fragments in `daily/meetings/` from this week (do NOT refine them — that is the `refine-meeting` skill's job; just count them).
-- **Milestones:** `system/milestones/milestones.md` — anything due within 14 days.
+Read the raw sources only for what the prep cannot answer:
 
-**Done when:** you can name, without re-reading: the week's entry count, logged days, done vs overdue tasks, and how many `#question` / `#idea` lines exist. If you cannot, keep gathering.
+- **Logs:** `daily/logs/` — if a day looks missing, check both monthly files (a week spans two).
+- **Meetings:** `daily/meetings/` — count rough fragments; do NOT refine them (that is `refine-meeting`).
+- **Milestones:** `system/milestones/milestones.md` — the review page shows the next three; derive more as `reg + offset` (see `/timeline.html`).
+
+**Done when:** you can name, without re-reading: the week's entry count, logged days, done vs overdue tasks, and how many `#question` / `#idea` lines exist.
 
 ## Step 2 · Show the week (one screen, newest-first)
 
-Present the review page in chat:
+Open **`/review.html`** and let the user read it. It is already one screen: the week in
+numbers, the log lines newest-first, what slipped, and the three piles. Give the numbers in
+one or two lines in chat — do not re-paste the page.
 
-- **The week in numbers** — logged days (streak), entries, tasks done. Admin/formality entries counted and credited *as work* — invisible work becomes visible.
-- **What you did** — the week's log lines, newest-first, lightly grouped by tag.
-- **What slipped** — overdue tasks, skipped days. One line, no commentary.
+Admin/formality entries are counted and credited *as work* — invisible work becomes visible.
 
-**Done when:** the user has seen the page and said something. Their reaction (or "ok") unblocks Step 3. Do not start asking verdicts before this.
+**Done when:** the user has seen the page and said something. Their reaction (or "ok") unblocks Step 3.
 
 ## Step 3 · Work the piles (decide — one pile at a time)
 

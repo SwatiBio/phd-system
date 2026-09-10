@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — week in review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: rgb(0 0 0 / 100%);
+      --ink-2: rgb(0 0 0 / 64%);
+      --ink-3: rgb(0 0 0 / 56%);
+      --border: rgb(0 0 0 / 12%);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 15px; line-height: 1.55; color: var(--ink); background: #fff;
+      font-feature-settings: "tnum" 1;
+    }
+    main { max-width: 46rem; margin: 0 auto; padding: 40px 24px 96px; }
+    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; flex-wrap: wrap; }
+    .nav .brand { font-weight: 600; margin-right: 10px; }
+    .nav a { color: var(--ink-3); text-decoration: none; }
+    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
+    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+    h2 { font-size: 17px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.01em; }
+    h3 { font-size: 14px; font-weight: 500; color: var(--ink-3); margin: 22px 0 6px; }
+    p { margin: 8px 0; }
+    ul { margin: 8px 0; padding-left: 20px; }
+    li { margin: 3px 0; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+    .meta { color: var(--ink-2); font-size: 14px; margin-top: 6px; }
+    .em { color: var(--ink-2); font-size: 14px; }
+    code { background: rgb(0 0 0 / 5%); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+    .upcoming { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .upcoming li { color: var(--ink-2); }
+    .upcoming strong { color: var(--ink); font-weight: 500; }
+    .logbook-link { display: inline-block; margin-top: 32px; font-weight: 500; color: var(--ink); }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="nav" aria-label="Site">
+      <a class="brand" href="/">PhD-OS</a>
+      <a href="/">Today</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/timeline.html">Timeline</a>
+      <a href="/review.html" aria-current="page">Review</a>
+      <a href="/digest.html">Digest</a>
+      <a href="/admin/">CMS</a>
+      <a href="/logout">Sign out</a>
+    </nav>
+    <h1>Week in review</h1>
+    <p class="meta" id="meta">Loading…</p>
+    <div id="content"></div>
+    <div class="upcoming" id="upcoming" hidden>
+      <h2>Coming up</h2>
+      <ul id="upcoming-list"></ul>
+    </div>
+    <a class="logbook-link" href="/logbook.html">Logbook for your guide →</a>
+  </main>
+
+  <script type="module">
+    import { parseMilestones, daysUntil } from "/site/lib/milestones.js";
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const inline = (s) => esc(s)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+    /* small markdown renderer — headings, lists, rules, emphasis only */
+    function render(md) {
+      const out = [];
+      let list = null;
+      const close = () => { list = null; };
+      for (const line of md.split("\n")) {
+        if (line.startsWith("### ")) { close(); out.push(el("h3", esc(line.slice(4)))); }
+        else if (line.startsWith("## ")) { close(); out.push(el("h2", esc(line.slice(3)))); }
+        else if (line.startsWith("# ")) { close(); }              // file title duplicates the h1
+        else if (line.trim() === "---") { close(); out.push(el("hr", "")); }
+        else if (line.startsWith("- ")) {
+          if (!list) { list = document.createElement("ul"); out.push(list); }
+          const li = document.createElement("li"); li.innerHTML = inline(line.slice(2)); list.appendChild(li);
+        }
+        else if (line.startsWith("*") && line.endsWith("*") && line.length > 2) {
+          close(); out.push(el("p", `<span class="em">${inline(line.replace(/^\*|\*$/g, ""))}</span>`));
+        }
+        else if (line.trim()) { close(); out.push(el("p", inline(line))); }
+      }
+      return out;
+    }
+    function el(tag, html) {
+      const n = document.createElement(tag);
+      n.innerHTML = html;
+      return n;
+    }
+
+    try {
+      const r = await fetch("/daily/reviews/latest.md");
+      if (r.status === 404) {
+        $("meta").textContent = "";
+        $("content").innerHTML = `<p class="em">No review yet — the job runs Sunday evening.</p>`;
+      } else if (!r.ok) {
+        throw new Error(`HTTP ${r.status}`);
+      } else {
+        const md = await r.text();
+        const prepared = (md.match(/^\*Prepared (.+?) by/m) || [])[1];
+        const title = (md.match(/^# (.+)$/m) || [])[1] || "";
+        $("meta").innerHTML = title ? esc(title) : "";
+        if (prepared) $("meta").innerHTML += ` <span class="em">· prepared ${esc(prepared)}</span>`;
+        const box = $("content");
+        for (const n of render(md)) box.appendChild(n);
+      }
+    } catch (e) {
+      $("meta").textContent = "";
+      $("content").innerHTML = `<p class="em">Could not load the review: ${esc(e.message)}</p>`;
+    }
+
+    try {
+      const mr = await fetch("/system/milestones/milestones.md");
+      if (mr.ok) {
+        const items = parseMilestones(await mr.text()).items.filter((i) => daysUntil(i.date, todayIso) >= 0).slice(0, 3);
+        if (items.length) {
+          $("upcoming").hidden = false;
+          $("upcoming-list").innerHTML = items.map((i) => {
+            const d = daysUntil(i.date, todayIso);
+            const when = d === 0 ? "today" : `in ${d} days`;
+            return `<li><strong>${i.title}</strong> — ${i.date} · ${when}</li>`;
+          }).join("");
+        }
+      }
+    } catch {}
+  </script>
+</body>
+</html>
