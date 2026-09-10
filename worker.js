@@ -189,6 +189,46 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
+    // /api/zotero/save — DOI -> metadata from doi.org -> Zotero item in Phd-OS collection
+    if (url.pathname === "/api/zotero/save") {
+      if (request.method !== "POST") return new Response(JSON.stringify({ error: "method" }), { status: 405, headers: { "content-type": "application/json" } });
+      if (!env.ZOTERO_WRITE_KEY || !env.ZOTERO_USER_ID) return new Response(JSON.stringify({ error: "zotero write key not configured" }), { status: 503, headers: { "content-type": "application/json" } });
+      const body = await request.json();
+      const doi = (body.doi || "").trim().replace(/^https?:\/\/doi\.org\//, "");
+      if (!doi || !/^10\./.test(doi)) return new Response(JSON.stringify({ error: "bad doi" }), { status: 400, headers: { "content-type": "application/json" } });
+      const zheaders = { Authorization: `Bearer ${env.ZOTERO_WRITE_KEY}`, "Content-Type": "application/json", "User-Agent": "phd-os" };
+      // already in library?
+      const dup = await fetch(`https://api.zotero.org/users/${env.ZOTERO_USER_ID}/items?q=${encodeURIComponent(doi)}&format=json`, { headers: zheaders }).then((r) => r.json());
+      if (Array.isArray(dup) && dup.length) return new Response(JSON.stringify({ ok: true, duplicate: true }), { headers: { "content-type": "application/json" } });
+      // full metadata from doi.org (CSL JSON)
+      const csl = await fetch(`https://doi.org/${doi}`, { headers: { Accept: "application/vnd.citationstyles.csl+json", "User-Agent": "phd-os" } });
+      if (!csl.ok) return new Response(JSON.stringify({ error: `metadata lookup failed (${csl.status})` }), { status: 502, headers: { "content-type": "application/json" } });
+      const meta = await csl.json();
+      const item = {
+        itemType: "journalArticle",
+        title: meta.title || "Untitled",
+        DOI: doi,
+        url: `https://doi.org/${doi}`,
+        abstractNote: (meta.abstract || "").replace(/<[^>]+>/g, "").slice(0, 2000),
+        publicationTitle: Array.isArray(meta["container-title"]) ? meta["container-title"][0] : meta["container-title"] || "",
+        date: (meta.issued && meta.issued["date-parts"] && meta.issued["date-parts"][0].join("-")) || "",
+        creators: (meta.author || []).map((a) => ({ creatorType: "author", firstName: a.given || "", lastName: a.family || a.name || "" })),
+        tags: (meta.subject || []).map((s) => ({ tag: s })),
+        collections: env.ZOTERO_COLLECTION_KEY ? [env.ZOTERO_COLLECTION_KEY] : [],
+      };
+      const post = await fetch(`https://api.zotero.org/users/${env.ZOTERO_USER_ID}/items`, {
+        method: "POST",
+        headers: { ...zheaders, Accept: "application/json" },
+        body: JSON.stringify([{ item }]),
+      });
+      if (!post.ok) {
+        const t = await post.text();
+        console.log("[DEBUG-zotero] post failed:", post.status, t.slice(0, 200));
+        return new Response(JSON.stringify({ error: `zotero ${post.status}` }), { status: 502, headers: { "content-type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
+    }
+
     // gated static assets — already mapped above
     return env.ASSETS.fetch(assetRequest);
   },

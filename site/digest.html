@@ -43,6 +43,16 @@
     .nav a { color: var(--ink-3); text-decoration: none; }
     .nav a:hover, .nav a:focus-visible { color: var(--ink); }
     .nav a[aria-current] { color: var(--ink); font-weight: 500; }
+    .zsave {
+      font: inherit; font-size: 13px; font-weight: 500;
+      margin-left: 10px; padding: 4px 10px;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: none; color: var(--ink-2); cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+      touch-action: manipulation;
+    }
+    .zsave:hover { background: rgb(0 0 0 / 5%); color: var(--ink); }
+    .zsave.done { background: var(--ink); color: #fff; border-color: var(--ink); }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -76,8 +86,28 @@
             if (!list) { list = document.createElement("ul"); out.push(list); }
             const li = document.createElement("li");
             li.innerHTML = inline(line.slice(2));
+            const doi = (line.match(/https:\/\/doi\.org\/(10\.[^)]+)/) || [])[1];
+            if (doi) {
+              li.appendChild(makeSaveBtn(doi));
+            }
             list.appendChild(li);
           } else if (line.trim()) { closeList(); out.push(el("p", inline(line))); }
+        }
+        function makeSaveBtn(doi) {
+          const b = document.createElement("button");
+          b.className = "zsave";
+          b.textContent = "→ Zotero";
+          b.addEventListener("click", async () => {
+            b.disabled = true; b.textContent = "Saving…";
+            try {
+              const r = await fetch("/api/zotero/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ doi }) });
+              const j = await r.json().catch(() => ({}));
+              if (r.ok && j.duplicate) { b.textContent = "Already in Zotero"; b.classList.add("done"); }
+              else if (r.ok) { b.textContent = "Saved ✓"; b.classList.add("done"); }
+              else { b.textContent = j.error || "Failed"; b.disabled = false; }
+            } catch (e) { b.textContent = "Failed"; b.disabled = false; }
+          });
+          return b;
         }
         function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
         function inline(s) {
