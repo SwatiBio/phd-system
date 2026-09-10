@@ -107,6 +107,7 @@ export default {
     let assetPath = url.pathname;
     if (assetPath === "/") assetPath = "/site/index.html";
     else if (assetPath.startsWith("/admin")) assetPath = "/site" + assetPath;
+    else if (assetPath === "/digest.html") assetPath = "/site/digest.html";
     if (assetPath.endsWith("/")) assetPath += "index.html";
     const assetRequest = new Request(new URL(assetPath, url.origin), request);
 
