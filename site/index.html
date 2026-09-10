@@ -39,6 +39,13 @@
     }
     @media (min-width: 768px) { main { padding: 64px 24px 96px; } }
 
+    /* ---------- nav ---------- */
+    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; }
+    .nav .brand { font-weight: 600; margin-right: 10px; }
+    .nav a { color: var(--ink-3); text-decoration: none; }
+    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
+    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
+
     /* ---------- header ---------- */
     .date-row {
       display: flex;
@@ -147,6 +154,14 @@
 <body>
   <main>
     <div id="app" hidden>
+    <nav class="nav" aria-label="Site">
+      <a class="brand" href="/">PhD-OS</a>
+      <a href="/" aria-current="page">Today</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/digest.html">Digest</a>
+      <a href="/admin/">CMS</a>
+      <a href="/logout">Sign out</a>
+    </nav>
       <div class="date-row">
         <h1 class="today" id="today-date"></h1>
         <span class="streak" id="streak"></span>
@@ -161,7 +176,7 @@
         <div class="label">Log what you did</div>
         <form class="log-row" id="log-form">
           <input class="log-input" id="log-text" placeholder="One line is enough…" autocomplete="off" />
-          <button class="primary" type="submit" id="log-submit">Log</button>
+          <button class="primary" type="submit" id="log-submit">Log entry</button>
         </form>
         <div class="chips" id="chips"></div>
         <p class="saved" id="log-saved" role="status" aria-live="polite"></p>
@@ -178,9 +193,7 @@
       </section>
 
       <footer>
-        <a href="/admin/">Open CMS</a>
-        <a href="/archive.html">Archive</a>
-        <a href="/logout">Sign out</a>
+        <span style="color: var(--ink-3); font-size: 15px;">Edits commit straight to your vault.</span>
       </footer>
     </div>
   </main>
@@ -271,7 +284,7 @@
         <p class="task-due${days <= 3 ? " urgent" : ""}">${dueTxt} · ${one.due}</p>
         <div class="task-actions">
           <button class="primary" id="task-done">Done</button>
-          <a class="ghost done-task" href="./admin/#/collections/tasks" style="align-self:center;">all tasks</a>
+          <a class="ghost done-task" href="/admin/#/collections/tasks" style="align-self:center;">All tasks</a>
         </div>`;
       $("task-body").querySelector(".task-text").textContent = one.text;
       $("task-done").addEventListener("click", () => markDone(one));

@@ -38,19 +38,31 @@
     .who { color: var(--ink-2); font-size: 15px; }
     .crumb { display: inline-block; margin-bottom: 32px; color: var(--ink-3); font-size: 15px; text-decoration: none; }
     .crumb:hover { color: var(--ink); }
+    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; }
+    .nav .brand { font-weight: 600; margin-right: 10px; }
+    .nav a { color: var(--ink-3); text-decoration: none; }
+    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
+    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
     [hidden] { display: none !important; }
   </style>
 </head>
 <body>
   <main>
-    <a class="crumb" href="/">← Today</a>
+    <nav class="nav" aria-label="Site">
+      <a class="brand" href="/">PhD-OS</a>
+      <a href="/">Today</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/digest.html" aria-current="page">Digest</a>
+      <a href="/admin/">CMS</a>
+      <a href="/logout">Sign out</a>
+    </nav>
     <div id="content"><p style="color: var(--ink-3)">Loading…</p></div>
   </main>
   <script type="module">
     const el = (h, c) => { const d = document.createElement(h); d.innerHTML = c; return d; };
     try {
       const r = await fetch("/research/papers/digest-latest.md");
-      if (r.status === 404) { document.getElementById("content").innerHTML = "<p class='em'>No digest yet — the robot runs Monday mornings.</p>"; }
+      if (r.status === 404) { document.getElementById("content").innerHTML = "<p class='em'>No digest yet — the robot runs Monday mornings. Check back then.</p>"; }
       else {
         const md = (await r.text()).split("\n");
         const out = [];
