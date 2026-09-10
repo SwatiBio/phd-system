@@ -5,67 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>PhD-OS — week in review</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --ink: rgb(0 0 0 / 100%);
-      --ink-2: rgb(0 0 0 / 64%);
-      --ink-3: rgb(0 0 0 / 56%);
-      --border: rgb(0 0 0 / 12%);
-    }
-    * { box-sizing: border-box; margin: 0; }
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      font-size: 15px; line-height: 1.55; color: var(--ink); background: #fff;
-      font-feature-settings: "tnum" 1;
-    }
-    main { max-width: 46rem; margin: 0 auto; padding: 40px 24px 96px; }
-    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; flex-wrap: wrap; }
-    .nav .brand { font-weight: 600; margin-right: 10px; }
-    .nav a { color: var(--ink-3); text-decoration: none; }
-    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
-    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
-    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-    h2 { font-size: 17px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.01em; }
-    h3 { font-size: 14px; font-weight: 500; color: var(--ink-3); margin: 22px 0 6px; }
-    p { margin: 8px 0; }
-    ul { margin: 8px 0; padding-left: 20px; }
-    li { margin: 3px 0; }
-    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
-    .meta { color: var(--ink-2); font-size: 14px; margin-top: 6px; }
-    .em { color: var(--ink-2); font-size: 14px; }
-    code { background: rgb(0 0 0 / 5%); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
-    .upcoming { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
-    .upcoming li { color: var(--ink-2); }
-    .upcoming strong { color: var(--ink); font-weight: 500; }
-    .logbook-link { display: inline-block; margin-top: 32px; font-weight: 500; color: var(--ink); }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer></script>
 </head>
 <body>
   <main>
-        <nav class="nav" aria-label="Site">
-      <a class="brand" href="/">PhD-OS</a>
-      <a href="/">Today</a>
-      <a href="/tasks.html">Tasks</a>
-      <a href="/timeline.html">Timeline</a>
-      <a href="/review.html" aria-current="page">Review</a>
-      <a href="/archive.html">Archive</a>
-      <a href="/digest.html">Digest</a>
-      <a href="/admin/">CMS</a>
-      <a href="/logout">Sign out</a>
-    </nav>
-    <h1>Week in review</h1>
-    <p class="meta" id="meta">Loading…</p>
-    <div id="content"></div>
-    <div class="upcoming" id="upcoming" hidden>
-      <h2>Coming up</h2>
-      <ul id="upcoming-list"></ul>
+    <div class="content">
+      <header class="page-head">
+        <h1>Week in review</h1>
+        <p class="meta" id="meta">Loading…</p>
+      </header>
+
+      <div class="card">
+        <section class="prose" id="content"></section>
+      </div>
+
+      <div class="upcoming" id="upcoming" hidden>
+        <h2>Coming up</h2>
+        <ul id="upcoming-list"></ul>
+      </div>
+
+      <a class="btn mt-8" data-variant="outline" href="/logbook.html">Logbook for your guide →</a>
     </div>
-    <a class="logbook-link" href="/logbook.html">Logbook for your guide →</a>
   </main>
 
+  <script type="module" src="/site/lib/shell.js"></script>
   <script type="module">
     import { parseMilestones, daysUntil } from "/site/lib/milestones.js";
 

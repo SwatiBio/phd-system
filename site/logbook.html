@@ -5,96 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>PhD-OS — research logbook (week)</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --ink: rgb(0 0 0 / 100%);
-      --ink-2: rgb(0 0 0 / 64%);
-      --ink-3: rgb(0 0 0 / 56%);
-      --border: rgb(0 0 0 / 12%);
-    }
-    * { box-sizing: border-box; margin: 0; }
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      font-size: 15px;
-      line-height: 1.5;
-      color: var(--ink);
-      background: #fff;
-      font-feature-settings: "tnum" 1;
-    }
-    main { max-width: 52rem; margin: 0 auto; padding: 40px 24px 96px; }
-    .crumb { display: inline-block; margin-bottom: 24px; color: var(--ink-3); font-size: 15px; text-decoration: none; }
-    .crumb:hover { color: var(--ink); }
-    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; }
-    .nav .brand { font-weight: 600; margin-right: 10px; }
-    .nav a { color: var(--ink-3); text-decoration: none; }
-    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
-    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
-    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-    .meta { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 32px; }
-    th {
-      text-align: left; font-weight: 500; font-size: 13px; color: var(--ink-3);
-      border-bottom: 1px solid var(--ink); padding: 8px 10px 6px;
-    }
-    td { border-bottom: 1px solid var(--border); padding: 8px 10px; vertical-align: top; }
-    td.date, td.time { white-space: nowrap; color: var(--ink-2); font-size: 14px; }
-    tr.daysep td { border-top: 1px solid var(--ink); }
-    .tag { color: var(--ink-3); font-size: 13px; }
-    .empty { color: var(--ink-2); margin-top: 24px; }
-
-    .signatures { margin-top: 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
-    .sig { text-align: left; }
-    .sig .line { border-bottom: 1px solid var(--ink); height: 48px; }
-    .sig .who { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
-    .sig .who strong { color: var(--ink); font-weight: 500; }
-
-    .noprint { margin-top: 32px; }
-    button.print {
-      font: inherit; font-weight: 500; border: none; border-radius: 8px;
-      padding: 12px 20px; background: var(--ink); color: #fff; cursor: pointer;
-      min-height: 48px;
-    }
-    button.print:hover { background: rgb(0 0 0 / 82%); }
-    p.warn { color: var(--ink-2); font-size: 14px; margin-top: 12px; }
-
-    @media print {
-      .crumb, .noprint { display: none !important; }
-      main { padding: 0; max-width: none; }
-      body { font-size: 12px; }
-      .signatures { margin-top: 48px; }
-    }
-    [hidden] { display: none !important; }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer></script>
 </head>
 <body>
   <main>
-        <nav class="nav" aria-label="Site">
-      <a class="brand" href="/">PhD-OS</a>
-      <a href="/">Today</a>
-      <a href="/tasks.html">Tasks</a>
-      <a href="/timeline.html">Timeline</a>
-      <a href="/review.html">Review</a>
-      <a href="/archive.html">Archive</a>
-      <a href="/digest.html">Digest</a>
-      <a href="/admin/">CMS</a>
-      <a href="/logout">Sign out</a>
-    </nav>
-    <h1>Research logbook</h1>
-    <p class="meta" id="week-label"></p>
-    <div id="content"><p class="meta">Loading…</p></div>
-    <div class="signatures">
-      <div class="sig"><div class="line"></div><div class="who"><strong>Scholar:</strong> Swati · Date:</div></div>
-      <div class="sig"><div class="line"></div><div class="who"><strong>Guide review &amp; approval (Section 19):</strong></div></div>
-    </div>
-    <div class="noprint">
-      <button class="print" onclick="window.print()">Print this page</button>
-      <p class="warn">Print and hand to your guide weekly. Fresh saves take about a minute to appear here.</p>
+    <div class="content">
+      <header class="page-head">
+        <h1>Research logbook</h1>
+        <p class="meta" id="week-label"></p>
+      </header>
+
+      <div class="card">
+        <section>
+          <div class="rtable" id="content"><p class="meta">Loading…</p></div>
+        </section>
+      </div>
+
+      <div class="signatures">
+        <div class="sig"><div class="line"></div><div class="who"><strong>Scholar:</strong> Swati · Date:</div></div>
+        <div class="sig"><div class="line"></div><div class="who"><strong>Guide review &amp; approval (Section 19):</strong></div></div>
+      </div>
+
+      <div class="noprint">
+        <button class="btn" onclick="window.print()">Print this page</button>
+        <p class="mt-3 text-sm" style="color: var(--muted-foreground)">Print and hand to your guide weekly. Fresh saves take about a minute to appear here.</p>
+      </div>
     </div>
   </main>
 
+  <script type="module" src="/site/lib/shell.js"></script>
   <script type="module">
     import { weekPath, weekStart, weekLabel, parseLog } from "/site/lib/logs.js";
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -110,9 +66,8 @@
       weekDays.push(iso(d));
     }
 
+    const $ = (id) => document.getElementById(id);
     $("week-label").textContent = `${weekLabel(monday)} · Section 19 record`;
-
-    function $(id) { return document.getElementById(id); }
 
     // One file per ISO week — no date filtering left to do.
     const entries = {};
@@ -139,16 +94,11 @@
       $("content").innerHTML = `<p class="empty">No entries this week yet. Log from the morning page — they appear here within a minute of saving.</p>`;
     } else {
       $("content").innerHTML = `
-        <table>
+        <table class="grid">
           <thead><tr><th>Date</th><th>Time</th><th>Work carried out</th><th>Status / result</th></tr></thead>
           <tbody>${rows.join("")}</tbody>
         </table>`;
     }
   </script>
-  <script type="module">
-    try { const j = await (await fetch("/api/whoami")).json(); if (!j.login) document.querySelectorAll('a[href="/logout"]').forEach((a) => (a.hidden = true)); } catch {}
-  </script>
 </body>
 </html>
-
-</body>

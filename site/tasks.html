@@ -5,119 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>PhD-OS — tasks</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --ink: rgb(0 0 0 / 100%);
-      --ink-2: rgb(0 0 0 / 64%);
-      --ink-3: rgb(0 0 0 / 56%);
-      --border: rgb(0 0 0 / 12%);
-    }
-    * { box-sizing: border-box; margin: 0; }
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      font-size: 15px; line-height: 1.5; color: var(--ink); background: #fff;
-      font-feature-settings: "tnum" 1;
-    }
-    main { max-width: 46rem; margin: 0 auto; padding: 40px 24px 96px; }
-    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; flex-wrap: wrap; }
-    .nav .brand { font-weight: 600; margin-right: 10px; }
-    .nav a { color: var(--ink-3); text-decoration: none; }
-    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
-    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
-    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-    h2 { font-size: 14px; font-weight: 500; color: var(--ink-3); margin: 32px 0 6px; text-transform: none; }
-    .meta { color: var(--ink-2); font-size: 14px; margin-top: 6px; }
-    ul { list-style: none; padding: 0; }
-    li {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 11px 4px; border-bottom: 1px solid var(--border);
-    }
-    li:last-child { border-bottom: none; }
-    .tick {
-      flex: none; width: 20px; height: 20px; margin-top: 2px;
-      border: 1px solid var(--ink-3); border-radius: 5px; background: #fff;
-      cursor: pointer; padding: 0; color: transparent; font-size: 13px; line-height: 1;
-    }
-    .tick:hover { border-color: var(--ink); }
-    .tick:disabled { opacity: .4; cursor: default; }
-    .body { flex: 1; min-width: 0; }
-    .when { white-space: nowrap; color: var(--ink-3); font-size: 13px; margin-top: 2px; }
-    .when.overdue { color: var(--ink); font-weight: 600; }
-    .rec { color: var(--ink-3); font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; margin-left: 6px; }
-    .src { color: var(--ink-3); font-size: 12px; }
-    li.done .body { color: var(--ink-3); text-decoration: line-through; }
-    li.focus { background: var(--hover); border-radius: 6px; }
-    .add { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
-    .add input, .add button {
-      font: inherit; padding: 10px 12px; border: 1px solid var(--ink-3);
-      border-radius: 8px; background: #fff; color: var(--ink); min-height: 44px;
-    }
-    .add input[type=text] { flex: 1 1 16rem; min-width: 0; }
-    .add input[type=date] { flex: 0 0 10.5rem; }
-    .add input:focus-visible, .add button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-    .add button { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 500; cursor: pointer; }
-    .add button:disabled { opacity: .5; cursor: default; }
-    .add-note { color: var(--ink-3); font-size: 13px; margin-top: 6px; min-height: 18px; }
-    .empty { color: var(--ink-2); margin-top: 20px; }
-    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--ink-2); font-size: 14px; }
-    .footer a { color: var(--ink); }
-    .saved { color: var(--ink-2); font-size: 13px; margin-left: 8px; }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer></script>
 </head>
 <body>
   <main>
-        <nav class="nav" aria-label="Site">
-      <a class="brand" href="/">PhD-OS</a>
-      <a href="/">Today</a>
-      <a href="/tasks.html" aria-current="page">Tasks</a>
-      <a href="/timeline.html">Timeline</a>
-      <a href="/review.html">Review</a>
-      <a href="/archive.html">Archive</a>
-      <a href="/digest.html">Digest</a>
-      <a href="/admin/">CMS</a>
-      <a href="/logout">Sign out</a>
-    </nav>
-    <h1>Tasks</h1>
-    <p class="meta" id="meta">Loading…</p>
-    <form class="add" id="add-form">
-      <input type="text" id="add-text" placeholder="Add a task — one line" autocomplete="off" aria-label="New task" />
-      <input type="date" id="add-due" aria-label="Due date (optional)" />
-      <button type="submit" id="add-btn">Add</button>
-    </form>
-    <p class="add-note" id="add-note"></p>
-    <div id="content"></div>
-    <div class="footer">
-      Tick done here — it commits straight to <code>daily/tasks/tasks.md</code>.
-      To add or edit tasks, use <a href="/admin/#/collections/tasks">the CMS</a>.
+    <div class="content">
+      <header class="page-head">
+        <h1>Tasks</h1>
+        <p class="meta" id="meta">Loading…</p>
+      </header>
+
+      <div class="card mb-6">
+        <section>
+          <form class="add-row" id="add-form">
+            <input class="input" type="text" id="add-text" placeholder="Add a task — one line" autocomplete="off" aria-label="New task" />
+            <input class="input" type="date" id="add-due" aria-label="Due date (optional)" />
+            <button class="btn" type="submit" id="add-btn">Add</button>
+          </form>
+          <p class="add-note" id="add-note"></p>
+        </section>
+      </div>
+
+      <div class="card">
+        <section>
+          <div class="taskwrap" id="content"></div>
+        </section>
+      </div>
+
+      <footer class="page-footer">
+        Tick done here — it commits straight to <code>daily/tasks/tasks.md</code>.
+        To add or edit tasks, use <a href="/admin/#/collections/tasks">the CMS</a>.
+      </footer>
     </div>
   </main>
 
+  <script type="module" src="/site/lib/shell.js"></script>
   <script type="module">
     import { parseTasks, withTaskDone, withTaskAdded } from "/site/lib/tasks.js";
+    import { get, put } from "/site/lib/vault.js";
 
     const todayIso = new Date().toISOString().slice(0, 10);
     const $ = (id) => document.getElementById(id);
     const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
     const fmt = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-
-    async function ghGet(path) {
-      const r = await fetch(`/${path}`);
-      if (r.status === 404) return null;
-      if (!r.ok) throw new Error(`GET ${path}: ${r.status}`);
-      return { text: await r.text(), meta: {} };
-    }
-    async function ghPut(path, text, msg) {
-      const r = await fetch("/api/write", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path, text, message: msg }),
-      });
-      if (r.status === 401) { location.href = "/login"; return new Promise(() => {}); }
-      if (!r.ok) throw new Error(`PUT ${path}: ${r.status}`);
-    }
 
     function row(t) {
       const li = document.createElement("li");
@@ -165,8 +112,8 @@
       btn.addEventListener("click", async () => {
         btn.disabled = true;
         try {
-          const f = await ghGet("daily/tasks/tasks.md");
-          await ghPut("daily/tasks/tasks.md", withTaskDone(f.text, t.raw, !t.done), `${t.done ? "task reopened" : "task done"}: ${t.text.slice(0, 50)}`);
+          const f = await get("daily/tasks/tasks.md");
+          await put("daily/tasks/tasks.md", withTaskDone(f?.text ?? "", t.raw, !t.done), `${t.done ? "task reopened" : "task done"}: ${t.text.slice(0, 50)}`);
           await load(true);
         } catch (e) {
           btn.disabled = false;
@@ -192,7 +139,7 @@
       if (!isReload) box.innerHTML = "";
       let text;
       try {
-        const f = await ghGet("daily/tasks/tasks.md");
+        const f = await get("daily/tasks/tasks.md");
         text = f ? f.text : "";
       } catch (e) {
         $("meta").textContent = "";
@@ -239,9 +186,9 @@
       btn.disabled = true;
       $("add-note").textContent = "";
       try {
-        const f = await ghGet("daily/tasks/tasks.md");
+        const f = await get("daily/tasks/tasks.md");
         const updated = withTaskAdded(f ? f.text : "# Tasks\n", text, $("add-due").value || null);
-        await ghPut("daily/tasks/tasks.md", updated, `task added: ${text.slice(0, 50)}`);
+        await put("daily/tasks/tasks.md", updated, `task added: ${text.slice(0, 50)}`);
         $("add-text").value = "";
         $("add-due").value = "";
         $("add-note").textContent = "Added.";
