@@ -197,11 +197,19 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "pdf-plus:PDF++: Toggle auto-copy": false,
+      "pdf-plus:PDF++: Toggle auto-focus": false,
+      "pdf-plus:PDF++: Toggle auto-paste": false,
+      "zotlit:Open Zotero annotations": false
     }
   },
   "active": "e7a7b303c61786dc",
   "lastOpenFiles": [
+    "system/scripts/debug-rest.py",
+    "system/scripts/syncthing-add-folder.py",
+    "Home.md",
+    "research/papers/shivannaChromatographicApproachesIsolation2025.md",
     "system/templates/publication-note.md",
     "later/publications/Publications.md",
     "daily/logs/2026-09.md",
@@ -214,7 +222,6 @@
     "system/wayfinder/seed-data-spec.md",
     "system/wayfinder/map.md",
     "system/wayfinder/decisions-log.md",
-    "Home.md",
     "SETUP.md",
     "README.md",
     "sedw1bB7u",
@@ -227,7 +234,6 @@
     "system/harbor/mahe-guidelines-checklist.html",
     "system/harbor",
     "later/money",
-    "later/publications/certificates",
     "system/wayfinder/tickets/R1-mahe-annexure-28-fields.md",
     "system/wayfinder/tickets/15-month-1-reality-checkpoint.md",
     "system/wayfinder/tickets/14-final-build-plan-assembly.md",
@@ -235,8 +241,6 @@
     "system/wayfinder/tickets/12-weekly-review-ritual.md",
     "system/wayfinder/tickets/13-setup-tasks-bundle.md",
     "system/wayfinder/tickets/10-dac-report-assembler-spec.md",
-    "system/wayfinder/tickets/09-sweep-contract.md",
-    "system/wayfinder/tickets/08-object-templates.md",
-    "system/wayfinder/tickets/07-obsidian-configuration.md"
+    "system/wayfinder/tickets/09-sweep-contract.md"
   ]
 }

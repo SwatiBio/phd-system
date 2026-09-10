@@ -1,0 +1,5 @@
+# This directory is a Syncthing folder marker.
+# Do not delete.
+
+folderID: phd-system
+created: 2026-09-10T16:00:22+05:30
