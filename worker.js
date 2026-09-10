@@ -179,7 +179,10 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
-    // gated static assets
-    return env.ASSETS.fetch(request);
+    // gated static assets — map root paths onto site/ (assets dir = repo root)
+    let assetPath = url.pathname;
+    if (assetPath === "/") assetPath = "/site/index.html";
+    else if (assetPath.startsWith("/admin")) assetPath = "/site" + assetPath;
+    return env.ASSETS.fetch(new URL(assetPath, url.origin));
   },
 };
