@@ -77,7 +77,9 @@ async function ghApi(token, repo, path, init = {}) {
     ...init,
     headers: {
       Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github.raw",
+      // Must be JSON: the caller parses this response. `application/vnd.github.raw`
+      // returns the file's bytes, so .json() threw and 500'd the whole write path.
+      Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
       "User-Agent": "phd-os-auth",
       ...(init.headers || {}),
@@ -175,7 +177,7 @@ export default {
       const body = await request.json();
       const p = safePath(body.path);
       if (!p || typeof body.text !== "string") return new Response(JSON.stringify({ error: "bad request" }), { status: 400, headers: { "content-type": "application/json" } });
-      const meta = await ghApi(session.gh, cfg.repo, `/repos/${cfg.repo}/contents/${p}`).then((r) => (r.status === 404 ? null : r.json()));
+      const meta = await ghApi(session.gh, cfg.repo, `/repos/${cfg.repo}/contents/${p}`).then((r) => (r.status === 404 ? null : r.json().catch(() => null)));
       const put = await ghApi(session.gh, cfg.repo, `/repos/${cfg.repo}/contents/${p}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -185,7 +187,10 @@ export default {
           ...(meta?.sha ? { sha: meta.sha } : {}),
         }),
       });
-      if (!put.ok) return new Response(JSON.stringify({ error: `github ${put.status}` }), { status: 502, headers: { "content-type": "application/json" } });
+      if (!put.ok) {
+        const detail = await put.json().then((j) => j && j.message).catch(() => "");
+        return new Response(JSON.stringify({ error: `github ${put.status}${detail ? `: ${detail}` : ""}` }), { status: 502, headers: { "content-type": "application/json" } });
+      }
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
