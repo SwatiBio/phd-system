@@ -158,6 +158,7 @@
       <a class="brand" href="/">PhD-OS</a>
       <a href="/" aria-current="page">Today</a>
       <a href="/archive.html">Archive</a>
+      <a href="/timeline.html">Timeline</a>
       <a href="/digest.html">Digest</a>
       <a href="/admin/">CMS</a>
       <a href="/logout">Sign out</a>
@@ -241,18 +242,37 @@
       }
       return out;
     }
-    function nextMilestone(text) {
-      const sections = text.split(/^## /m).slice(1);
-      let best = null;
-      for (const s of sections) {
-        const t = s.match(/\*\*Target:\*\* (\d{4}-\d{2}-\d{2})/);
-        if (!t) continue;
-        const days = daysUntil(t[1]);
-        if (days >= 0 && (!best || days < best.days)) {
-          best = { title: s.split("—")[0].replace(/^\d+ · /, "").trim(), date: t[1], days };
-        }
+    /* milestones are stored as offsets from `reg` (see site/timeline.html) */
+    function addOffset(regIso, n, unit) {
+      const d = new Date(regIso + "T12:00:00");
+      if (unit === "day") d.setDate(d.getDate() + n);
+      else if (unit === "week") d.setDate(d.getDate() + n * 7);
+      else {
+        const day = d.getDate();
+        d.setDate(1);
+        unit === "year" ? d.setFullYear(d.getFullYear() + n) : d.setMonth(d.getMonth() + n);
+        const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        d.setDate(Math.min(day, last));
       }
-      return best;
+      return iso(d);
+    }
+    function parseMilestones(text) {
+      const fm = text.match(/^---\n([\s\S]*?)\n---/);
+      const reg = fm && (fm[1].match(/^reg:\s*(\d{4}-\d{2}-\d{2})/m) || [])[1];
+      const items = [];
+      if (!reg) return items;
+      for (const s of text.split(/^## /m).slice(1)) {
+        const title = s.split("\n")[0].split("—")[0].replace(/^\d+ · /, "").trim();
+        const line = s.match(/^\*\*Targets?:\*\* (.+)$/m);
+        if (!line) continue;
+        for (const t of line[1].matchAll(/reg\s*\+\s*(\d+)\s*(day|week|month|year)/gi))
+          items.push({ title, date: addOffset(reg, Number(t[1]), t[2].toLowerCase()) });
+      }
+      return items.sort((a, b) => a.date.localeCompare(b.date));
+    }
+    function nextMilestone(text) {
+      const m = parseMilestones(text).find((i) => daysUntil(i.date) >= 0);
+      return m ? { title: m.title, date: m.date, days: daysUntil(m.date) } : null;
     }
     function loggedDates(text) {
       const set = new Set();

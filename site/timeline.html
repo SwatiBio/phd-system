@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — timeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: rgb(0 0 0 / 100%);
+      --ink-2: rgb(0 0 0 / 64%);
+      --ink-3: rgb(0 0 0 / 56%);
+      --border: rgb(0 0 0 / 12%);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: #fff;
+      font-feature-settings: "tnum" 1;
+    }
+    main { max-width: 52rem; margin: 0 auto; padding: 40px 24px 96px; }
+    .nav { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; font-size: 14px; flex-wrap: wrap; }
+    .nav .brand { font-weight: 600; margin-right: 10px; }
+    .nav a { color: var(--ink-3); text-decoration: none; }
+    .nav a:hover, .nav a:focus-visible { color: var(--ink); }
+    .nav a[aria-current] { color: var(--ink); font-weight: 500; }
+    h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+    .meta { color: var(--ink-2); font-size: 14px; margin-top: 6px; }
+    .meta strong { color: var(--ink); font-weight: 500; }
+    .note {
+      margin-top: 24px; padding: 14px 16px; border: 1px solid var(--border);
+      border-radius: 8px; color: var(--ink-2); font-size: 14px;
+    }
+    .note a { color: var(--ink); }
+    table { width: 100%; border-collapse: collapse; margin-top: 28px; }
+    th {
+      text-align: left; font-weight: 500; font-size: 13px; color: var(--ink-3);
+      border-bottom: 1px solid var(--ink); padding: 8px 10px 6px;
+    }
+    td { border-bottom: 1px solid var(--border); padding: 9px 10px; vertical-align: top; }
+    td.date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.in { white-space: nowrap; color: var(--ink-3); font-size: 14px; }
+    tr.past td { color: var(--ink-3); }
+    tr.next td { background: rgb(0 0 0 / 4%); font-weight: 500; }
+    tr.next td.date::after { content: " ●"; font-size: 10px; vertical-align: middle; }
+    .empty { color: var(--ink-2); margin-top: 24px; }
+    @media print {
+      .nav, .note { display: none !important; }
+      main { padding: 0; max-width: none; }
+      body { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="nav" aria-label="Site">
+      <a class="brand" href="/">PhD-OS</a>
+      <a href="/">Today</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/timeline.html" aria-current="page">Timeline</a>
+      <a href="/digest.html">Digest</a>
+      <a href="/admin/">CMS</a>
+      <a href="/logout">Sign out</a>
+    </nav>
+    <h1>Timeline</h1>
+    <p class="meta" id="reg-line">Loading…</p>
+    <div class="note">
+      Every date is computed from the registration date — nothing here is stored. Change <code>reg</code> in
+      <a href="/admin/#/collections/milestones">the milestones file</a> and the whole timeline moves.
+    </div>
+    <div id="content"></div>
+  </main>
+
+  <script type="module">
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const todayIso = iso(new Date());
+    const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
+    const fmtDate = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+    /* ---------- reg + offset (mirrors site/index.html) ---------- */
+    function addOffset(regIso, n, unit) {
+      const d = new Date(regIso + "T12:00:00");
+      if (unit === "day") d.setDate(d.getDate() + n);
+      else if (unit === "week") d.setDate(d.getDate() + n * 7);
+      else {
+        const day = d.getDate();
+        d.setDate(1);
+        unit === "year" ? d.setFullYear(d.getFullYear() + n) : d.setMonth(d.getMonth() + n);
+        const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        d.setDate(Math.min(day, last));
+      }
+      return iso(d);
+    }
+    function parseMilestones(text) {
+      const fm = text.match(/^---\n([\s\S]*?)\n---/);
+      const reg = fm && (fm[1].match(/^reg:\s*(\d{4}-\d{2}-\d{2})/m) || [])[1];
+      const note = fm && (fm[1].match(/^reg-note:\s*"?([^"\n]*)"?/m) || [])[1];
+      const items = [];
+      if (!reg) return { reg: null, note, items };
+      for (const s of text.split(/^## /m).slice(1)) {
+        const title = s.split("\n")[0].split("—")[0].replace(/^\d+ · /, "").trim();
+        const line = s.match(/^\*\*Targets?:\*\* (.+)$/m);
+        if (!line) continue;
+        for (const t of line[1].matchAll(/reg\s*\+\s*(\d+)\s*(day|week|month|year)/gi))
+          items.push({ title, date: addOffset(reg, Number(t[1]), t[2].toLowerCase()) });
+      }
+      items.sort((a, b) => a.date.localeCompare(b.date));
+      return { reg, note, items };
+    }
+
+    function render({ reg, note, items }) {
+      const line = document.getElementById("reg-line");
+      const box = document.getElementById("content");
+      if (!reg) {
+        line.textContent = "No registration date set yet.";
+        box.innerHTML = `<p class="empty">Open the milestones file in the CMS and set <code>reg:</code> to your date of joining. Everything below appears at once.</p>`;
+        return;
+      }
+      line.innerHTML = `Registration date: <strong>${fmtDate(reg)}</strong>${note ? ` · ${note.split("—")[0].trim().toLowerCase()}` : ""}`;
+      if (!items.length) {
+        box.innerHTML = `<p class="empty">No milestones with a <code>reg + offset</code> target found.</p>`;
+        return;
+      }
+      const next = items.find((i) => daysUntil(i.date) >= 0);
+      const rows = items.map((i) => {
+        const days = daysUntil(i.date);
+        const when = days < 0 ? `${-days}d ago` : days === 0 ? "today" : `in ${days}d`;
+        const cls = days < 0 ? "past" : (next && i.date === next.date && i.title === next.title) ? "next" : "";
+        return `<tr class="${cls}"><td class="date">${fmtDate(i.date)}</td><td class="in">${when}</td><td>${i.title}</td></tr>`;
+      });
+      box.innerHTML = `<table><thead><tr><th>Date</th><th>When</th><th>Milestone</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
+    }
+
+    try {
+      const r = await fetch("/system/milestones/milestones.md");
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      render(parseMilestones(await r.text()));
+    } catch (e) {
+      document.getElementById("reg-line").textContent = "";
+      document.getElementById("content").innerHTML = `<p class="empty">Could not load milestones: ${e.message}</p>`;
+    }
+    try {
+      const j = await (await fetch("/api/whoami")).json();
+      if (!j.login) document.querySelectorAll('a[href="/logout"]').forEach((a) => (a.hidden = true));
+    } catch {}
+  </script>
+</body>
+</html>
