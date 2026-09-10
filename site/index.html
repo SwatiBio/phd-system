@@ -56,7 +56,7 @@
     .today { font-weight: 600; font-size: 20px; letter-spacing: -0.01em; }
     .streak { color: var(--ink-3); font-size: 15px; white-space: nowrap; }
 
-    /* ---------- one thing ---------- */
+    /* ---------- today's tasks ---------- */
     section { margin-top: 56px; }
     .label {
       font-size: 14px;
@@ -64,11 +64,20 @@
       color: var(--ink-3);
       margin-bottom: 8px;
     }
-    .task-text { font-size: 26px; font-weight: 600; line-height: 1.25; letter-spacing: -0.015em; }
-    .task-due { color: var(--ink-2); font-size: 15px; margin-top: 6px; }
-    .task-due.urgent { color: var(--ink); font-weight: 600; }
-    .task-actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+    .task-list { list-style: none; padding: 0; margin: 0; }
+    .task-list li { border-bottom: 1px solid var(--border); }
+    .task-list li:last-child { border-bottom: none; }
+    .task-list a {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+      padding: 13px 4px; text-decoration: none; color: var(--ink); border-radius: 4px;
+    }
+    .task-list a:hover, .task-list a:focus-visible { background: var(--hover); }
+    .task-list .t { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+    .task-list .w { color: var(--ink-3); font-size: 14px; white-space: nowrap; }
+    .task-list .task-row.overdue .w { color: var(--ink); font-weight: 600; }
     .task-none { color: var(--ink-2); font-size: 17px; }
+    .task-more { margin-top: 14px; font-size: 14px; }
+    .task-more a { color: var(--ink-2); }
     .skip { color: var(--ink-3); }
 
     /* ---------- log ---------- */
@@ -171,7 +180,7 @@
       </div>
 
       <section id="task-section">
-        <div class="label">Today's one thing</div>
+        <div class="label">Due today</div>
         <div id="task-body"><p class="skeleton">Loading…</p></div>
       </section>
 
@@ -203,7 +212,7 @@
 
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
-    import { parseTasks, withTaskDone } from "/site/lib/tasks.js";
+    import { parseTasks } from "/site/lib/tasks.js";
 
     const demo = new URLSearchParams(location.search).get("demo") === "1";
 
@@ -259,30 +268,59 @@
     /* ---------- render ---------- */
     const monthPath = (d) => `daily/logs/${iso(d).slice(0, 7)}.md`;
 
-    function renderTask(tasks) {
-      const open = tasks.filter((t) => !t.done && t.due).sort((a, b) => a.due.localeCompare(b.due));
-      const one = open[0];
-      if (!one) { $("task-body").innerHTML = `<p class="task-none">Nothing due. Open CMS to add tasks.</p>`; return; }
-      const days = daysUntil(one.due);
-      const dueTxt = days === 0 ? "due today" : days < 0 ? `overdue by ${-days} day${-days > 1 ? "s" : ""}` : `due in ${days} day${days > 1 ? "s" : ""}`;
-      $("task-body").innerHTML = `
-        <p class="task-text"></p>
-        <p class="task-due${days <= 3 ? " urgent" : ""}">${dueTxt} · ${one.due}</p>
-        <div class="task-actions">
-          <button class="primary" id="task-done">Done</button>
-          <a class="ghost done-task" href="/tasks.html" style="align-self:center;">All tasks</a>
-        </div>`;
-      $("task-body").querySelector(".task-text").textContent = one.text;
-      $("task-done").addEventListener("click", () => markDone(one));
+    /* Everything due today, overdue included. Read-only here: each row links to the
+       tasks page, which is the one place ticking happens. */
+    const shortDate = (d) => new Date(d + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    function taskRow(t) {
+      const d = daysUntil(t.due);
+      const li = document.createElement("li");
+      li.className = "task-row" + (d < 0 ? " overdue" : "");
+      const a = document.createElement("a");
+      a.href = `/tasks.html?focus=${encodeURIComponent(t.text)}`;
+      const label = document.createElement("span");
+      label.className = "t";
+      label.textContent = t.text;
+      const when = document.createElement("span");
+      when.className = "w";
+      when.textContent = d === 0 ? "due today" : d < 0 ? `overdue ${-d}d` : shortDate(t.due);
+      a.append(label, when);
+      li.appendChild(a);
+      return li;
     }
-    async function markDone(task) {
-      if (demo) { $("task-body").innerHTML = `<p class="task-none">Done (demo).</p>`; return; }
-      try {
-        const { text, meta } = await ghGet("daily/tasks/tasks.md");
-        const fixed = withTaskDone(text, task.raw, true);
-        await ghPut("daily/tasks/tasks.md", fixed, meta.sha, `task done: ${task.text.slice(0, 60)}`);
-        renderTask(parseTasks(fixed).filter((t) => !t.done));
-      } catch (e) { showError(e); }
+    function renderToday(tasks) {
+      const open = tasks.filter((t) => !t.done && t.due);
+      const due = open.filter((t) => daysUntil(t.due) <= 0).sort((a, b) => a.due.localeCompare(b.due));
+      const box = $("task-body");
+      box.innerHTML = "";
+      const list = document.createElement("ul");
+      list.className = "task-list";
+      if (due.length) {
+        for (const t of due) list.appendChild(taskRow(t));
+        box.appendChild(list);
+      } else {
+        const n = document.createElement("p");
+        n.className = "task-none";
+        n.textContent = "Nothing due today.";
+        box.appendChild(n);
+        const soon = open.filter((t) => daysUntil(t.due) > 0).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3);
+        if (soon.length) {
+          const l = document.createElement("div");
+          l.className = "label";
+          l.style.marginTop = "24px";
+          l.textContent = "Next up";
+          const soonList = document.createElement("ul");
+          soonList.className = "task-list";
+          for (const t of soon) soonList.appendChild(taskRow(t));
+          box.append(l, soonList);
+        }
+      }
+      const more = document.createElement("p");
+      more.className = "task-more";
+      const link = document.createElement("a");
+      link.href = "/tasks.html";
+      link.textContent = "All tasks →";
+      more.appendChild(link);
+      box.appendChild(more);
     }
 
     function renderDeadline(m) {
@@ -384,13 +422,13 @@
       $("app").hidden = false;
       $("today-date").textContent = fmtDay(today);
       if (demoData) {
-        renderTask(demoData.tasks); renderDeadline(demoData.milestone);
+        renderToday(demoData.tasks); renderDeadline(demoData.milestone);
         renderStreak(demoData.dates, weekCount(demoData.dates));
         return;
       }
       Promise.all([ghGet("daily/tasks/tasks.md"), ghGet("system/milestones/milestones.md")])
         .then(async ([t, m]) => {
-          renderTask(parseTasks(t.text));
+          renderToday(parseTasks(t.text));
           renderDeadline(nextMilestone(m.text));
           await loadStreakData();
           await loadDigest();
@@ -401,7 +439,7 @@
     if (demo) {
       const d = new Date(); const mk = (n) => { const x = new Date(d); x.setDate(d.getDate() + n); return iso(x); };
       const dates = new Set([iso(d), mk(-1), mk(-2), mk(-4), mk(-5), mk(-6)]);
-      boot({ tasks: [{ done: false, due: mk(2), text: "Register coursework — Annexure 19, 12 credits" }], milestone: { title: "Joining & Registration", date: mk(5), days: 5 }, dates });
+      boot({ tasks: [{ done: false, due: mk(0), text: "Register coursework — Annexure 19, 12 credits" }], milestone: { title: "Joining & Registration", date: mk(5), days: 5 }, dates });
     } else {
       boot();
     }

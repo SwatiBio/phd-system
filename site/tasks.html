@@ -49,6 +49,7 @@
     .rec { color: var(--ink-3); font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; margin-left: 6px; }
     .src { color: var(--ink-3); font-size: 12px; }
     li.done .body { color: var(--ink-3); text-decoration: line-through; }
+    li.focus { background: var(--hover); border-radius: 6px; }
     .add { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
     .add input, .add button {
       font: inherit; padding: 10px 12px; border: 1px solid var(--ink-3);
@@ -120,6 +121,7 @@
 
     function row(t) {
       const li = document.createElement("li");
+      li.dataset.text = t.text;
       if (t.done) li.className = "done";
       const btn = document.createElement("button");
       btn.className = "tick";
@@ -217,6 +219,16 @@
         if (g) box.appendChild(g);
       }
       for (const b of box.querySelectorAll(".tick")) b.disabled = false;
+
+      // arrived from the homepage list — put the task in view
+      const focus = new URLSearchParams(location.search).get("focus");
+      if (focus && !isReload) {
+        const hit = [...box.querySelectorAll("li")].find((li) => li.dataset.text === focus);
+        if (hit) {
+          hit.classList.add("focus");
+          hit.scrollIntoView({ block: "center" });
+        }
+      }
     }
 
     $("add-form").addEventListener("submit", async (e) => {
