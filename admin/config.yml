@@ -27,7 +27,6 @@ collections:
     format: md
     create: false
     icon: edit_note
-    sortable_fields: [title]
     summary: "{{title}}"
     fields:
       - { label: Log entries, name: body, widget: markdown }
@@ -64,7 +63,7 @@ collections:
     create: true
     slug: "{{title}}"
     icon: menu_book
-    sortable_fields: [status, title, updated]
+    sortable_fields: [status]
     summary: "{{title}} — {{status}}"
     fields:
       - { label: Category, name: category, widget: select, options: [{label: PhD (shareable), value: phd}, {label: Personal (private), value: personal}], default: phd }
