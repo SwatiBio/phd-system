@@ -100,8 +100,13 @@ body { font-feature-settings: "tnum" 1; }
   position: fixed; inset: 0 0 auto 0; height: 3rem; z-index: 1050;
   display: flex; align-items: center; justify-content: space-between; gap: .5rem;
   padding: 0 .75rem;
-  background: var(--card);
+  background: var(--background);
   border-bottom: 1px solid var(--border);
+}
+/* desktop: bar is a separate full-width strip; title aligns with the content
+   column, past the sidebar (the strip above the sidebar stays empty canvas) */
+@media (min-width: 48rem) {
+  .app-bar { padding: 0 calc(.75rem + var(--sidebar-width)); }
 }
 .app-bar-side { display: flex; align-items: center; gap: .25rem; min-width: 0; }
 .app-bar-title {

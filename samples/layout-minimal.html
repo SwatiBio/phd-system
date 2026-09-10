@@ -122,8 +122,11 @@
       position: fixed; inset: 0 0 auto 0; height: 3rem; z-index: 1050;
       display: flex; align-items: center; justify-content: space-between; gap: .5rem;
       padding: 0 .75rem;
-      background: var(--card);
+      background: var(--background);
       border-bottom: 1px solid var(--border);
+    }
+    @media (min-width: 48rem) {
+      .app-bar { padding: 0 calc(.75rem + 15rem); }
     }
     .app-bar-side { display: flex; align-items: center; gap: .25rem; min-width: 0; }
     .app-bar-title {
