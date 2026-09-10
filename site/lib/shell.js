@@ -40,13 +40,7 @@ const current = () => {
 
 const group = (g, activePage) => `
   <div role="group" aria-labelledby="grp-${g.label.toLowerCase()}">
-    <h3 id="grp-${g.label.toLowerCase()}">
-      <span>${g.label}</span>
-      <span class="grp-tools">
-        <span class="grp-badge">${g.items.length}</span>
-        <i class="ph ph-caret-down" aria-hidden="true"></i>
-      </span>
-    </h3>
+    <h3 id="grp-${g.label.toLowerCase()}">${g.label}</h3>
     <ul>
       ${g.items
         .map(

@@ -174,15 +174,6 @@
       font-size: 11px; font-weight: 600; letter-spacing: .06em;
       text-transform: uppercase; color: var(--muted-foreground);
     }
-    .sidebar nav h3 { display: flex; align-items: center; gap: .375rem; }
-    .sidebar nav h3 > span:first-child { margin-right: auto; }
-    .sidebar nav h3 .grp-tools { display: inline-flex; align-items: center; gap: .375rem; }
-    .sidebar nav h3 .grp-tools i { font-size: .8125rem; opacity: .6; }
-    .grp-badge {
-      font-size: 11px; font-weight: 600; line-height: 1;
-      padding: 2px 6px; border-radius: 999px;
-      border: 1px solid var(--border); color: var(--muted-foreground);
-    }
     .sidebar nav li > a:hover { background: var(--muted); color: inherit; }
     .sidebar nav li > a[aria-current="page"]:hover { background: var(--color-sidebar-accent); color: var(--color-sidebar-accent-foreground); }
     /* sidebar links: flat full-bleed rows, Pharos-style — a 2px accent edge on the
@@ -242,13 +233,7 @@
 
       <section class="scrollbar-sm">
         <div role="group" aria-labelledby="grp-daily">
-          <h3 id="grp-daily">
-            <span>Daily</span>
-            <span class="grp-tools">
-              <span class="grp-badge">3</span>
-              <i class="ph ph-caret-down" aria-hidden="true"></i>
-            </span>
-          </h3>
+          <h3 id="grp-daily">Daily</h3>
           <ul>
             <li>
               <a href="/" data-active="true" aria-current="page">
@@ -269,13 +254,7 @@
         </div>
 
         <div role="group" aria-labelledby="grp-progress">
-          <h3 id="grp-progress">
-            <span>Progress</span>
-            <span class="grp-tools">
-              <span class="grp-badge">3</span>
-              <i class="ph ph-caret-down" aria-hidden="true"></i>
-            </span>
-          </h3>
+          <h3 id="grp-progress">Progress</h3>
           <ul>
             <li>
               <a href="/timeline.html">
@@ -296,13 +275,7 @@
         </div>
 
         <div role="group" aria-labelledby="grp-research">
-          <h3 id="grp-research">
-            <span>Research</span>
-            <span class="grp-tools">
-              <span class="grp-badge">2</span>
-              <i class="ph ph-caret-down" aria-hidden="true"></i>
-            </span>
-          </h3>
+          <h3 id="grp-research">Research</h3>
           <ul>
             <li>
               <a href="/digest.html">

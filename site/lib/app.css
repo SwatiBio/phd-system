@@ -168,16 +168,6 @@ body { font-feature-settings: "tnum" 1; }
   font-size: 11px; font-weight: 600; letter-spacing: .06em;
   text-transform: uppercase; color: var(--muted-foreground);
 }
-/* group headers: label left, page-count badge + caret right (static groups) */
-.sidebar nav h3 { display: flex; align-items: center; gap: .375rem; }
-.sidebar nav h3 > span:first-child { margin-right: auto; }
-.sidebar nav h3 .grp-tools { display: inline-flex; align-items: center; gap: .375rem; }
-.sidebar nav h3 .grp-tools i { font-size: .8125rem; opacity: .6; }
-.grp-badge {
-  font-size: 11px; font-weight: 600; line-height: 1;
-  padding: 2px 6px; border-radius: 999px;
-  border: 1px solid var(--border); color: var(--muted-foreground);
-}
 .sidebar nav li > a:hover { background: var(--muted); color: inherit; }
 .sidebar nav li > a[aria-current="page"]:hover { background: var(--color-sidebar-accent); color: var(--color-sidebar-accent-foreground); }
 /* sidebar links: flat full-bleed rows, Pharos-style — a 2px accent edge on the
