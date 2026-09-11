@@ -101,6 +101,10 @@
 
 /* ---- shell ---- */
 body { font-feature-settings: "tnum" 1; }
+
+/* Override Basecoat's margin transition on <main> (sidebar sibling).
+   Prevents the slide-in layout shift on page load. */
+main { transition: none !important; }
 [hidden] { display: none !important; }
 /* visually hidden (kept for the Today date hook + screen readers) */
 .sr-only {
