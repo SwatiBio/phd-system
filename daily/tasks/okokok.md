@@ -1,5 +1,5 @@
 ---
 title: okokok
-status: todo
+status: done
 due: 2026-09-03
 ---
