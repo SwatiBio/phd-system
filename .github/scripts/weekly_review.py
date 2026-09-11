@@ -16,7 +16,7 @@ import os
 import re
 
 LOGS = "daily/logs"
-TASKS = "daily/tasks/tasks.md"
+TASKS = "daily/tasks"  # one file per task, YAML frontmatter
 MEETINGS = "daily/meetings"
 OUT = "daily/reviews"
 ISO = "%Y-%m-%d"
@@ -61,20 +61,30 @@ def logged_days(day):
     return dict(sorted(days.items(), reverse=True))
 
 
+OPEN_STATUSES = ("backlog", "todo", "in-progress")
+
+
 def tasks():
+    """Every task file in daily/tasks/. Mirrors parseTask in site/lib/tasks.js:
+    flat `key: value` frontmatter, status is the state field, done/cancelled
+    are the closed states."""
     out = []
-    for line in read(TASKS).split("\n"):
-        m = re.match(r"^- \[( |x)\] (.+)$", line)
-        if not m:
+    if not os.path.isdir(TASKS):
+        return out
+    for name in sorted(os.listdir(TASKS)):
+        if not name.endswith(".md"):
             continue
-        dates = re.findall(r"\d{4}-\d{2}-\d{2}", m[2])
-        text = re.split(r"\s*\d{4}-\d{2}-\d{2}", m[2])[0]
-        text = re.sub(r"[^\x00-\x7F]+\s*$", "", text).strip()
+        text = read(f"{TASKS}/{name}")
+        fm = re.match(r"^---\n(.*?)\n---", text, re.S)
+        attrs = dict(re.findall(r"^([a-z-]+):\s*(.+)$", fm.group(1), re.M)) if fm else {}
+        due = attrs.get("due", "")
+        status = attrs.get("status", "todo")
         out.append({
-            "done": m[1] == "x",
-            "text": text,
-            "due": dates[-1] if dates else None,
-            "recurring": "every" in m[2].lower(),
+            "title": attrs.get("title", name[:-3]),
+            "status": status,
+            "open": status in OPEN_STATUSES,
+            "due": due if re.match(r"^\d{4}-\d{2}-\d{2}$", due) else None,
+            "recurring": bool(attrs.get("recurring")),
         })
     return out
 
@@ -104,8 +114,8 @@ def build(day):
     days = logged_days(day)
     all_tasks = tasks()
     entries = sum(len(v) for v in days.values())
-    done = [t for t in all_tasks if t["done"] and t["due"] and start.strftime(ISO) <= t["due"] <= end.strftime(ISO)]
-    overdue = [t for t in all_tasks if not t["done"] and t["due"] and t["due"] < day.strftime(ISO)]
+    done = [t for t in all_tasks if not t["open"] and t["due"] and start.strftime(ISO) <= t["due"] <= end.strftime(ISO)]
+    overdue = [t for t in all_tasks if t["open"] and t["due"] and t["due"] < day.strftime(ISO)]
     questions, ideas = tagged(days, "#question"), tagged(days, "#idea")
     pile_path, pile_open = rough_piles(day)
 
@@ -137,7 +147,7 @@ def build(day):
     if overdue:
         for t in sorted(overdue, key=lambda x: x["due"]):
             late = (day - dt.datetime.strptime(t["due"], ISO).date()).days
-            L.append(f"- {t['text']} — due {t['due']} ({late} day{'s' if late != 1 else ''} late)")
+            L.append(f"- {t['title']} — due {t['due']} ({late} day{'s' if late != 1 else ''} late)")
     else:
         L.append("- Nothing overdue.")
     L.append("")
@@ -152,7 +162,7 @@ def build(day):
     rolled = [t for t in overdue if not t["recurring"]]
     L.append(f"## Rolled-over tasks ({len(rolled)})")
     L.append("")
-    L.extend([f"- {t['text']} — due {t['due']}" for t in sorted(rolled, key=lambda x: x["due"])] or ["- None."])
+    L.extend([f"- {t['title']} — due {t['due']}" for t in sorted(rolled, key=lambda x: x["due"])] or ["- None."])
     L.append("")
     L.append("## Rough pile")
     L.append("")

@@ -20,15 +20,29 @@ One line per entry, appended to the current ISO-week file (`daily/logs/YYYY-Www.
 
 ## Task format
 
+One file per task in `daily/tasks/<slug>.md` (slug from the title):
+
 ```markdown
-- [ ] text 📅 YYYY-MM-DD
-- [ ] text 🔁 every 6 months 📅 YYYY-MM-DD
+---
+title: Renew registration — Annexure 19
+status: todo
+due: YYYY-MM-DD
+recurring: 6 months
+---
+
+Notes (body, optional).
 ```
 
-- Section heading must be `## Active`
-- Recurring tasks (`🔁`) roll forward on tick — never close. Due date advances by the interval, clamping month ends. If the roll lands in the past, keep rolling until today or later.
-- Due date emoji is `📅` — stripped for display
-- Consumers: `site/lib/tasks.js`, `.github/scripts/weekly_review.py`
+- **Status** is the object's state field: `backlog | todo | in-progress | done | cancelled`.
+  Open states are `backlog/todo/in-progress`; `done` and `cancelled` are closed.
+- `due` and `recurring` are optional. `recurring` is a plain interval:
+  `day | week | 2 weeks | month | 6 months | year` (no `every` prefix).
+- Recurring tasks roll forward on tick — never close. Ticking sets the due date ahead by the
+  interval (clamping month ends) and keeps the task open. If the roll lands in the past,
+  keep rolling until today or later.
+- Consumers: `site/lib/tasks.js`, `.github/scripts/weekly_review.py`, `system/scripts/phd.py`,
+  `site/admin/config.yml` — all four must produce/parse the same file shape
+  (`validate-cms.py` checks the CMS adapter against the importer).
 
 ## Milestone grammar
 

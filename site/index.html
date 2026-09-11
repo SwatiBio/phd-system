@@ -94,13 +94,13 @@
   <script type="module" src="/site/lib/shell.js"></script>
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
-    import { parseTasks } from "/site/lib/tasks.js";
+    import * as tasks from "/site/lib/tasks.js";
     import { weekPath, appendEntry, weekStart, parseLog, toEntryLineText, iso } from "/site/lib/logs.js";
     import {
       CURATED, TAG_DESCRIPTIONS, hasTag, insertTag, removeTag,
       suggest, newAdHocs, parseRegistry, registryText, tagAtCaret,
     } from "/site/lib/tags.js";
-    import { get, put } from "/site/lib/vault.js";
+    import { get, put, list } from "/site/lib/vault.js";
 
     const demo = new URLSearchParams(location.search).get("demo") === "1";
 
@@ -135,10 +135,10 @@
       const li = document.createElement("li");
       li.className = "task-row" + (d < 0 ? " overdue" : "");
       const a = document.createElement("a");
-      a.href = `/tasks.html?focus=${encodeURIComponent(t.text)}`;
+      a.href = `/tasks.html?focus=${encodeURIComponent(t.title)}`;
       const label = document.createElement("span");
       label.className = "t";
-      label.textContent = t.text;
+      label.textContent = t.title;
       const when = document.createElement("span");
       when.className = "w";
       when.textContent = d === 0 ? "due today" : d < 0 ? `overdue ${-d}d` : shortDate(t.due);
@@ -146,8 +146,8 @@
       li.appendChild(a);
       return li;
     }
-    function renderToday(tasks) {
-      const open = tasks.filter((t) => !t.done && t.due);
+    function renderToday(allTasks) {
+      const open = allTasks.filter((t) => tasks.isOpen(t) && t.due);
       const due = open.filter((t) => daysUntil(t.due) <= 0).sort((a, b) => a.due.localeCompare(b.due));
       const box = $("task-body");
       box.innerHTML = "";
@@ -401,9 +401,9 @@
         renderStreak(demoData.dates, weekCount(demoData.dates));
         return;
       }
-      Promise.all([get("daily/tasks/tasks.md"), get("system/milestones/milestones.md")])
-        .then(async ([t, m]) => {
-          renderToday(parseTasks(t.text));
+      Promise.all([tasks.load({ list, get }), get("system/milestones/milestones.md")])
+        .then(async ([allTasks, m]) => {
+          renderToday(allTasks);
           renderDeadline(nextMilestone(m.text));
           await Promise.all([loadStreakData(), loadTodayEntries(), loadRegistry()]);
           await loadDigest();

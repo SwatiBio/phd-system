@@ -38,7 +38,7 @@ the template's fields here**.
 
 **Default classification rules — apply silently, do not ask:**
 
-- A commitment the user (or guide) made → **action item**: add a Task to `daily/tasks/tasks.md` with a
+- A commitment the user (or guide) made → **action item**: add a Task file under `daily/tasks/` with a
   due date when the pile states one, referencing the note
 - A position the guide or committee took ("agreed", "approved", "wants X changed") → **decision/feedback**
 - The user's own plan or intent → **action item** if it has a do-er and a deadline, otherwise
@@ -57,8 +57,8 @@ as consumed — none silently skipped.
 
 ### 3. Wire the action items
 
-Every action item exists as a Task in `daily/tasks/tasks.md` (correct due date, `#meeting` tag, reference
-back to its Meeting Note); every shaped note lists its Tasks.
+Every action item exists as a Task in `daily/tasks/` (one file per task, frontmatter title/status/due,
+`#meeting` tag and reference back to its Meeting Note in the body); every shaped note lists its Tasks.
 
 ✓ Done when: no action item lives only in prose, and no Task exists without a source note.
 

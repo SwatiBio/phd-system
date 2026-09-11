@@ -25,7 +25,8 @@
  *             → throws Error         "PUT path: <status> — <detail>" on failure
  *             → NEVER resolves       session expired (401): the user is being
  *                                    sent to /login and the page should stop
- *   Both accept an optional second fetcher argument (tests pass a fake; no
+ *   list(folder) → [{ name, path }]  files in a folder (empty if none yet)
+ *   All accept an optional final fetcher argument (tests pass a fake; no
  *   network, and the write-through cache is bypassed for fakes).
  */
 
@@ -57,6 +58,18 @@ export async function put(path, text, message, fetcher = fetch) {
   }
   if (!r.ok) throw new Error(`PUT ${path}: ${r.status}${await detail(r)}`);
   if (fetcher === fetch) lastWrites.set(path, text); // fresher than any future read
+}
+
+/* list(folder) → [{ name, path }] for the files directly inside the folder,
+   [] when the folder does not exist yet (first task before any exists).
+   One file per task (daily/tasks/) needs directory reads, not just single-file
+   GET/PUT — enumeration belongs at the vault seam, not in pages. */
+export async function list(folder, fetcher = fetch) {
+  const r = await fetcher(`/api/list?folder=${encodeURIComponent(folder)}`, { cache: "no-store" });
+  if (r.status === 404) return [];
+  if (!r.ok) throw new Error(`LIST ${folder}: ${r.status}${await detail(r)}`);
+  const entries = await r.json().catch(() => []);
+  return Array.isArray(entries) ? entries.filter((e) => e.type === "file") : [];
 }
 
 /* The server's error field, when it sends one — "PUT x: 502" alone once hid a

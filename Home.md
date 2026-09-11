@@ -6,7 +6,7 @@ The live dashboard is the app: **https://phd-os.swatibio.workers.dev** — deadl
 
 ## Quick links
 
-- [Milestones — full MAHE requirements](system/milestones/milestones.md) · [All tasks](daily/tasks/tasks.md) · [Publications tracker](later/publications/Publications.md)
+- [Milestones — full MAHE requirements](system/milestones/milestones.md) · [All tasks](/tasks.html) · [Publications tracker](later/publications/Publications.md)
 - Context, tickets, decisions: Lific project **PHDOS** — handoff **PHDOS-DOC-7**, wayfinder map **PHDOS-DOC-4**
 
 ## Capture

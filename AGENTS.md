@@ -33,7 +33,7 @@ GitHub private repo (`SwatiBio/phd-system`, branch `main`) serving as a vault. C
 |---|---|---|
 | `daily/` | Logs, tasks, meetings, reviews | **Only folder agents write to.** |
 | `daily/logs/` | ISO-week files (`YYYY-Www.md`) | Consumed by `site/lib/logs.js`, `weekly_review.py`, `logbook.html` |
-| `daily/tasks/tasks.md` | Checkbox tasks | Consumed by `site/lib/tasks.js`, `weekly_review.py` |
+| `daily/tasks/*.md` | One file per task, YAML frontmatter (`title, status, due, recurring`) | Consumed by `site/lib/tasks.js`, `weekly_review.py`, `phd.py`; object model in `config.yml` |
 | `daily/meetings/` | Rough piles, refined notes | Fragments separated by `---` |
 | `research/` | Materials, work-units, targets, papers | YAML frontmatter is the object model |
 | `research/papers/` | Paper notes | Body sections must match `config.yml` defaults |

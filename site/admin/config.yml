@@ -32,14 +32,19 @@ collections:
 
   - name: tasks
     label: Tasks
-    description: One file, Tasks syntax. Quick-add at /tasks.html; check off + edit lines here. Sorting is automatic.
+    description: One file per task. Quick-add at /tasks.html; status, due date and recurrence here. Ticking a recurring task rolls its due date instead of closing it.
+    folder: daily/tasks
+    create: true
+    slug: "{{slug}}"
     icon: checklist
-    files:
-      - name: tasks
-        label: Task list
-        file: daily/tasks/tasks.md
-        fields:
-          - { label: Tasks, name: body, widget: markdown }
+    sortable_fields: [status, due, title]
+    summary: "{{title}} — {{status}}{{due}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Status, name: status, widget: select, options: [backlog, todo, in-progress, done, cancelled], default: todo }
+      - { label: Due, name: due, widget: datetime, date_format: YYYY-MM-DD, time_format: false, format: YYYY-MM-DD, required: false }
+      - { label: Recurring, name: recurring, widget: select, options: ["", day, week, 2 weeks, month, 6 months, year], default: "", required: false, hint: "Ticking rolls the due date by this interval instead of closing the task" }
+      - { label: Notes, name: body, widget: markdown, required: false }
 
   - name: meetings
     label: Meetings

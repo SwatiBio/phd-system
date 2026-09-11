@@ -49,16 +49,16 @@
       </div>
 
       <footer class="page-footer">
-        Tick done here — it commits straight to <code>daily/tasks/tasks.md</code>.
-        To add or edit tasks, use <a href="/admin/#/collections/tasks">the CMS</a>.
+        Tick done here — it commits straight to the task's own file (<code>daily/tasks/&lt;slug&gt;.md</code>).
+        To add, rename or re-status tasks in detail, use <a href="/admin/#/collections/tasks">the CMS</a>.
       </footer>
     </div>
   </main>
 
   <script type="module" src="/site/lib/shell.js"></script>
   <script type="module">
-    import { parseTasks, withTaskDone, withTaskAdded } from "/site/lib/tasks.js";
-    import { get, put } from "/site/lib/vault.js";
+    import * as tasks from "/site/lib/tasks.js";
+    import * as vault from "/site/lib/vault.js";
 
     const todayIso = new Date().toISOString().slice(0, 10);
     const $ = (id) => document.getElementById(id);
@@ -67,30 +67,36 @@
 
     function row(t) {
       const li = document.createElement("li");
-      li.dataset.text = t.text;
-      if (t.done) li.className = "done";
+      li.dataset.text = t.title;
+      if (!tasks.isOpen(t)) li.className = "done";
       const btn = document.createElement("button");
       btn.className = "tick";
       btn.type = "button";
       btn.textContent = "✓";
-      btn.setAttribute("aria-label", t.done ? "Mark not done" : "Mark done");
+      btn.setAttribute("aria-label", tasks.isOpen(t) ? "Mark done" : "Reopen (back to todo)");
       btn.disabled = true;                       // enabled after render, so a failed save cannot double-fire
       const body = document.createElement("div");
       body.className = "body";
       const label = document.createElement("div");
-      label.textContent = t.text;
+      label.textContent = t.title;
       if (t.recurring) {
         const rec = document.createElement("span");
         rec.className = "rec";
-        rec.textContent = "recurring";
+        rec.textContent = t.recurring;
         label.appendChild(rec);
+      }
+      if (t.status === "backlog" || t.status === "in-progress") {
+        const st = document.createElement("span");
+        st.className = "rec";
+        st.textContent = t.status;
+        label.appendChild(st);
       }
       body.appendChild(label);
       if (t.due) {
         const when = document.createElement("div");
         const d = daysUntil(t.due);
-        when.className = "when" + (d < 0 && !t.done ? " overdue" : "");
-        when.textContent = t.done ? `was due ${fmt(t.due)}`
+        when.className = "when" + (d < 0 && tasks.isOpen(t) ? " overdue" : "");
+        when.textContent = !tasks.isOpen(t) ? `${t.status === "cancelled" ? "cancelled" : "was due"} ${fmt(t.due)}`
           : d < 0 ? `overdue by ${-d} day${-d === 1 ? "" : "s"} · ${fmt(t.due)}`
           : d === 0 ? "due today"
           : `due ${fmt(t.due)} (in ${d} day${d === 1 ? "" : "s"})`;
@@ -101,19 +107,14 @@
         when.textContent = "no date";
         body.appendChild(when);
       }
-      if (t.section) {
-        const src = document.createElement("div");
-        src.className = "src";
-        src.textContent = t.section;
-        body.appendChild(src);
-      }
       li.append(btn, body);
       btn.addEventListener("click", async () => {
         btn.disabled = true;
         try {
-          const f = await get("daily/tasks/tasks.md");
-          await put("daily/tasks/tasks.md", withTaskDone(f?.text ?? "", t.raw, !t.done), `${t.done ? "task reopened" : "task done"}: ${t.text.slice(0, 50)}`);
-          await load(true);
+          // tick = done (recurring tasks roll forward inside the module);
+          // untick = reopen to todo
+          await tasks.setStatus(vault, t, tasks.isOpen(t) ? "done" : "todo");
+          await renderAll(true);
         } catch (e) {
           btn.disabled = false;
           $("meta").textContent = `Could not save: ${e.message.slice(0, 80)}`;
@@ -133,34 +134,34 @@
       return wrap;
     }
 
-    async function load(isReload) {
+    async function renderAll(isReload) {
       const box = $("content");
       if (!isReload) box.innerHTML = "";
-      let text;
+      let all;
       try {
-        const f = await get("daily/tasks/tasks.md");
-        text = f ? f.text : "";
+        all = await tasks.load(vault);
       } catch (e) {
         $("meta").textContent = "";
         box.innerHTML = `<p class="empty">Could not load tasks: ${e.message}</p>`;
         return;
       }
-      const all = parseTasks(text);
-      const open = all.filter((t) => !t.done);
-      const overdue = open.filter((t) => t.due && daysUntil(t.due) < 0).sort((a, b) => a.due.localeCompare(b.due));
-      const soon = open.filter((t) => t.due && daysUntil(t.due) >= 0 && daysUntil(t.due) <= 14).sort((a, b) => a.due.localeCompare(b.due));
-      const later = open.filter((t) => t.due && daysUntil(t.due) > 14).sort((a, b) => a.due.localeCompare(b.due));
-      const undated = open.filter((t) => !t.due);
-      const done = all.filter((t) => t.done);
-      done.sort((a, b) => (b.due || "").localeCompare(a.due || ""));
+      const open = all.filter((t) => tasks.isOpen(t));
+      const backlog = open.filter((t) => t.status === "backlog");
+      const dated = open.filter((t) => t.status !== "backlog");
+      const overdue = dated.filter((t) => t.due && daysUntil(t.due) < 0).sort((a, b) => a.due.localeCompare(b.due));
+      const soon = dated.filter((t) => t.due && daysUntil(t.due) >= 0 && daysUntil(t.due) <= 14).sort((a, b) => a.due.localeCompare(b.due));
+      const later = dated.filter((t) => t.due && daysUntil(t.due) > 14).sort((a, b) => a.due.localeCompare(b.due));
+      const undated = dated.filter((t) => !t.due);
+      const closed = all.filter((t) => !tasks.isOpen(t));
+      closed.sort((a, b) => (b.due || "").localeCompare(a.due || ""));
 
-      $("meta").textContent = `${open.length} open · ${overdue.length} overdue · ${done.length} done`;
+      $("meta").textContent = `${dated.length} open · ${overdue.length} overdue · ${closed.length} done/cancelled`;
       box.innerHTML = "";
       if (!all.length) {
-        box.innerHTML = `<p class="empty">No tasks in the file yet.</p>`;
+        box.innerHTML = `<p class="empty">No tasks yet — add the first one above.</p>`;
         return;
       }
-      for (const [title, items] of [["Overdue", overdue], ["Next 14 days", soon], ["Later", later], ["No date", undated], ["Done", done]]) {
+      for (const [title, items] of [["Overdue", overdue], ["Next 14 days", soon], ["Later", later], ["No date", undated], ["Backlog", backlog], ["Done / cancelled", closed]]) {
         const g = group(title, items);
         if (g) box.appendChild(g);
       }
@@ -185,20 +186,18 @@
       btn.disabled = true;
       $("add-note").textContent = "";
       try {
-        const f = await get("daily/tasks/tasks.md");
-        const updated = withTaskAdded(f ? f.text : "# Tasks\n", text, $("add-due").value || null);
-        await put("daily/tasks/tasks.md", updated, `task added: ${text.slice(0, 50)}`);
+        await create(vault, { title: text, due: $("add-due").value || null });
         $("add-text").value = "";
         $("add-due").value = "";
         $("add-note").textContent = "Added.";
-        await load(true);
+        await renderAll(true);
       } catch (err) {
         $("add-note").textContent = `Could not add: ${err.message.slice(0, 90)}`;
       }
       btn.disabled = false;
     });
 
-    await load(false);
+    await renderAll(false);
   </script>
 </body>
 </html>

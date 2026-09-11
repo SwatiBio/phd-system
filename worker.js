@@ -200,6 +200,25 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
+    // /api/list — enumerate a folder via the GitHub contents API. One file per
+    // task (daily/tasks/) means the app needs directory reads, not just PUT.
+    if (url.pathname === "/api/list") {
+      if (request.method !== "GET") return new Response(JSON.stringify({ error: "method" }), { status: 405, headers: { "content-type": "application/json" } });
+      const folder = safePath(new URL(request.url).searchParams.get("folder") || "");
+      if (!folder) return new Response(JSON.stringify({ error: "bad request" }), { status: 400, headers: { "content-type": "application/json" } });
+      const gh = await ghApi(session.gh, cfg.repo, `/repos/${cfg.repo}/contents/${folder}?ref=${cfg.branch}`);
+      if (gh.status === 404) return new Response("[]", { headers: { "content-type": "application/json" } });
+      if (!gh.ok) {
+        const detail = await gh.json().then((j) => j && j.message).catch(() => "");
+        return new Response(JSON.stringify({ error: `github ${gh.status}${detail ? `: ${detail}` : ""}` }), { status: 502, headers: { "content-type": "application/json" } });
+      }
+      const entries = await gh.json().catch(() => []);
+      const files = (Array.isArray(entries) ? entries : [])
+        .filter((e) => e.type === "file")
+        .map((e) => ({ name: e.name, path: e.path, type: e.type }));
+      return new Response(JSON.stringify(files), { headers: { "content-type": "application/json" } });
+    }
+
     // /api/whoami — lets public pages know if this browser has a session
     if (url.pathname === "/api/whoami") {
       const s = await verifySession(cfg.sessionSecret, parseCookies(request)[cfg.cookieName] || "");

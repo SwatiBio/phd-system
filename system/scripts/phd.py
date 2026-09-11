@@ -47,19 +47,32 @@ def cmd_log(args) -> None:
     print(f"logged: {text}")
 
 
+def slugify(s: str) -> str:
+    import re
+    parts = re.findall(r"[\w]+", s.lower(), re.UNICODE)
+    return "-".join(parts)[:60] or "task"
+
+
 def cmd_task(args) -> None:
-    p = VAULT / "daily" / "tasks" / "tasks.md"
-    p.parent.mkdir(parents=True, exist_ok=True)
-    if not p.exists():
-        p.write_text("# Tasks\n\n## Active\n", encoding="utf-8")
-    line = f"- [ ] {args.text.strip()}"
+    """One file per task (daily/tasks/<slug>.md) — mirrors create() in
+    site/lib/tasks.js so both adapters produce the same object."""
+    folder = VAULT / "daily" / "tasks"
+    folder.mkdir(parents=True, exist_ok=True)
+    base = slugify(args.text)
+    slug = base
+    n = 2
+    while (folder / f"{slug}.md").exists():
+        slug = f"{base}-{n}"
+        n += 1
+    recurring = args.every.strip().lower().removeprefix("every ").strip() if args.every else None
+    fm = ["title: " + args.text.strip(), "status: todo"]
     if args.due:
-        line += f" 📅 {args.due}"
-    if args.every:
-        line += f" 🔁 {args.every}"
-    with p.open("a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(f"task added: {args.text.strip()}")
+        fm.append(f"due: {args.due}")
+    if recurring:
+        fm.append(f"recurring: {recurring}")
+    p = folder / f"{slug}.md"
+    p.write_text("---\n" + "\n".join(fm) + "\n---\n", encoding="utf-8")
+    print(f"task added: {args.text.strip()} -> {p.relative_to(VAULT)}")
 
 
 def cmd_save(args) -> None:
