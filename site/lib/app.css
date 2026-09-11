@@ -234,6 +234,7 @@ main { transition: none !important; }
 .task-more a:hover { color: var(--foreground); }
 
 /* log form + chips (Today) */
+#chips { margin-top: .75rem; }
 .log-row { display: flex; gap: .5rem; align-items: flex-start; }
 .log-field { flex: 1; min-width: 0; position: relative; }
 .log-input {
