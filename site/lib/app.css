@@ -407,42 +407,7 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
   color: var(--muted-foreground); margin: 1rem 0 .25rem;
 }
 
-/* ---- page transitions (cross-document view transitions) ----
-   Same-origin navigations keep the app shell (sidebar + app bar) in place
-   and cross-fade only the page content. The shell elements get a
-   view-transition-name so the browser captures them separately and holds
-   them steady; the named content box gets a short fade + rise.
-   Browsers without support ignore all of this and navigate normally. */
 
-@view-transition {
-  navigation: none;
-}
-
-#sidebar { view-transition-name: app-sidebar; }
-.app-bar  { view-transition-name: app-bar; }
-.content  { view-transition-name: app-content; }
-
-/* Constrain snapshots so the old/new images never bleed over the sidebar. */
-::view-transition-group(app-content) { overflow: hidden; }
-
-::view-transition-old(app-content),
-::view-transition-new(app-content) {
-  animation-duration: var(--duration-fast);
-  animation-timing-function: var(--ease-smooth-out);
-  animation-fill-mode: both;
-  block-size: 100%; inline-size: 100%;
-}
-::view-transition-old(app-content) { animation-name: vt-content-out; }
-::view-transition-new(app-content) { animation-name: vt-content-in; }
-
-/* Enter carries the full distance + blur; exit is quieter — it only
-   settles down 4px and fades, so leaving never flings content. */
-@keyframes vt-content-out {
-  to { opacity: 0; transform: translateY(var(--distance-micro)); }
-}
-@keyframes vt-content-in {
-  from { opacity: 0; transform: translateY(calc(var(--distance-base) * -1)); filter: blur(var(--blur-medium)); }
-}
 
 /* ---- micro interactions ----
    Press feedback, done-state fade, save flash, async content reveal.
@@ -464,10 +429,7 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 #digest-section,
 #log-today > * { transition: opacity var(--duration-fast) var(--ease-smooth-out); }
 
-@keyframes vt-flash {
-  from { opacity: 0; transform: translateY(var(--distance-base)); }
-}
-.saved.vt-flash { animation: vt-flash var(--duration-quick) var(--ease-smooth-out); }
+
 
 /* Logbook print page */
 .signatures { margin-top: 2.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
@@ -500,9 +462,4 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-  /* also disable cross-document page transitions */
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) { animation: none !important; }
-  .vt-flash { animation: none !important; }
 }
