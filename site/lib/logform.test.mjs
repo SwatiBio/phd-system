@@ -16,10 +16,10 @@ test("iso() is the LOCAL date — logging after midnight must not fall into yest
   assert.equal(iso(new Date(2026, 8, 11, 12, 0)), "2026-09-11");
 });
 
-test("CURATED has exactly the 8 decided tags, each with a description", () => {
+test("CURATED has exactly the 9 decided tags, each with a description", () => {
   assert.deepEqual(CURATED, [
     "experiment", "reading", "idea", "meeting",
-    "university", "writing", "data", "analysis",
+    "university", "writing", "data", "analysis", "question",
   ]);
   for (const t of CURATED) assert.ok(TAG_DESCRIPTIONS[t], `missing description for #${t}`);
 });

@@ -27,6 +27,7 @@ export const CURATED = [
   "writing",
   "data",
   "analysis",
+  "question",
 ];
 
 /* One-line descriptions shown in chip tooltips and suggestion subtitles. */
@@ -39,6 +40,7 @@ export const TAG_DESCRIPTIONS = {
   writing: "Drafting anything: intro, methods, notes becoming prose",
   data: "Recording datasets, MANIFEST updates, freezing data",
   analysis: "Interpreting results: docking, stats, in silico work",
+  question: "Open research questions — pending, deferred, or blockers",
 };
 
 const TAG_WORD = "[a-z0-9_-]+";

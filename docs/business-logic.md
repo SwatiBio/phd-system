@@ -13,7 +13,7 @@ One line per entry, appended to the current ISO-week file (`daily/logs/YYYY-Www.
 ```
 
 - Multi-line input collapses to one line (newlines → spaces)
-- Tags: 8 curated (`experiment reading idea meeting university writing data analysis`) plus free-form
+- Tags: 9 curated (`experiment reading idea meeting university writing data analysis question`) plus free-form
 - Free-form tags auto-register in `daily/tags.md` on first use
 - Day sections (`## YYYY-MM-DD`) are created as needed
 - Consumers: `site/lib/logs.js`, `.github/scripts/weekly_review.py`, `logbook.html`
@@ -96,6 +96,7 @@ Curated tags (chip shortcuts in the log form):
 | `#writing` | Paper drafts, synopsis, reports |
 | `#data` | Datasets, analysis results |
 | `#analysis` | Data processing, statistics |
+| `#question` | Open research questions — pending, deferred, or blockers |
 
 Free-form tags are any `#word` not in the curated list. They register in `daily/tags.md` and appear in the autosuggest under "Your tags".
 

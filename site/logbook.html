@@ -23,18 +23,111 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
   <link rel="stylesheet" href="/site/lib/app.css" />
   <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
+  <style>
+    /* logbook-specific overrides */
+    .lognav { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .lognav-arrows { display: flex; align-items: center; gap: .25rem; }
+    .lognav-arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; border-radius: var(--radius);
+      color: var(--muted-foreground); cursor: pointer; background: none; border: none;
+      font-size: 1.125rem; text-decoration: none;
+    }
+    .lognav-arrow:hover { background: var(--muted); color: var(--foreground); }
+    .lognav-arrow[aria-disabled="true"] { opacity: .3; pointer-events: none; }
+    .lognav select {
+      font: inherit; font-size: 13px; padding: .25rem .5rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--card); color: var(--card-foreground);
+    }
+    .lognav-thisweek {
+      font-size: 13px; color: var(--muted-foreground); text-decoration: underline;
+      text-underline-offset: 3px; margin-left: .25rem;
+    }
+    .lognav-thisweek:hover { color: var(--foreground); }
+
+    /* table column widths */
+    .logbook-table { width: 100%; border-collapse: collapse; font-size: .9375rem; table-layout: fixed; }
+    .logbook-table col.c-date { width: 88px; }
+    .logbook-table col.c-time { width: 60px; }
+    .logbook-table col.c-work { /* rest */ }
+    .logbook-table th {
+      text-align: left; font-weight: 600; font-size: 12px; letter-spacing: .04em;
+      text-transform: uppercase; color: var(--muted-foreground);
+      border-bottom: 1px solid var(--border); padding: .375rem .625rem .5rem;
+    }
+    .logbook-table td {
+      border-bottom: 1px solid var(--muted); padding: .625rem;
+      vertical-align: top; color: var(--card-foreground);
+    }
+    .logbook-table tr:last-child td { border-bottom: 0; }
+    .logbook-table td.date, .logbook-table td.time {
+      white-space: nowrap; color: var(--muted-foreground); font-size: 14px;
+    }
+    .logbook-table tr.daysep td { border-top: 1px solid var(--border); }
+
+    /* summary boxes */
+    .summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+    @media (max-width: 40rem) { .summary-row { grid-template-columns: 1fr; } }
+    .summary-box h3 {
+      font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--muted-foreground); margin: 0 0 .5rem;
+    }
+    .summary-box p, .summary-box li { font-size: 14px; color: var(--card-foreground); margin: .25rem 0; }
+    .summary-box ul { list-style: none; padding: 0; margin: 0; }
+    .summary-box .tag-tally { color: var(--muted-foreground); }
+    .summary-box .tag-tally strong { color: var(--card-foreground); font-weight: 500; }
+
+    /* guide remarks — ruled box for handwriting */
+    .remarks-box {
+      margin-top: 1.5rem; padding: 1rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      min-height: 6rem; background: var(--card);
+    }
+    .remarks-box h3 {
+      font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--muted-foreground); margin: 0 0 .5rem;
+    }
+    .remarks-rules {
+      background-image: repeating-linear-gradient(
+        to bottom, transparent, transparent 1.75rem, var(--border) 1.75rem, var(--border) calc(1.75rem + 1px)
+      );
+      min-height: 4rem;
+    }
+
+    @media print {
+      .lognav, .noprint { display: none !important; }
+    }
+  </style>
 </head>
 <body>
   <main>
     <div class="content">
       <header class="page-head">
+        <div class="lognav noprint" id="lognav"></div>
         <p class="meta" id="week-label"></p>
       </header>
 
       <div class="card">
         <section>
-          <div class="rtable" id="content"><p class="meta">Loading…</p></div>
+          <div id="content"><p class="meta">Loading…</p></div>
         </section>
+      </div>
+
+      <div class="summary-row" id="summary-row" hidden>
+        <div class="card summary-box">
+          <header class="px-5 py-4"><h3>This week in numbers</h3></header>
+          <section id="numbers-box" class="px-5 py-4"></section>
+        </div>
+        <div class="card summary-box">
+          <header class="px-5 py-4"><h3>Pending research questions</h3></header>
+          <section id="questions-box" class="px-5 py-4"></section>
+        </div>
+      </div>
+
+      <div class="remarks-box">
+        <h3>Guide remarks</h3>
+        <div class="remarks-rules"></div>
       </div>
 
       <div class="signatures">
@@ -51,23 +144,78 @@
 
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
-    import { weekPath, weekStart, weekLabel, parseLog, iso } from "/site/lib/logs.js";
+    import { weekPath, weekStart, weekLabel, weekKey, parseLog, iso } from "/site/lib/logs.js";
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
     const now = new Date();
+    const currentMonday = weekStart(now);
+    const currentKey = weekKey(currentMonday);
+
     const param = new URLSearchParams(location.search).get("week");
     const monday = /^\d{4}-\d{2}-\d{2}$/.test(param || "") ? weekStart(param) : weekStart(now);
-    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+    const viewingCurrent = weekKey(monday) === currentKey;
+
+    const $ = (id) => document.getElementById(id);
+
+    /* ---- week dropdown: probe backwards to find weeks with files ---- */
+    async function buildDropdown() {
+      const weeks = [];
+      let misses = 0;
+      for (let i = 0; i < 52 && misses < 6; i++) {
+        const d = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - i * 7);
+        const r = await fetch("/" + weekPath(d), { method: "HEAD" });
+        if (r.ok) {
+          weeks.push({ monday: d, key: weekKey(d) });
+          misses = 0;
+        } else {
+          if (weeks.length) misses++;
+        }
+      }
+      return weeks;
+    }
+
+    function renderNav(weeks) {
+      const nav = $("lognav");
+      // prev/next ±7 days
+      const prev = new Date(monday); prev.setDate(prev.getDate() - 7);
+      const next = new Date(monday); next.setDate(next.getDate() + 7);
+      const prevUrl = `/logbook.html?week=${iso(prev)}`;
+      const nextUrl = `/logbook.html?week=${iso(next)}`;
+
+      let html = `<span class="lognav-arrows">`;
+      html += `<a href="${prevUrl}" class="lognav-arrow" aria-label="Previous week"><i class="ph ph-caret-left"></i></a>`;
+      html += `<a href="${nextUrl}" class="lognav-arrow" aria-label="Next week"><i class="ph ph-caret-right"></i></a>`;
+      html += `</span>`;
+
+      // dropdown
+      html += `<select id="week-select" aria-label="Jump to week">`;
+      for (const w of weeks) {
+        const sel = w.key === weekKey(monday) ? " selected" : "";
+        html += `<option value="${iso(w.monday)}"${sel}>${weekLabel(w.monday)}</option>`;
+      }
+      html += `</select>`;
+
+      // "This week" link
+      if (!viewingCurrent) {
+        html += `<a href="/logbook.html" class="lognav-thisweek">This week</a>`;
+      }
+
+      nav.innerHTML = html;
+
+      $("week-select").addEventListener("change", (e) => {
+        location.href = `/logbook.html?week=${e.target.value}`;
+      });
+    }
+
+    /* ---- table ---- */
     const weekDays = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
       weekDays.push(iso(d));
     }
 
-    const $ = (id) => document.getElementById(id);
     $("week-label").textContent = `${weekLabel(monday)} · Section 19 record`;
 
-    // One file per ISO week — no date filtering left to do.
     const entries = {};
     {
       const r = await fetch("/" + weekPath(monday));
@@ -76,27 +224,59 @@
 
     const rows = [];
     let any = false;
+    let totalEntries = 0;
+    let daysLogged = 0;
+    const tagCounts = {};
+    const questionEntries = [];
+
     for (const d of weekDays) {
       const dayEntries = entries[d] || [];
       const label = new Date(d + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
       if (!dayEntries.length) {
-        rows.push(`<tr class="daysep"><td class="date">${label}</td><td class="meta" colspan="3">—</td></tr>`);
+        rows.push(`<tr class="daysep"><td class="date">${label}</td><td class="meta" colspan="2">—</td></tr>`);
         continue;
       }
       any = true;
+      daysLogged++;
+      totalEntries += dayEntries.length;
       dayEntries.forEach((en, i) => {
-        rows.push(`<tr${i === 0 ? ' class="daysep"' : ""}><td class="date">${i === 0 ? label : ""}</td><td class="time">${en.time}</td><td>${esc(en.text)}${en.tags ? ` <span class="tag">${esc(en.tags)}</span>` : ""}</td><td></td></tr>`);
+        // count tags
+        const tags = (en.text.match(/#\S+/g) || []).map((t) => t.toLowerCase());
+        for (const t of tags) tagCounts[t] = (tagCounts[t] || 0) + 1;
+        // collect #question entries
+        if (tags.includes("#question")) questionEntries.push({ date: label, text: en.text.replace(/#\S+/g, "").trim() });
+        rows.push(`<tr${i === 0 ? ' class="daysep"' : ""}><td class="date">${i === 0 ? label : ""}</td><td class="time">${en.time}</td><td>${esc(en.text.replace(/#\S+/g, "").trim())}</td></tr>`);
       });
     }
+
     if (!any) {
-      $("content").innerHTML = `<p class="empty">No entries this week yet. Log from the morning page — they appear here within a minute of saving.</p>`;
+      $("content").innerHTML = `<p class="empty" style="padding: .75rem .625rem">No entries this week. Log from the morning page — they appear here within a minute of saving.</p>`;
     } else {
       $("content").innerHTML = `
-        <table class="grid">
-          <thead><tr><th>Date</th><th>Time</th><th>Work carried out</th><th>Status / result</th></tr></thead>
+        <table class="logbook-table">
+          <colgroup><col class="c-date"><col class="c-time"><col class="c-work"></colgroup>
+          <thead><tr><th>Date</th><th>Time</th><th>Work carried out</th></tr></thead>
           <tbody>${rows.join("")}</tbody>
         </table>`;
     }
+
+    /* ---- summary boxes ---- */
+    $("summary-row").hidden = false;
+    // numbers box
+    const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+    $("numbers-box").innerHTML = `
+      <p><strong>${daysLogged}</strong> day${daysLogged !== 1 ? "s" : ""} logged · <strong>${totalEntries}</strong> entr${totalEntries !== 1 ? "ies" : "y"}</p>
+      ${sortedTags.length ? `<p class="tag-tally">${sortedTags.map(([t, n]) => `<strong>${t}</strong> ×${n}`).join(" · ")}</p>` : ""}`;
+    // questions box
+    if (questionEntries.length) {
+      $("questions-box").innerHTML = `<ul>${questionEntries.map((q) => `<li><span class="tag-tally">${esc(q.date)}</span> ${esc(q.text)}</li>`).join("")}</ul>`;
+    } else {
+      $("questions-box").innerHTML = `<p style="color: var(--muted-foreground)">None recorded this week.</p>`;
+    }
+
+    /* ---- nav (needs dropdown data) ---- */
+    const weeks = await buildDropdown();
+    renderNav(weeks);
   </script>
 </body>
 </html>
