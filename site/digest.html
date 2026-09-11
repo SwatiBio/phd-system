@@ -23,12 +23,35 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
   <link rel="stylesheet" href="/site/lib/app.css" />
   <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
+  <style>
+    .lognav { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .lognav-arrows { display: flex; align-items: center; gap: .25rem; }
+    .lognav-arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; border-radius: var(--radius);
+      color: var(--muted-foreground); cursor: pointer; background: none; border: none;
+      font-size: 1.125rem; text-decoration: none;
+    }
+    .lognav-arrow:hover { background: var(--muted); color: var(--foreground); }
+    .lognav-arrow[aria-disabled="true"] { opacity: .3; pointer-events: none; }
+    .lognav select {
+      font: inherit; font-size: 13px; padding: .25rem .5rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--card); color: var(--card-foreground);
+    }
+    .lognav-thisweek {
+      font-size: 13px; color: var(--muted-foreground); text-decoration: underline;
+      text-underline-offset: 3px; margin-left: .25rem;
+    }
+    .lognav-thisweek:hover { color: var(--foreground); }
+  </style>
 </head>
 <body>
   <main>
     <div class="content">
       <header class="page-head">
-        <p class="meta">Fresh papers, Monday mornings.</p>
+        <div class="lognav" id="lognav"></div>
+        <p class="meta" id="week-label"></p>
       </header>
 
       <div class="card">
@@ -39,18 +62,86 @@
 
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
+    import { weekStart, weekLabel, weekKey, iso } from "/site/lib/logs.js";
+    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const inline = (s) => esc(s)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+    const now = new Date();
+    const currentMonday = weekStart(now);
+    const currentKey = weekKey(currentMonday);
+    const param = new URLSearchParams(location.search).get("week");
+    const monday = /^\d{4}-\d{2}-\d{2}$/.test(param || "") ? weekStart(param) : weekStart(now);
+    const viewingCurrent = weekKey(monday) === currentKey;
+    const digestPath = `/research/papers/digest-${weekKey(monday)}.md`;
+
+    const $ = (id) => document.getElementById(id);
+    $("week-label").textContent = weekLabel(monday);
+
+    /* ---- week dropdown: probe backwards for digest files ---- */
+    async function buildDropdown() {
+      const weeks = [];
+      let misses = 0;
+      for (let i = 0; i < 52 && misses < 6; i++) {
+        const d = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - i * 7);
+        const key = weekKey(d);
+        const r = await fetch(`/research/papers/digest-${key}.md`, { method: "HEAD" });
+        if (r.ok) {
+          weeks.push({ monday: d, key });
+          misses = 0;
+        } else {
+          if (weeks.length) misses++;
+        }
+      }
+      return weeks;
+    }
+
+    function renderNav(weeks) {
+      const nav = $("lognav");
+      const prev = new Date(monday); prev.setDate(prev.getDate() - 7);
+      const next = new Date(monday); next.setDate(next.getDate() + 7);
+
+      let html = `<span class="lognav-arrows">`;
+      html += `<a href="/digest.html?week=${iso(prev)}" class="lognav-arrow" aria-label="Previous week"><i class="ph ph-caret-left"></i></a>`;
+      html += `<a href="/digest.html?week=${iso(next)}" class="lognav-arrow" aria-label="Next week"><i class="ph ph-caret-right"></i></a>`;
+      html += `</span>`;
+
+      html += `<select id="week-select" aria-label="Jump to week">`;
+      for (const w of weeks) {
+        const sel = w.key === weekKey(monday) ? " selected" : "";
+        html += `<option value="${iso(w.monday)}"${sel}>${weekLabel(w.monday)}</option>`;
+      }
+      html += `</select>`;
+
+      if (!viewingCurrent) {
+        html += `<a href="/digest.html" class="lognav-thisweek">This week</a>`;
+      }
+      nav.innerHTML = html;
+
+      $("week-select").addEventListener("change", (e) => {
+        location.href = `/digest.html?week=${e.target.value}`;
+      });
+    }
+
+    /* ---- render digest content ---- */
     const el = (h, c) => { const d = document.createElement(h); d.innerHTML = c; return d; };
+
     try {
-      const r = await fetch("/research/papers/digest-latest.md");
-      if (r.status === 404) { document.getElementById("content").innerHTML = "<p class='em'>No digest yet — the robot runs Monday mornings. Check back then.</p>"; }
-      else {
+      // fallback: also try digest-latest.md for the current week (backwards compat)
+      let r = await fetch(digestPath);
+      if (!r.ok && viewingCurrent) r = await fetch("/research/papers/digest-latest.md");
+
+      if (r.status === 404) {
+        $("content").innerHTML = "<p class='em'>No digest this week.</p>";
+      } else {
         const md = (await r.text()).split("\n");
         const out = [];
         const pending = [];
         let list = null;
         const closeList = () => { list = null; };
         for (const line of md) {
-          if (line.startsWith("# ")) { closeList(); }                    // title is the page header now
+          if (line.startsWith("# ")) { closeList(); }
           else if (line.startsWith("## ")) { closeList(); out.push(el("h2", esc(line.slice(3)))); }
           else if (line.startsWith("*") && line.endsWith("*")) { out.push(el("p", `<span class="em">${inline(line.replace(/^\*|\*$/g, ""))}</span>`)); }
           else if (line.startsWith("- ")) {
@@ -62,40 +153,37 @@
             list.appendChild(li);
           } else if (line.trim()) { closeList(); out.push(el("p", inline(line))); }
         }
-        // "→ Zotero" buttons appear only when signed in (PHDOS flow: saves are you-only)
         try {
           const w = await fetch("/api/whoami");
           if (w.ok) for (const li of pending) li.appendChild(makeSaveBtn(li.dataset.doi));
         } catch {}
-        function makeSaveBtn(doi) {
-          const b = document.createElement("button");
-          b.className = "zsave";
-          b.textContent = "→ Zotero";
-          b.addEventListener("click", async () => {
-            b.disabled = true; b.textContent = "Saving…";
-            try {
-              const r = await fetch("/api/zotero/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ doi }) });
-              const j = await r.json().catch(() => ({}));
-              if (r.ok && j.duplicate) { b.textContent = "Already in Zotero"; b.classList.add("done"); }
-              else if (r.ok) { b.textContent = "Saved ✓"; b.classList.add("done"); }
-              else { b.textContent = j.error || "Failed"; b.disabled = false; }
-            } catch (e) { b.textContent = "Failed"; b.disabled = false; }
-          });
-          return b;
-        }
-        function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
-        function inline(s) {
-          return esc(s)
-            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-        }
-        const box = document.getElementById("content");
+        const box = $("content");
         box.innerHTML = "";
         for (const n of out) box.appendChild(n);
       }
     } catch (e) {
-      document.getElementById("content").innerHTML = `<p class="em">Could not load digest: ${e.message}</p>`;
+      $("content").innerHTML = `<p class="em">Could not load digest: ${e.message}</p>`;
     }
+
+    function makeSaveBtn(doi) {
+      const b = document.createElement("button");
+      b.className = "zsave";
+      b.textContent = "→ Zotero";
+      b.addEventListener("click", async () => {
+        b.disabled = true; b.textContent = "Saving…";
+        try {
+          const r = await fetch("/api/zotero/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ doi }) });
+          const j = await r.json().catch(() => ({}));
+          if (r.ok && j.duplicate) { b.textContent = "Already in Zotero"; b.classList.add("done"); }
+          else if (r.ok) { b.textContent = "Saved ✓"; b.classList.add("done"); }
+          else { b.textContent = j.error || "Failed"; b.disabled = false; }
+        } catch (e) { b.textContent = "Failed"; b.disabled = false; }
+      });
+      return b;
+    }
+
+    const weeks = await buildDropdown();
+    renderNav(weeks);
   </script>
 </body>
 </html>

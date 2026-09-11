@@ -15,6 +15,11 @@ REPO_ROOT = __file__.rsplit("/", 1)[0].replace("/.github/scripts", "").replace("
 TOPICS = "research/papers/topics.md"
 OUT = "research/papers/digest-latest.md"
 DAYS = 8  # overlap a little so nothing indexed late is missed
+
+def iso_week_key(d):
+    """ISO week key matching logs.js weekKey(): YYYY-Www."""
+    iso = d.isocalendar()
+    return f"{iso[0]}-W{iso[1]:02d}"
 FIELDS = "title,venue,year,externalIds,publicationDate,tldr,authors"
 
 def read_topics():
@@ -104,9 +109,16 @@ def main():
     if total == 0:
         lines.append("*No new papers matched this week.*")
     lines.append(f"*{total} papers total.*")
+    content = "\n".join(lines) + "\n"
     with open(OUT, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
+        f.write(content)
     print(f"wrote {OUT} ({total} papers)")
+    # also write a dated archive file (PHDOS-37)
+    week_key = iso_week_key(date.today())
+    dated = f"research/papers/digest-{week_key}.md"
+    with open(dated, "w", encoding="utf-8") as f:
+        f.write(content)
+    print(f"wrote {dated} ({total} papers)")
 
 if __name__ == "__main__":
     main()
