@@ -1,37 +1,42 @@
-# PhD System — the map of your vault
+# PhD-OS
 
-**All project context, tickets, and docs live in Lific** (local tracker, http://localhost:3456/PHDOS/). Start: page **PHDOS-DOC-7** (handoff) + **PHDOS-DOC-4** (map). Agent sessions: read those first.
+A private vault and web app for managing a 3.5-year MAHE PhD. GitHub stores the files, a Cloudflare Worker serves the dashboard, Sveltia CMS edits commit straight to the repo. No database.
 
-**Rule zero: only `daily/` needs you.** Everything else is machinery or parked.
+**Live:** https://phd-os.swatibio.workers.dev — sign in with GitHub
 
-## 🫵 daily/ — touch daily
+## What it does
 
-| Folder | Job | Your move |
-|---|---|---|
-| `daily/logs/` | Daily log (MAHE §19 compliance doc) | Log box in the app — one line, any time |
-| `daily/tasks/` | All tasks | Add; check off. Sorting + recurrence automatic |
-| `daily/meetings/` | Rough piles → refined notes | Dump fragments after meetings. I shape them. `print/` = guide's logbook page |
+- **Log what you did** — one line, any time, from the dashboard or your phone. Becomes a Section 19 research logbook row.
+- **Track tasks** — add, tick off, set due dates. Recurring tasks (registration renewal, DAC reports) roll forward automatically.
+- **Print the logbook** — weekly page with signature block, ready for your guide.
+- **See what's next** — deadline strip computed from the registration date. Change `reg:` in milestones, the whole timeline moves.
+- **Read papers** — weekly digest searches OpenAlex for your topics. Zotero imports paper notes with one click.
+- **Weekly review** — stats gathered automatically every Sunday. Verdicts happen in chat.
 
-## 🔬 research/ — fills as PhD starts
+## Where things live
 
-| Folder | Job |
+| You touch | Machinery |
 |---|---|
-| `research/materials/` | Samples · extracts · compounds (`mat-XXXX`) |
-| `research/work-units/` | Experiments + runs (`wu-XXXX`) |
-| `research/targets/` | Pathogens/proteins docked (`tgt-XXXX`) |
-| `research/papers/` | Papers you READ + PDFs (personal 🔒 / phd 📖) |
-| `research/data/` | Datasets + MANIFEST.md (frozen = never edit) |
+| `daily/logs/` — one file per ISO week | `site/` — dashboard, tasks, logbook, timeline |
+| `daily/tasks/tasks.md` — all tasks | `site/lib/` — modules (logs, tasks, milestones, tags, vault) |
+| `daily/meetings/` — rough piles | `system/scripts/` — helper library for Actions |
+| `research/papers/` — paper notes | `.github/workflows/` — 4 automation workflows |
 
-## ⚙️ system/ — mine, ignore
+Everything else is parked (`later/`) or read-only (`system/`).
 
-`scripts/` (phd.py) · `skills/` (agent skills) · `templates/` · `milestones/` (MAHE requirements) — visuals live in harbor workspace `phd-system`, context/tickets in Lific
+## How it works
 
-## ⏳ later/ — parked, designed just-in-time
+Storage is a private GitHub repo (`SwatiBio/phd-system`). The Cloudflare Worker gates every request behind GitHub OAuth, then serves files from the repo. Writes go through the worker to the GitHub API — the browser holds no credentials.
 
-`writing/` (waits for Month-1) · `publications/` · `money/`
+Deploy: `npx wrangler deploy`. Pushing to GitHub does not deploy.
 
----
+## Automation
 
-**Capture lives in the app:** https://phd-os.swatibio.workers.dev — log line, one task, logbook for your guide; longer forms at `/admin` (Sveltia).
-**Retired 2026-09-10:** the `phd` CLI (`log` / `task` / `save` / `week`). `system/scripts/phd.py` stays as a helper library for Actions.
-**Loop:** capture anywhere → dashboard shows next → weekly review prints logbook → I refine meetings
+| Workflow | Runs | What |
+|---|---|---|
+| Paper digest | Monday 01:00 UTC | OpenAlex search → `research/papers/digest-latest.md` |
+| Zotero import | Monday 02:00 UTC | Zotero collection → paper notes |
+| Weekly review | Sunday 12:30 UTC | Week stats → `daily/reviews/latest.md` |
+| Validate | On push/PR | CMS schema + adapter conformance |
+
+All commit back as `phd-os-bot`. None deploy the site.
