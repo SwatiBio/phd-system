@@ -52,7 +52,7 @@
     <div class="content">
       <header class="page-head">
         <h1>Library</h1>
-        <p class="meta">Browse your papers. Edit in the <a href="/admin/#/collections/papers-phd">CMS</a>.</p>
+        <p class="meta">Browse your papers. Edit in the <a href="/admin/#/collections/papers">CMS</a>.</p>
       </header>
 
       <div id="app" hidden>
@@ -125,7 +125,7 @@
           ${g.papers
             .map(
               (p) => `
-          <a class="lib-row" href="/admin/#/collections/${p.category === "personal" ? "papers-personal" : "papers-phd"}/${encodeURIComponent(p.slug)}">
+          <a class="lib-row" href="/admin/#/collections/papers/${encodeURIComponent(p.slug)}">
             <div class="flex items-baseline gap-2 flex-wrap">
               <span class="lib-row-title">${esc(p.title)}</span>
               <span class="badge badge-status-${p.status}">${p.status}</span>
