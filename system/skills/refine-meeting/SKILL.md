@@ -38,12 +38,12 @@ the template's fields here**.
 
 **Default classification rules — apply silently, do not ask:**
 
-- A commitment the user (or guide) made → **action item**: spawn a Task (Tasks-plugin syntax) with a
-  due date when the pile states one, back-linked to the note
+- A commitment the user (or guide) made → **action item**: add a Task to `daily/tasks/tasks.md` with a
+  due date when the pile states one, referencing the note
 - A position the guide or committee took ("agreed", "approved", "wants X changed") → **decision/feedback**
 - The user's own plan or intent → **action item** if it has a do-er and a deadline, otherwise
   **context** in the note body
-- Literature, work units, or drafts the fragment references → **links** (wiki-links by ID)
+- Literature, work units, or drafts the fragment references → **links** (citekey or file path)
 - Everything else → **context**, in the note body, in the fragment's own voice
 
 **Argue the format only when the fragment plausibly lands in two categories and the choice changes the
@@ -57,8 +57,8 @@ as consumed — none silently skipped.
 
 ### 3. Wire the action items
 
-Every action item exists as a Task (correct due date, `#meeting` tag, back-link to its Meeting Note);
-every shaped note links its Tasks.
+Every action item exists as a Task in `daily/tasks/tasks.md` (correct due date, `#meeting` tag, reference
+back to its Meeting Note); every shaped note lists its Tasks.
 
 ✓ Done when: no action item lives only in prose, and no Task exists without a source note.
 

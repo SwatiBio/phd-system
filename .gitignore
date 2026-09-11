@@ -1,7 +1,3 @@
-# Obsidian internals: plugin installs are re-downloadable (SETUP.md), never version them
-.obsidian/plugins/
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
 
 # OS junk
 Thumbs.db

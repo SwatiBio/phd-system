@@ -1,6 +1,6 @@
 # SETUP — how to reach your system
 
-Obsidian, Syncthing and Remotely Save are **gone** (decision 2026-09-10). GitHub is the storage, the Cloudflare app is the face, Sveltia is the editor. Nothing to install on the laptop.
+GitHub is the storage, the Cloudflare app is the face, Sveltia is the editor. Nothing to install on the laptop.
 
 ## Use it
 
