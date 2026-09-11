@@ -138,22 +138,14 @@ main { transition: none !important; }
   padding: 1.5rem 1.25rem 4rem;
 }
 
-.iconbtn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; border-radius: var(--radius);
-  color: var(--muted-foreground); cursor: pointer; background: none; border: none; font-size: 1.25rem;
-}
-.iconbtn:hover { background: var(--muted); color: var(--foreground); }
-.iconbtn i { line-height: 1; }
-
-.menu-toggle { display: inline-flex; }
-@media (min-width: 48rem) { button.menu-toggle { display: none; } }
+/* Hide hamburger on desktop */
+@media (min-width: 48rem) { .menu-toggle { display: none; } }
 
 /* theme toggle icon swap */
-.theme-icons .icon-sun { display: none; }
-.theme-icons .icon-moon { display: inline-block; }
-.dark .theme-icons .icon-sun { display: inline-block; }
-.dark .theme-icons .icon-moon { display: none; }
+#theme-toggle .icon-sun { display: none; }
+#theme-toggle .icon-moon { display: inline-block; }
+.dark #theme-toggle .icon-sun { display: inline-block; }
+.dark #theme-toggle .icon-moon { display: none; }
 
 /* ---- sidebar ---- */
 /* full-height fixed panel (Basecoat default: inset-block 0) */
@@ -216,7 +208,7 @@ main { transition: none !important; }
   font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
   color: var(--muted-foreground); margin-bottom: .5rem;
 }
-.skeleton { color: var(--muted-foreground); font-size: 14px; }
+
 .page-footer {
   margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--muted);
   color: var(--muted-foreground); font-size: 13px;
@@ -248,33 +240,7 @@ main { transition: none !important; }
   width: 100%; resize: none; overflow-y: auto;
   font: inherit; line-height: 1.45; max-height: 144px;
 }
-.chip-row { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .75rem; }
-/* Basecoat clips .card with overflow:hidden, which cut the chip tooltips
-   (a ~290px tip on a ~233px card lost its left third). Unclip only the card
-   that hosts the chips — tooltips escape it instead of being cut; other
-   cards keep their rounded-corner clipping. */
-.card:has(#chips) { overflow: visible; }
-.chip {
-  position: relative;
-  font: inherit; font-size: 13px; font-weight: 500;
-  padding: .25rem .625rem; border: 1px solid var(--border); border-radius: 999px;
-  background: transparent; color: var(--muted-foreground); cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, transform 120ms ease; touch-action: manipulation;
-}
-.chip:hover { background: var(--muted); color: var(--foreground); }
-.chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
-.chip:active { transform: scale(.9); }
-.chip::after {
-  content: attr(data-tip);
-  position: absolute; bottom: calc(100% + 6px); left: 50%;
-  transform: translateX(-50%) translateY(3px);
-  background: var(--card-foreground); color: var(--card);
-  font-size: 12px; line-height: 1.35; font-weight: 400;
-  padding: .3rem .55rem; border-radius: .375rem; white-space: nowrap;
-  opacity: 0; pointer-events: none; z-index: 5;
-  transition: opacity var(--duration-quick) var(--ease-smooth-out), transform var(--duration-quick) var(--ease-smooth-out);
-}
-.chip:hover::after, .chip:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 
 /* # autosuggest dropdown */
 .suggest {
@@ -299,7 +265,7 @@ main { transition: none !important; }
 .log-today .lt-time { color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; width: 3.25rem; flex: none; }
 .log-today .lt-text { flex: 1; min-width: 0; color: var(--card-foreground); overflow-wrap: anywhere; }
 .log-today .lt-tags { color: var(--muted-foreground); font-size: 12px; }
-.saved { color: var(--muted-foreground); font-size: 13px; margin-top: .5rem; min-height: 1.4em; }
+
 
 /* Tasks page */
 .taskwrap li {
@@ -321,16 +287,7 @@ main { transition: none !important; }
 .group-heading { cursor: pointer; }
 .group-heading:hover { color: var(--foreground); }
 .group-chevron { font-size: 14px; transition: transform .15s ease; flex-shrink: 0; }
-.tick {
-  flex: none; width: 1.25rem; height: 1.25rem; margin-top: 1px;
-  border: 1px solid var(--border); border-radius: .375rem; background: transparent;
-  cursor: pointer; padding: 0; color: transparent; font-size: 12px; line-height: 1;
-  transition: transform var(--duration-quick) ease-out, border-color 120ms ease, color 120ms ease;
-}
-.tick:hover { border-color: var(--foreground); }
-.tick:active { transform: scale(.9); }
-.tick:disabled { opacity: .4; cursor: default; }
-li.done .tick { color: var(--muted-foreground); }
+
 li.done .body { color: var(--muted-foreground); }
 li.done .task-title { text-decoration: line-through; }
 .task-title { font-weight: 500; color: var(--card-foreground); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow-wrap: anywhere; }
@@ -376,7 +333,7 @@ li.done .task-title { text-decoration: line-through; }
 .zsave.done { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
 
 /* tables (Timeline, Logbook) */
-.rtable { overflow-x: auto; }
+
 table.grid { width: 100%; border-collapse: collapse; font-size: .9375rem; }
 table.grid th {
   text-align: left; font-weight: 600; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
@@ -453,19 +410,7 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 }
 
 /* ---- edit dialog ---- */
-.edit-dialog {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--card); color: var(--card-foreground);
-  padding: 0; max-width: 28rem; width: calc(100% - 2rem);
-  box-shadow: 0 16px 48px rgb(0 0 0 / .18);
-}
-.edit-dialog::backdrop { background: rgb(0 0 0 / .3); }
-.edit-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem .75rem; border-bottom: 1px solid var(--border); }
-.edit-header h2 { font-size: 1.05rem; font-weight: 600; margin: 0; }
-.edit-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .75rem; }
-.edit-label { font-size: 13px; font-weight: 500; color: var(--muted-foreground); display: flex; flex-direction: column; gap: .25rem; }
-.edit-label .input { font: inherit; }
-.edit-footer { display: flex; align-items: center; gap: .75rem; padding: .75rem 1.25rem; border-top: 1px solid var(--border); }
+
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }

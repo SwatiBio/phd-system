@@ -55,14 +55,14 @@
   </main>
 
   <!-- edit panel overlay -->
-  <dialog id="edit-dialog" class="edit-dialog">
+  <dialog id="edit-dialog" class="dialog" aria-labelledby="edit-title" onclick="if (event.target === this) this.close()">
     <form method="dialog" id="edit-form">
-      <div class="edit-header">
+      <header>
         <h2 id="edit-title"></h2>
-        <button type="button" class="iconbtn" id="edit-close" aria-label="Close"><i class="ph ph-x"></i></button>
-      </div>
-      <div class="edit-body">
-        <label class="edit-label">Status
+        <button type="button" class="btn" data-size="icon-sm" id="edit-close" aria-label="Close"><i class="ph ph-x"></i></button>
+      </header>
+      <section>
+        <label class="label">Status
           <select class="input" id="edit-status">
             <option value="backlog">Backlog</option>
             <option value="todo">To do</option>
@@ -71,10 +71,10 @@
             <option value="cancelled">Cancelled</option>
           </select>
         </label>
-        <label class="edit-label">Due date
+        <label class="label">Due date
           <input class="input" type="date" id="edit-due" />
         </label>
-        <label class="edit-label">Recurring
+        <label class="label">Recurring
           <select class="input" id="edit-recurring">
             <option value="">None</option>
             <option value="day">Daily</option>
@@ -85,14 +85,14 @@
             <option value="year">Yearly</option>
           </select>
         </label>
-        <label class="edit-label">Notes
+        <label class="label">Notes
           <textarea class="input" id="edit-notes" rows="4" placeholder="Optional notes…"></textarea>
         </label>
-      </div>
-      <div class="edit-footer">
+      </section>
+      <footer>
         <button class="btn" type="submit" id="edit-save">Save</button>
         <span class="add-note" id="edit-note"></span>
-      </div>
+      </footer>
     </form>
   </dialog>
 
@@ -171,7 +171,9 @@
 
       // tick button
       const btn = document.createElement("button");
-      btn.className = "tick";
+      btn.className = "btn";
+      btn.dataset.size = "icon-sm";
+      btn.dataset.variant = "ghost";
       btn.type = "button";
       btn.textContent = "✓";
       btn.setAttribute("aria-label", open ? "Mark done" : "Reopen");
@@ -339,7 +341,7 @@
         const g = group(title, items, key);
         if (g) box.appendChild(g);
       }
-      for (const b of box.querySelectorAll(".tick")) b.disabled = false;
+      for (const b of box.querySelectorAll(".btn[data-size]")) b.disabled = false;
 
       // focus from homepage
       const focus = new URLSearchParams(location.search).get("focus");

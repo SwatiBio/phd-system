@@ -83,14 +83,14 @@ const titleFor = (page) => {
 const topRowHTML = `
 <div class="app-bar">
   <div class="app-bar-side">
-    <button type="button" class="iconbtn menu-toggle" aria-label="Open navigation"
+    <button type="button" class="btn" data-size="icon-sm" aria-label="Open navigation"
             onclick="document.getElementById('sidebar')?.toggle()">
       <i class="ph ph-list"></i>
     </button>
     <span class="app-bar-title">${titleFor(current())}</span>
   </div>
   <div class="app-bar-side">
-    <button type="button" class="iconbtn theme-icons" id="theme-toggle" aria-label="Toggle dark mode"
+    <button type="button" class="btn" data-size="icon-sm" id="theme-toggle" aria-label="Toggle dark mode"
             onclick="window.basecoat?.theme?.toggle()">
       <i class="ph ph-sun icon-sun"></i>
       <i class="ph ph-moon icon-moon"></i>

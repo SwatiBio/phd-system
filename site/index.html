@@ -43,7 +43,7 @@
             <header class="px-5 py-4">
               <h3>Due today</h3>
             </header>
-            <section id="task-body"><p class="skeleton">Loading…</p></section>
+            <section id="task-body"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2 mt-2"></div></section>
           </div>
 
           <!-- Log what you did -->
@@ -61,7 +61,7 @@
                 <div class="suggest" id="log-suggest" hidden></div>
               </div>
               <div class="chip-row" id="chips"></div>
-              <p class="saved" id="log-saved" role="status" aria-live="polite"></p>
+
               <ul class="log-today" id="log-today" hidden></ul>
             </section>
           </div>
@@ -72,7 +72,7 @@
               <h3>Next milestone</h3>
               <p>Computed from the registration date — nothing stored.</p>
             </header>
-            <section id="deadline-body"><p class="skeleton">Loading…</p></section>
+            <section id="deadline-body"><div class="skeleton h-4 w-2/3"></div><div class="skeleton h-4 w-1/3 mt-2"></div></section>
           </div>
 
           <!-- New papers -->
@@ -231,10 +231,10 @@
        this page only wires DOM events to them. */
     function renderChips() {
       $("chips").innerHTML = CURATED.map((t) =>
-        `<button type="button" class="chip" aria-pressed="false" aria-label="#${t} — ${esc(TAG_DESCRIPTIONS[t])}" data-tag="${t}" data-tip="${esc(TAG_DESCRIPTIONS[t])}">#${t}</button>`
+        `<button type="button" class="btn" data-variant="outline" data-size="sm" aria-pressed="false" aria-label="#${t} — ${esc(TAG_DESCRIPTIONS[t])}" data-tag="${t}" data-tip="${esc(TAG_DESCRIPTIONS[t])}">#${t}</button>`
       ).join("");
       $("chips").addEventListener("click", (e) => {
-        const b = e.target.closest(".chip");
+        const b = e.target.closest(".btn");
         if (!b) return;
         const ta = $("log-text");
         const pos = ta.selectionStart ?? ta.value.length;
@@ -248,7 +248,7 @@
     }
     function updateChips() {
       const text = $("log-text").value;
-      for (const b of $("chips").querySelectorAll(".chip"))
+      for (const b of $("chips").querySelectorAll(".btn"))
         b.setAttribute("aria-pressed", String(hasTag(text, b.dataset.tag)));
     }
     function growLogBox() {
@@ -362,9 +362,11 @@
       const entry = toEntryLineText(ta.value);
       if (!entry) return;
       const flash = (msg) => {
-        const saved = $("log-saved");
-        saved.textContent = msg;
-
+        document.getElementById("toaster")?.toast({
+          category: "success",
+          title: msg,
+          cancel: { label: "Dismiss" }
+        });
       };
       const btn = $("log-submit");
       btn.disabled = true;
@@ -524,5 +526,6 @@
     }
     renderChips();
   </script>
+  <div id="toaster" class="toaster"></div>
 </body>
 </html>
