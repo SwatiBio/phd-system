@@ -16,3 +16,6 @@ desktop.ini
 # compiled python
 __pycache__/
 *.pyc
+
+# session handoff docs (local only)
+HANDOFF-*.md
