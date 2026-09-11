@@ -51,9 +51,8 @@
 
   <script type="module" src="/site/lib/shell.js"></script>
   <script type="module">
-    import { weekPath, weekStart, weekLabel, parseLog } from "/site/lib/logs.js";
+    import { weekPath, weekStart, weekLabel, parseLog, iso } from "/site/lib/logs.js";
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    const iso = (d) => d.toISOString().slice(0, 10);
 
     const now = new Date();
     const param = new URLSearchParams(location.search).get("week");

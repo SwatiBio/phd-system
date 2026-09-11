@@ -18,6 +18,12 @@
   --accent-foreground: #111827;
   --ring: #111827;
   --radius: .5rem;
+  /* motion tokens (page transitions) */
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-slow: 400ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --distance-base: 8px;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
   --sidebar: #ffffff;
@@ -226,17 +232,58 @@ body { font-feature-settings: "tnum" 1; }
 .task-more a:hover { color: var(--foreground); }
 
 /* log form + chips (Today) */
-.log-row { display: flex; gap: .5rem; }
-.log-input { flex: 1; min-width: 0; }
+.log-row { display: flex; gap: .5rem; align-items: flex-start; }
+.log-field { flex: 1; min-width: 0; position: relative; }
+.log-input {
+  width: 100%; resize: none; overflow-y: auto;
+  font: inherit; line-height: 1.45; max-height: 144px;
+}
 .chip-row { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .75rem; }
 .chip {
+  position: relative;
   font: inherit; font-size: 13px; font-weight: 500;
   padding: .25rem .625rem; border: 1px solid var(--border); border-radius: 999px;
   background: transparent; color: var(--muted-foreground); cursor: pointer;
-  transition: background 120ms ease, color 120ms ease; touch-action: manipulation;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease; touch-action: manipulation;
 }
 .chip:hover { background: var(--muted); color: var(--foreground); }
 .chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.chip:active { transform: scale(.9); }
+.chip::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) translateY(3px);
+  background: var(--card-foreground); color: var(--card);
+  font-size: 12px; line-height: 1.35; font-weight: 400;
+  padding: .3rem .55rem; border-radius: .375rem; white-space: nowrap;
+  opacity: 0; pointer-events: none; z-index: 5;
+  transition: opacity var(--duration-quick) var(--ease-smooth-out), transform var(--duration-quick) var(--ease-smooth-out);
+}
+.chip:hover::after, .chip:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* # autosuggest dropdown */
+.suggest {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--card); border: 1px solid var(--border); border-radius: .5rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / .10); z-index: 20; max-height: 15rem; overflow-y: auto;
+  transition: opacity var(--duration-quick) var(--ease-smooth-out);
+}
+.s-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); padding: .5rem .75rem .25rem; }
+.s-item {
+  display: flex; align-items: baseline; gap: .5rem; width: 100%; text-align: left;
+  font: inherit; font-size: 14px; padding: .35rem .75rem; cursor: pointer;
+  background: transparent; color: var(--card-foreground); border: 0;
+}
+.s-item .s-tag { font-weight: 600; }
+.s-item .s-desc { color: var(--muted-foreground); font-size: 12px; }
+.s-item.sel { background: var(--muted); }
+
+/* today's entries under the form */
+.log-today { list-style: none; margin: .875rem 0 0; padding: 0; border-top: 1px solid var(--border); }
+.log-today li { display: flex; gap: .75rem; padding: .45rem 0; font-size: 14px; border-bottom: 1px solid var(--border); }
+.log-today .lt-time { color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; width: 3.25rem; flex: none; }
+.log-today .lt-text { flex: 1; min-width: 0; color: var(--card-foreground); }
+.log-today .lt-tags { color: var(--muted-foreground); font-size: 12px; }
 .saved { color: var(--muted-foreground); font-size: 13px; margin-top: .5rem; min-height: 1.4em; }
 
 /* Tasks page */
@@ -254,13 +301,15 @@ body { font-feature-settings: "tnum" 1; }
   flex: none; width: 1.25rem; height: 1.25rem; margin-top: 1px;
   border: 1px solid var(--border); border-radius: .375rem; background: transparent;
   cursor: pointer; padding: 0; color: transparent; font-size: 12px; line-height: 1;
+  transition: transform var(--duration-quick) ease-out, border-color 120ms ease, color 120ms ease;
 }
 .tick:hover { border-color: var(--foreground); }
+.tick:active { transform: scale(.9); }
 .tick:disabled { opacity: .4; cursor: default; }
 li.done .tick { color: var(--muted-foreground); }
 li.done .body { color: var(--muted-foreground); text-decoration: line-through; }
 .taskli { display: flex; align-items: flex-start; gap: .75rem; }
-.taskli .body { flex: 1; min-width: 0; color: var(--card-foreground); }
+.taskli .body { flex: 1; min-width: 0; color: var(--card-foreground); transition: color 120ms ease; }
 .taskli .when { white-space: nowrap; color: var(--muted-foreground); font-size: 13px; margin-top: 1px; }
 .taskli .when.overdue { color: #dc2626; font-weight: 600; }
 .dark .taskli .when.overdue { color: #f87171; }
@@ -347,6 +396,62 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
   color: var(--muted-foreground); margin: 1rem 0 .25rem;
 }
 
+/* ---- page transitions (cross-document view transitions) ----
+   Same-origin navigations keep the app shell (sidebar + app bar) in place
+   and cross-fade only the page content. The shell elements get a
+   view-transition-name so the browser captures them separately and holds
+   them steady; the named content box gets a short fade + rise.
+   Browsers without support ignore all of this and navigate normally. */
+
+@view-transition {
+  navigation: auto;
+}
+
+#sidebar { view-transition-name: app-sidebar; }
+.app-bar  { view-transition-name: app-bar; }
+.content  { view-transition-name: app-content; }
+
+::view-transition-old(app-content),
+::view-transition-new(app-content) {
+  animation-duration: var(--duration-fast);
+  animation-timing-function: var(--ease-smooth-out);
+  animation-fill-mode: both;
+}
+::view-transition-old(app-content) { animation-name: vt-content-out; }
+::view-transition-new(app-content) { animation-name: vt-content-in; }
+
+@keyframes vt-content-out {
+  to { opacity: 0; transform: translateY(var(--distance-base)); }
+}
+@keyframes vt-content-in {
+  from { opacity: 0; transform: translateY(calc(var(--distance-base) * -1)); }
+}
+
+/* ---- micro interactions ----
+   Press feedback, done-state fade, save flash, async content reveal.
+   The @starting-style fades run on modern browsers; others get an instant
+   swap. The reveal covers the dashboard cards (skeleton -> data) and the
+   weekly digest card (hidden until data arrives). */
+
+.btn:active { transform: scale(.97); }
+
+@starting-style {
+  #task-body > *,
+  #deadline-body > *,
+  #digest-section,
+  #log-today > *,
+  .suggest { opacity: 0; }
+}
+#task-body > *,
+#deadline-body > * { transition: opacity var(--duration-slow) var(--ease-smooth-out); }
+#digest-section,
+#log-today > * { transition: opacity var(--duration-fast) var(--ease-smooth-out); }
+
+@keyframes vt-flash {
+  from { opacity: 0; transform: translateY(var(--distance-base)); }
+}
+.saved.vt-flash { animation: vt-flash var(--duration-quick) var(--ease-smooth-out); }
+
 /* Logbook print page */
 .signatures { margin-top: 2.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 .sig .line { border-bottom: 1px solid var(--foreground); height: 3rem; }
@@ -363,4 +468,9 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+  /* also disable cross-document page transitions */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+  .vt-flash { animation: none !important; }
 }

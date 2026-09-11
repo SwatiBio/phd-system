@@ -16,7 +16,7 @@
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /* git's autocrlf can hand us CRLF; every parser here is line-based. */
-const norm = (t) => String(t == null ? "" : t).replace(/\r\n?/g, "\n");
+export const norm = (t) => String(t == null ? "" : t).replace(/\r\n?/g, "\n");
 
 const pad = (n) => String(n).padStart(2, "0");
 export const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -96,6 +96,17 @@ export function parseLog(text) {
    and nothing else — day sections appear as they are written. */
 export function newWeekText(d) {
   return `---\ntitle: "${weekLabel(d)}"\n---\n`;
+}
+
+/* One entry's raw text, from the textarea. The textarea is the source of truth,
+   so the write path normalizes here: multi-line input collapses to a single line
+   (newlines -> spaces, runs collapsed, trimmed) and the entry stays one
+   `- **HH:MM** …` bullet — the shape every parser assumes. */
+export function toEntryLineText(text) {
+  return norm(text)
+    .replace(/[ \t]*\n[ \t]*/g, " ")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
 }
 
 /* Append one already-formatted `- **HH:MM** …` line under `day`, creating the

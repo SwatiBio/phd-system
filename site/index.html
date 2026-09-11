@@ -50,15 +50,19 @@
           <div class="card">
             <header class="px-5 py-4">
               <h3>Log what you did</h3>
-              <p>One line is enough — it becomes a logbook row.</p>
+              <p>A line or a paragraph — it becomes a logbook row.</p>
             </header>
             <section>
-              <form class="log-row" id="log-form">
-                <input class="input log-input" id="log-text" placeholder="One line is enough…" autocomplete="off" aria-label="Log entry" />
-                <button class="btn" type="submit" id="log-submit">Log entry</button>
-              </form>
+              <div class="log-field">
+                <form class="log-row" id="log-form">
+                  <textarea class="input log-input" id="log-text" rows="1" placeholder="What did you work on? Type # to tag…" autocomplete="off" aria-label="Log entry"></textarea>
+                  <button class="btn" type="submit" id="log-submit">Log entry</button>
+                </form>
+                <div class="suggest" id="log-suggest" hidden></div>
+              </div>
               <div class="chip-row" id="chips"></div>
               <p class="saved" id="log-saved" role="status" aria-live="polite"></p>
+              <ul class="log-today" id="log-today" hidden></ul>
             </section>
           </div>
 
@@ -91,20 +95,25 @@
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
     import { parseTasks } from "/site/lib/tasks.js";
-    import { weekPath, appendEntry, weekStart } from "/site/lib/logs.js";
+    import { weekPath, appendEntry, weekStart, parseLog, toEntryLineText, iso } from "/site/lib/logs.js";
+    import {
+      CURATED, TAG_DESCRIPTIONS, hasTag, insertTag, removeTag,
+      suggest, newAdHocs, parseRegistry, registryText, tagAtCaret,
+    } from "/site/lib/tags.js";
     import { get, put } from "/site/lib/vault.js";
 
     const demo = new URLSearchParams(location.search).get("demo") === "1";
 
     /* ---------- date helpers ---------- */
-    const iso = (d) => d.toISOString().slice(0, 10);
     const today = new Date();
     const todayIso = iso(today);
     const fmtDay = (d) => d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
     const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
 
-    const TAGS = ["experiment", "paper", "reading", "idea", "coursework", "meeting", "admin"];
     const $ = (id) => document.getElementById(id);
+    /* escape for the log/ today spans — the week file is hand-authored */
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    let registry = new Map(); // daily/tags.md: ad-hoc tag -> first-seen date
 
     /* ---------- parsers ---------- */
     function nextMilestone(text) {
@@ -200,57 +209,171 @@
       return n;
     }
 
-    /* ---------- log form ---------- */
-    const activeTags = new Set();
+    /* ---------- log form ----------
+       Text is the source of truth: chips insert/remove #tag in the textarea,
+       the lit state derives from the text, and the tag registry (daily/tags.md)
+       feeds the # autosuggest. The pure rules live in lib/tags.js + logs.js;
+       this page only wires DOM events to them. */
     function renderChips() {
-      $("chips").innerHTML = TAGS.map((t) => `<button type="button" class="chip" aria-pressed="false" data-tag="${t}">#${t}</button>`).join("");
+      $("chips").innerHTML = CURATED.map((t) =>
+        `<button type="button" class="chip" aria-pressed="false" data-tag="${t}" data-tip="${esc(TAG_DESCRIPTIONS[t])}">#${t}</button>`
+      ).join("");
       $("chips").addEventListener("click", (e) => {
         const b = e.target.closest(".chip");
         if (!b) return;
-        const on = b.getAttribute("aria-pressed") === "true";
-        b.setAttribute("aria-pressed", String(!on));
-        on ? activeTags.delete(b.dataset.tag) : activeTags.add(b.dataset.tag);
+        const ta = $("log-text");
+        const pos = ta.selectionStart ?? ta.value.length;
+        ta.value = hasTag(ta.value, b.dataset.tag)
+          ? removeTag(ta.value, b.dataset.tag)
+          : insertTag(ta.value, b.dataset.tag, pos).text;
+        const caret = Math.min(pos, ta.value.length);
+        ta.focus(); ta.setSelectionRange(caret, caret);
+        updateChips(); growLogBox();
       });
     }
+    function updateChips() {
+      const text = $("log-text").value;
+      for (const b of $("chips").querySelectorAll(".chip"))
+        b.setAttribute("aria-pressed", String(hasTag(text, b.dataset.tag)));
+    }
+    function growLogBox() {
+      const ta = $("log-text");
+      ta.style.height = "auto";
+      ta.style.height = Math.min(ta.scrollHeight, 144) + "px"; // ~6 rows, then scrolls
+    }
+
+    /* --- # autosuggest --- */
+    let suggestItems = [];
+    let suggestIdx = 0;
+    function hideSuggest() { const box = $("log-suggest"); box.hidden = true; box.innerHTML = ""; suggestItems = []; }
+    function updateSuggest() {
+      const ta = $("log-text");
+      const hit = tagAtCaret(ta.value, ta.selectionStart);
+      const { curated, custom } = hit ? suggest(hit.prefix, [...registry.keys()]) : { curated: [], custom: [] };
+      if (!hit || (!curated.length && !custom.length)) { hideSuggest(); return; }
+      suggestItems = [...curated.map((t) => [t, 0]), ...custom.map((t) => [t, 1])];
+      suggestIdx = 0;
+      const box = $("log-suggest");
+      box.innerHTML =
+        (curated.length ? `<div class="s-label">Tags</div>` + curated.map((t) => sItemHtml(t, TAG_DESCRIPTIONS[t])).join("") : "") +
+        (custom.length ? `<div class="s-label">Your tags</div>` + custom.map((t) => sItemHtml(t, "")).join("") : "");
+      box.hidden = false;
+      paintSuggest();
+    }
+    const sItemHtml = (t, desc) =>
+      `<button type="button" class="s-item" data-tag="${t}"><span class="s-tag">#${t}</span>${desc ? `<span class="s-desc">${esc(desc)}</span>` : ""}</button>`;
+    function paintSuggest() {
+      [...$("log-suggest").querySelectorAll(".s-item")].forEach((b, i) => b.classList.toggle("sel", i === suggestIdx));
+    }
+    function acceptTag(tag) {
+      const ta = $("log-text");
+      const pos = ta.selectionStart;
+      const cut = tagAtCaret(ta.value, pos)?.cutLength ?? 0;
+      const { text, caret } = insertTag(ta.value.slice(0, pos - cut) + ta.value.slice(pos), tag, pos - cut);
+      ta.value = text; ta.focus(); ta.setSelectionRange(caret, caret);
+      hideSuggest(); updateChips(); growLogBox();
+    }
+    $("log-text").addEventListener("input", () => { updateChips(); growLogBox(); updateSuggest(); });
+    $("log-text").addEventListener("keydown", (e) => {
+      if (suggestItems.length) {
+        if (e.key === "ArrowDown") { e.preventDefault(); suggestIdx = (suggestIdx + 1) % suggestItems.length; paintSuggest(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); suggestIdx = (suggestIdx - 1 + suggestItems.length) % suggestItems.length; paintSuggest(); }
+        else if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); acceptTag(suggestItems[suggestIdx][0]); }
+        else if (e.key === "Escape") hideSuggest();
+        return;
+      }
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $("log-form").requestSubmit(); }
+    });
+    $("log-text").addEventListener("blur", () => setTimeout(hideSuggest, 120));
+    $("log-suggest").addEventListener("mousedown", (e) => {
+      const b = e.target.closest(".s-item");
+      if (b) { e.preventDefault(); acceptTag(b.dataset.tag); }
+    });
+
+    async function loadRegistry() {
+      const f = await get("daily/tags.md").catch(() => null);
+      registry = f ? parseRegistry(f.text) : new Map();
+    }
+    function renderTodayList(entries) {
+      const box = $("log-today");
+      const list = (entries || []).slice(-5).reverse();
+      if (!list.length) { box.hidden = true; box.innerHTML = ""; return; }
+      box.hidden = false;
+      box.innerHTML = list.map((en) =>
+        `<li><span class="lt-time">${esc(en.time)}</span><span class="lt-text">${esc(en.text)}${en.tags ? ` <span class="lt-tags">${esc(en.tags)}</span>` : ""}</span></li>`
+      ).join("");
+    }
+    async function loadTodayEntries() {
+      const f = await get(weekPath(today)).catch(() => null);
+      renderTodayList(f ? parseLog(f.text)[todayIso] : []);
+    }
+    /* Every logged date seen in the vault — page state, so a save can update
+       the streak without re-reading the vault. */
+    const seenDates = new Set();
     async function loadStreakData() {
-      const dates = new Set();
+      seenDates.clear();
       let thisWeek = null;
       const monday = weekStart(today);
       for (let offset = 0; offset < 52; offset++) {
         const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - offset * 7);
         const f = await get(weekPath(d)).catch(() => null);
         const found = f ? [...loggedDates(f.text)] : [];
-        for (const x of found) dates.add(x);
+        for (const x of found) seenDates.add(x);
         if (offset === 0) thisWeek = f ? f.text : null;
         if (offset > 0 && !found.length) break;   // a quiet completed week ends the streak
       }
-      renderStreak(dates, weekCount(dates));
+      renderStreak(seenDates, weekCount(seenDates));
       return thisWeek;
+    }
+    /* Post-save rendering must NOT re-read the vault: production serves vault
+       reads from the deployed asset snapshot, which lags the GitHub commit
+       (possibly minutes). The week text this page just wrote is the freshest
+       truth available — render the today list and streak from it. */
+    function renderAfterSave(weekText) {
+      seenDates.add(todayIso);
+      renderStreak(seenDates, weekCount(seenDates));
+      renderTodayList(parseLog(weekText)[todayIso]);
     }
 
     $("log-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const text = $("log-text").value.trim();
-      if (!text) return;
-      const tags = [...activeTags].map((t) => `#${t}`).join(" ");
-      const entry = tags ? `${text} ${tags}` : text;
+      const ta = $("log-text");
+      const entry = toEntryLineText(ta.value);
+      if (!entry) return;
+      const flash = (msg) => {
+        const saved = $("log-saved");
+        saved.textContent = msg;
+        saved.classList.remove("vt-flash"); void saved.offsetWidth; saved.classList.add("vt-flash");
+      };
       const btn = $("log-submit");
       btn.disabled = true;
+      let savedWeekText = null; // set when a real save lands — post-save render uses it
       try {
         if (demo) {
-          $("log-saved").textContent = "Saved (demo).";
+          flash("Saved (demo).");
         } else {
           const path = weekPath(today);
           const f = await get(path);
           const stamp = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-          const updated = appendEntry(f ? f.text : null, todayIso, `- **${stamp}** ${entry}`);
-          await put(path, updated, `log: ${entry.slice(0, 60)}`);
-          $("log-saved").textContent = "Saved.";
-          await loadStreakData();
+          const line = `- **${stamp}** ${entry}`;
+          const newText = appendEntry(f ? f.text : null, todayIso, line);
+          await put(path, newText, `log: ${entry.slice(0, 60)}`);
+          /* free-form tags join the registry on first use */
+          const adhocs = newAdHocs(entry, [...CURATED, ...registry.keys()]);
+          if (adhocs.length) {
+            for (const t of adhocs) registry.set(t, todayIso);
+            await put("daily/tags.md", registryText(registry), `tags: ${adhocs.join(", ")}`);
+          }
+          flash("Saved.");
+          savedWeekText = newText;
         }
-        $("log-text").value = "";
-        [...activeTags].forEach((t) => { activeTags.delete(t); const c = $(`chips [data-tag="${t}"]`); if (c) c.setAttribute("aria-pressed", "false"); });
-      } catch (err) { $("log-saved").textContent = `Could not save: ${err.message.slice(0, 80)}`; }
+        ta.value = "";
+        growLogBox(); updateChips(); hideSuggest();
+        if (savedWeekText !== null) renderAfterSave(savedWeekText);
+        else { await loadStreakData(); await loadTodayEntries(); }
+      } catch (err) {
+        flash(`Could not save: ${err.message.slice(0, 80)}`);
+      }
       btn.disabled = false;
     });
 
@@ -282,7 +405,7 @@
         .then(async ([t, m]) => {
           renderToday(parseTasks(t.text));
           renderDeadline(nextMilestone(m.text));
-          await loadStreakData();
+          await Promise.all([loadStreakData(), loadTodayEntries(), loadRegistry()]);
           await loadDigest();
         })
         .catch(showError);

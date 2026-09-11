@@ -19,7 +19,10 @@
  */
 
 export async function get(path, fetcher = fetch) {
-  const r = await fetcher(`/${path}`);
+  // no-store: a bare 404 for a file that does not exist YET (first save of a
+  // week file, first ad-hoc tag) must never come back from the browser cache
+  // after the file starts existing — that read would lie for minutes.
+  const r = await fetcher(`/${path}`, { cache: "no-store" });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`GET ${path}: ${r.status}`);
   return { text: await r.text() };
