@@ -66,7 +66,7 @@
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
     const inline = (s) => esc(s)
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, txt, url) => `<a href="${url.replace(/"/g, "%22")}" target="_blank" rel="noopener">${txt}</a>`);
 
     const now = new Date();
     const currentMonday = weekStart(now);
@@ -79,20 +79,26 @@
     const $ = (id) => document.getElementById(id);
     $("week-label").textContent = weekLabel(monday);
 
-    /* ---- week dropdown: probe backwards for digest files ---- */
+    /* ---- week dropdown: probe backwards for digest files ----
+       Parallel: 52 sequential HEADs took seconds on a slow link. The trim
+       logic (stop after 6 consecutive misses once any file was seen) runs on
+       the ordered results, so semantics are unchanged. */
     async function buildDropdown() {
+      const mondays = [];
+      for (let i = 0; i < 52; i++) {
+        mondays.push(new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - i * 7));
+      }
+      const hits = await Promise.all(
+        mondays.map(async (d) => {
+          try { return (await fetch(`/research/papers/digest-${weekKey(d)}.md`, { method: "HEAD" })).ok; }
+          catch { return false; }
+        })
+      );
       const weeks = [];
       let misses = 0;
-      for (let i = 0; i < 52 && misses < 6; i++) {
-        const d = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - i * 7);
-        const key = weekKey(d);
-        const r = await fetch(`/research/papers/digest-${key}.md`, { method: "HEAD" });
-        if (r.ok) {
-          weeks.push({ monday: d, key });
-          misses = 0;
-        } else {
-          if (weeks.length) misses++;
-        }
+      for (let i = 0; i < mondays.length; i++) {
+        if (hits[i]) { weeks.push({ monday: mondays[i], key: weekKey(mondays[i]) }); misses = 0; }
+        else if (weeks.length && ++misses >= 6) break;
       }
       return weeks;
     }
@@ -108,6 +114,9 @@
       html += `</span>`;
 
       html += `<select id="week-select" aria-label="Jump to week">`;
+      if (!weeks.length) {
+        html += `<option>No saved digests yet</option>`;
+      }
       for (const w of weeks) {
         const sel = w.key === weekKey(monday) ? " selected" : "";
         html += `<option value="${iso(w.monday)}"${sel}>${weekLabel(w.monday)}</option>`;
@@ -119,9 +128,11 @@
       }
       nav.innerHTML = html;
 
-      $("week-select").addEventListener("change", (e) => {
-        location.href = `/digest.html?week=${e.target.value}`;
-      });
+      if (weeks.length) {
+        $("week-select").addEventListener("change", (e) => {
+          location.href = `/digest.html?week=${e.target.value}`;
+        });
+      }
     }
 
     /* ---- render digest content ---- */

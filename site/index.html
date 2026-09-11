@@ -55,7 +55,7 @@
             <section>
               <div class="log-field">
                 <form class="log-row" id="log-form">
-                  <textarea class="input log-input" id="log-text" rows="1" placeholder="What did you work on? Type # to tag…" autocomplete="off" aria-label="Log entry"></textarea>
+                  <textarea class="input log-input" id="log-text" rows="1" maxlength="2000" placeholder="What did you work on? Type # to tag…" autocomplete="off" aria-label="Log entry" aria-expanded="false" aria-controls="log-suggest"></textarea>
                   <button class="btn" type="submit" id="log-submit">Log entry</button>
                 </form>
                 <div class="suggest" id="log-suggest" hidden></div>
@@ -91,7 +91,7 @@
             </header>
             <section class="px-5 pb-4">
               <form class="log-row" id="doi-form">
-                <input class="input" type="text" id="doi-input" placeholder="10.1000/xyz123" autocomplete="off" aria-label="DOI" style="flex:1" />
+                <input class="input" type="text" id="doi-input" placeholder="10.1000/xyz123" autocomplete="off" aria-label="DOI" maxlength="100" style="flex:1" />
                 <button class="btn" type="submit" id="doi-btn">Save</button>
               </form>
               <p class="saved" id="doi-saved" role="status" aria-live="polite"></p>
@@ -231,7 +231,7 @@
        this page only wires DOM events to them. */
     function renderChips() {
       $("chips").innerHTML = CURATED.map((t) =>
-        `<button type="button" class="chip" aria-pressed="false" data-tag="${t}" data-tip="${esc(TAG_DESCRIPTIONS[t])}">#${t}</button>`
+        `<button type="button" class="chip" aria-pressed="false" aria-label="#${t} — ${esc(TAG_DESCRIPTIONS[t])}" data-tag="${t}" data-tip="${esc(TAG_DESCRIPTIONS[t])}">#${t}</button>`
       ).join("");
       $("chips").addEventListener("click", (e) => {
         const b = e.target.closest(".chip");
@@ -260,7 +260,7 @@
     /* --- # autosuggest --- */
     let suggestItems = [];
     let suggestIdx = 0;
-    function hideSuggest() { const box = $("log-suggest"); box.hidden = true; box.innerHTML = ""; suggestItems = []; }
+    function hideSuggest() { const box = $("log-suggest"); box.hidden = true; box.innerHTML = ""; suggestItems = []; $("log-text").setAttribute("aria-expanded", "false"); }
     function updateSuggest() {
       const ta = $("log-text");
       const hit = tagAtCaret(ta.value, ta.selectionStart);
@@ -269,16 +269,22 @@
       suggestItems = [...curated.map((t) => [t, 0]), ...custom.map((t) => [t, 1])];
       suggestIdx = 0;
       const box = $("log-suggest");
+      box.setAttribute("role", "listbox");
+      box.setAttribute("aria-label", "Tag suggestions");
       box.innerHTML =
         (curated.length ? `<div class="s-label">Tags</div>` + curated.map((t) => sItemHtml(t, TAG_DESCRIPTIONS[t])).join("") : "") +
         (custom.length ? `<div class="s-label">Your tags</div>` + custom.map((t) => sItemHtml(t, "")).join("") : "");
       box.hidden = false;
+      $("log-text").setAttribute("aria-expanded", "true");
       paintSuggest();
     }
     const sItemHtml = (t, desc) =>
-      `<button type="button" class="s-item" data-tag="${t}"><span class="s-tag">#${t}</span>${desc ? `<span class="s-desc">${esc(desc)}</span>` : ""}</button>`;
+      `<button type="button" class="s-item" role="option" aria-selected="false" data-tag="${t}"><span class="s-tag">#${t}</span>${desc ? `<span class="s-desc">${esc(desc)}</span>` : ""}</button>`;
     function paintSuggest() {
-      [...$("log-suggest").querySelectorAll(".s-item")].forEach((b, i) => b.classList.toggle("sel", i === suggestIdx));
+      [...$("log-suggest").querySelectorAll(".s-item")].forEach((b, i) => {
+        b.classList.toggle("sel", i === suggestIdx);
+        b.setAttribute("aria-selected", String(i === suggestIdx));
+      });
     }
     function acceptTag(tag) {
       const ta = $("log-text");
@@ -471,7 +477,12 @@
     /* ---------- boot ---------- */
     function showError(e) {
       $("app").hidden = false;
-      $("task-body").innerHTML = `<p class="task-none">Could not load: ${e.message.slice(0, 100)}</p>`;
+      // clear every card's skeleton so nothing is stuck at "Loading…" forever
+      for (const id of ["task-body", "deadline-body"]) {
+        const el = $(id);
+        if (el) el.innerHTML = `<p class="task-none">Could not load: ${e.message.slice(0, 100)}</p>`;
+      }
+      $("streak").textContent = "";
     }
     function boot(demoData) {
       $("app").hidden = false;

@@ -157,19 +157,26 @@
 
     const $ = (id) => document.getElementById(id);
 
-    /* ---- week dropdown: probe backwards to find weeks with files ---- */
+    /* ---- week dropdown: probe backwards to find weeks with files ----
+       Parallel: 52 sequential HEADs took seconds on a slow link. The trim
+       logic (stop after 6 consecutive misses once any file was seen) runs on
+       the ordered results, so semantics are unchanged. */
     async function buildDropdown() {
+      const mondays = [];
+      for (let i = 0; i < 52; i++) {
+        mondays.push(new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - i * 7));
+      }
+      const hits = await Promise.all(
+        mondays.map(async (d) => {
+          try { return (await fetch("/" + weekPath(d), { method: "HEAD" })).ok; }
+          catch { return false; }
+        })
+      );
       const weeks = [];
       let misses = 0;
-      for (let i = 0; i < 52 && misses < 6; i++) {
-        const d = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - i * 7);
-        const r = await fetch("/" + weekPath(d), { method: "HEAD" });
-        if (r.ok) {
-          weeks.push({ monday: d, key: weekKey(d) });
-          misses = 0;
-        } else {
-          if (weeks.length) misses++;
-        }
+      for (let i = 0; i < mondays.length; i++) {
+        if (hits[i]) { weeks.push({ monday: mondays[i], key: weekKey(mondays[i]) }); misses = 0; }
+        else if (weeks.length && ++misses >= 6) break;
       }
       return weeks;
     }
@@ -189,6 +196,9 @@
 
       // dropdown
       html += `<select id="week-select" aria-label="Jump to week">`;
+      if (!weeks.length) {
+        html += `<option>No saved weeks yet</option>`;
+      }
       for (const w of weeks) {
         const sel = w.key === weekKey(monday) ? " selected" : "";
         html += `<option value="${iso(w.monday)}"${sel}>${weekLabel(w.monday)}</option>`;
@@ -202,9 +212,11 @@
 
       nav.innerHTML = html;
 
-      $("week-select").addEventListener("change", (e) => {
-        location.href = `/logbook.html?week=${e.target.value}`;
-      });
+      if (weeks.length) {
+        $("week-select").addEventListener("change", (e) => {
+          location.href = `/logbook.html?week=${e.target.value}`;
+        });
+      }
     }
 
     /* ---- table ---- */
@@ -217,9 +229,13 @@
     $("week-label").textContent = `${weekLabel(monday)} · Section 19 record`;
 
     const entries = {};
+    let loadFailed = false;
     {
       const r = await fetch("/" + weekPath(monday));
+      // 404 (or offline serving nothing) = genuinely empty week; a 5xx must
+      // not masquerade as "no entries" — the guide-facing record must not lie.
       if (r.ok) Object.assign(entries, parseLog(await r.text()));
+      else if (r.status !== 404) loadFailed = true;
     }
 
     const rows = [];
@@ -249,7 +265,9 @@
       });
     }
 
-    if (!any) {
+    if (loadFailed) {
+      $("content").innerHTML = `<p class="empty" style="padding: .75rem .625rem">Could not load this week — reload the page to retry.</p>`;
+    } else if (!any) {
       $("content").innerHTML = `<p class="empty" style="padding: .75rem .625rem">No entries this week. Log from the morning page — they appear here within a minute of saving.</p>`;
     } else {
       $("content").innerHTML = `
@@ -261,7 +279,7 @@
     }
 
     /* ---- summary boxes ---- */
-    $("summary-row").hidden = false;
+    $("summary-row").hidden = loadFailed; // zero numbers on a failed read would mislead
     // numbers box
     const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
     $("numbers-box").innerHTML = `
@@ -274,8 +292,9 @@
       $("questions-box").innerHTML = `<p style="color: var(--muted-foreground)">None recorded this week.</p>`;
     }
 
-    /* ---- nav (needs dropdown data) ---- */
-    const weeks = await buildDropdown();
+    /* ---- nav (needs dropdown data); failures leave arrows working ---- */
+    let weeks = [];
+    try { weeks = await buildDropdown(); } catch {}
     renderNav(weeks);
   </script>
 </body>

@@ -34,7 +34,7 @@
       <div class="card mb-6">
         <section>
           <form class="add-row" id="add-form">
-            <input class="input" type="text" id="add-text" placeholder="Add a task — one line" autocomplete="off" aria-label="New task" />
+            <input class="input" type="text" id="add-text" placeholder="Add a task — one line" autocomplete="off" aria-label="New task" maxlength="200" />
             <input class="input" type="date" id="add-due" aria-label="Due date (optional)" />
             <button class="btn" type="submit" id="add-btn">Add</button>
           </form>
@@ -101,7 +101,9 @@
     import * as tasks from "/site/lib/tasks.js";
     import * as vault from "/site/lib/vault.js";
 
-    const todayIso = new Date().toISOString().slice(0, 10);
+    /* local date, not UTC: toISOString is a day behind before ~5:30am IST */
+    const localIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const todayIso = localIso(new Date());
     const $ = (id) => document.getElementById(id);
     const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
     const fmt = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -253,22 +255,32 @@
       const h = document.createElement("h2");
       h.className = "group-heading";
       h.innerHTML = `<span>${esc(title)} · ${items.length}</span><i class="ph ph-caret-down group-chevron"></i>`;
+      // keyboard-accessible collapse: the heading is a button in behaviour
+      h.tabIndex = 0;
+      h.setAttribute("role", "button");
       h.style.cursor = "pointer";
       const ul = document.createElement("ul");
       for (const t of items) ul.appendChild(row(t));
       wrap.append(h, ul);
 
       // collapse
+      const setOpen = (open) => {
+        ul.hidden = !open;
+        collapsed[key] = !open;
+        h.setAttribute("aria-expanded", String(open));
+        saveCollapse();
+        h.querySelector(".group-chevron").style.transform = open ? "" : "rotate(-90deg)";
+      };
       if (collapsed[key]) {
         ul.hidden = true;
+        h.setAttribute("aria-expanded", "false");
         h.querySelector(".group-chevron").style.transform = "rotate(-90deg)";
+      } else {
+        h.setAttribute("aria-expanded", "true");
       }
-      h.addEventListener("click", () => {
-        const now = ul.hidden;
-        ul.hidden = !now;
-        collapsed[key] = !now;
-        saveCollapse();
-        h.querySelector(".group-chevron").style.transform = now ? "" : "rotate(-90deg)";
+      h.addEventListener("click", () => setOpen(!ul.hidden));
+      h.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!ul.hidden); }
       });
 
       return wrap;

@@ -48,7 +48,9 @@
   <script type="module">
     import { parseMilestones, daysUntil } from "/site/lib/milestones.js";
 
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const pad2 = (n) => String(n).padStart(2, "0");
+    /* local date, not UTC: toISOString is a day behind before ~5:30am IST */
+    const todayIso = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(new Date().getDate())}`;
     const $ = (id) => document.getElementById(id);
     const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
     const inline = (s) => esc(s)
@@ -112,8 +114,8 @@
           $("upcoming").hidden = false;
           $("upcoming-list").innerHTML = items.map((i) => {
             const d = daysUntil(i.date, todayIso);
-            const when = d === 0 ? "today" : `in ${d} days`;
-            return `<li><strong>${i.title}</strong> — ${i.date} · ${when}</li>`;
+            const when = d === 0 ? "today" : `in ${d} day${d === 1 ? "" : "s"}`;
+            return `<li><strong>${esc(i.title)}</strong> — ${i.date} · ${when}</li>`;
           }).join("");
         }
       }

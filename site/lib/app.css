@@ -225,7 +225,7 @@ body { font-feature-settings: "tnum" 1; }
 .task-list li:last-child, .rowlist li:last-child { border-bottom: 0; }
 .task-list a { display: flex; align-items: baseline; gap: .75rem; color: inherit; text-decoration: none; }
 .task-list a:hover .t { text-decoration: underline; text-underline-offset: 3px; }
-.task-list .t { font-weight: 500; color: var(--card-foreground); }
+.task-list .t { font-weight: 500; color: var(--card-foreground); min-width: 0; overflow-wrap: anywhere; }
 .task-list .w { margin-left: auto; white-space: nowrap; color: var(--muted-foreground); font-size: 13px; }
 .task-row.overdue .w { color: #dc2626; font-weight: 600; }
 .dark .task-row.overdue .w { color: #f87171; }
@@ -290,7 +290,7 @@ body { font-feature-settings: "tnum" 1; }
 .log-today { list-style: none; margin: .875rem 0 0; padding: 0; border-top: 1px solid var(--border); }
 .log-today li { display: flex; gap: .75rem; padding: .45rem 0; font-size: 14px; border-bottom: 1px solid var(--border); }
 .log-today .lt-time { color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; width: 3.25rem; flex: none; }
-.log-today .lt-text { flex: 1; min-width: 0; color: var(--card-foreground); }
+.log-today .lt-text { flex: 1; min-width: 0; color: var(--card-foreground); overflow-wrap: anywhere; }
 .log-today .lt-tags { color: var(--muted-foreground); font-size: 12px; }
 .saved { color: var(--muted-foreground); font-size: 13px; margin-top: .5rem; min-height: 1.4em; }
 
@@ -326,7 +326,10 @@ body { font-feature-settings: "tnum" 1; }
 li.done .tick { color: var(--muted-foreground); }
 li.done .body { color: var(--muted-foreground); }
 li.done .task-title { text-decoration: line-through; }
-.task-title { font-weight: 500; color: var(--card-foreground); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.task-title { font-weight: 500; color: var(--card-foreground); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow-wrap: anywhere; }
+/* tasks-page rows: flex child must be allowed to shrink below content size,
+   else a 200-char unbroken title overflows the card */
+.taskwrap li > .body { flex: 1; min-width: 0; }
 .task-notes-preview { color: var(--muted-foreground); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; opacity: .7; }
 .taskli { display: flex; align-items: flex-start; gap: .75rem; }
 .taskli .body { flex: 1; min-width: 0; color: var(--card-foreground); transition: color 120ms ease; }
