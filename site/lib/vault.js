@@ -30,11 +30,44 @@
  *   network, and the write-through cache is bypassed for fakes).
  */
 
-/* Session-local write-through cache: path -> text of the last successful put. */
+/* Write-through cache: path -> { text, ts }.
+   Persisted to localStorage so a reload within ~2 min of a write still serves
+   the freshest text (the deployed snapshot lags the commit by ~1–2 min on
+   Workers Builds). Entries older than 2 min are discarded — the snapshot
+   will have caught up by then. */
+const LAG_MS = 2 * 60 * 1000;
+const STORAGE_KEY = "phdos_vault_cache";
 const lastWrites = new Map();
 
+/* Hydrate from localStorage on load (browser only). */
+try {
+  if (typeof localStorage !== "undefined") {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const entries = JSON.parse(raw);
+      const now = Date.now();
+      for (const [k, v] of entries) {
+        if (now - v.ts < LAG_MS) lastWrites.set(k, v);
+        else lastWrites.delete(k);
+      }
+    }
+  }
+} catch {}
+
+function persist() {
+  try {
+    if (typeof localStorage !== "undefined")
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...lastWrites]));
+  } catch {}
+}
+
 export async function get(path, fetcher = fetch) {
-  if (fetcher === fetch && lastWrites.has(path)) return { text: lastWrites.get(path) };
+  if (fetcher === fetch && lastWrites.has(path)) {
+    const cached = lastWrites.get(path);
+    if (Date.now() - cached.ts < LAG_MS) return { text: cached.text };
+    lastWrites.delete(path);
+    persist();
+  }
   // no-store: a bare 404 for a file that does not exist YET (first save of a
   // week file, first ad-hoc tag) must never come back from the browser cache
   // after the file starts existing — that read would lie for minutes.
@@ -57,7 +90,10 @@ export async function put(path, text, message, fetcher = fetch) {
     return new Promise(() => {});
   }
   if (!r.ok) throw new Error(`PUT ${path}: ${r.status}${await detail(r)}`);
-  if (fetcher === fetch) lastWrites.set(path, text); // fresher than any future read
+  if (fetcher === fetch) {
+    lastWrites.set(path, { text, ts: Date.now() });
+    persist();
+  }
 }
 
 /* list(folder) → [{ name, path }] for the files directly inside the folder,

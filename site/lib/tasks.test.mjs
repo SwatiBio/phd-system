@@ -59,11 +59,12 @@ test("setStatus done closes a plain task; reopen keeps its due date", async () =
   assert.equal(reopened.due, "2026-10-15");
 });
 
-test("a tick on a recurring task rolls the due date and never closes it", async () => {
+test("a tick on a recurring task records last-done, rolls due, stays open", async () => {
   const v = fakeVault();
   const t = await create(v, { title: "Check conference tracker", due: "2026-10-01", recurring: "every month" });
   const ticked = await setStatus(v, t, "done", "2026-09-16");
   assert.equal(ticked.status, "todo");
+  assert.equal(ticked.lastDone, "2026-09-16");
   assert.equal(ticked.due, "2026-11-01");
 });
 
@@ -71,7 +72,19 @@ test("an overdue recurring tick rolls until the task is due today or later", asy
   const v = fakeVault();
   const t = await create(v, { title: "Record attendance", due: "2026-09-01", recurring: "day" });
   const ticked = await setStatus(v, t, "done", "2026-09-16");
+  assert.equal(ticked.lastDone, "2026-09-16");
   assert.equal(ticked.due, "2026-09-16");
+});
+
+test("untick a completed recurring task clears last-done and rolls due back", async () => {
+  const v = fakeVault();
+  const t = await create(v, { title: "Check tracker", due: "2026-10-01", recurring: "every month" });
+  const ticked = await setStatus(v, t, "done", "2026-09-16");
+  assert.equal(ticked.lastDone, "2026-09-16");
+  assert.equal(ticked.due, "2026-11-01");
+  const unticked = await setStatus(v, ticked, "todo", "2026-09-16");
+  assert.equal(unticked.lastDone, null);
+  assert.equal(unticked.due, "2026-10-01");
 });
 
 test("month-end clamp: 31 Jan + 1 month = 28 Feb", () => {
@@ -83,6 +96,13 @@ test("parseTask survives CRLF and falls back to todo for a bad status", () => {
   assert.equal(t.status, "todo");
   assert.equal(t.notes, "notes here");
   assert.equal(t.due, null);
+  assert.equal(t.lastDone, null);
+});
+
+test("parseTask reads last-done from frontmatter", () => {
+  const t = parseTask(`${FOLDER}/x.md`, "---\ntitle: X\nstatus: todo\nrecurring: day\nlast-done: 2026-09-16\n---\n");
+  assert.equal(t.lastDone, "2026-09-16");
+  assert.equal(t.recurring, "day");
 });
 
 test("status vocabulary is the one object model: 5 states, open/closed split", () => {

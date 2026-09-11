@@ -37,9 +37,11 @@ Notes (body, optional).
   Open states are `backlog/todo/in-progress`; `done` and `cancelled` are closed.
 - `due` and `recurring` are optional. `recurring` is a plain interval:
   `day | week | 2 weeks | month | 6 months | year` (no `every` prefix).
-- Recurring tasks roll forward on tick — never close. Ticking sets the due date ahead by the
-  interval (clamping month ends) and keeps the task open. If the roll lands in the past,
-  keep rolling until today or later.
+- Recurring tasks: tick records `last-done: YYYY-MM-DD`, rolls the due date forward by the
+  interval, and stays open (status = todo). A completed copy renders from `last-done`.
+  Untick clears `last-done` and rolls the due date back one interval.
+  If the roll lands in the past, keep rolling forward until today or later.
+- Non-recurring tasks: tick -> done, untick -> todo (due date untouched).
 - Consumers: `site/lib/tasks.js`, `.github/scripts/weekly_review.py`, `system/scripts/phd.py`,
   `site/admin/config.yml` — all four must produce/parse the same file shape
   (`validate-cms.py` checks the CMS adapter against the importer).

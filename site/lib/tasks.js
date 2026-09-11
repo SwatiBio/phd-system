@@ -73,13 +73,14 @@ export function parseTask(path, text) {
     status: STATUSES.includes(attrs.status) ? attrs.status : "todo",
     due: /^\d{4}-\d{2}-\d{2}$/.test(attrs.due || "") ? attrs.due : null,
     recurring: normRecurring(attrs.recurring),
+    lastDone: /^\d{4}-\d{2}-\d{2}$/.test(attrs["last-done"] || "") ? attrs["last-done"] : null,
     notes: (fm ? t.slice(fm[0].length) : t).replace(/^\s*\n/, "").trim(),
   };
 }
 
 function serialize(task) {
   const lines = ["---"];
-  for (const [k, v] of [["title", task.title], ["status", task.status], ["due", task.due], ["recurring", task.recurring]]) {
+  for (const [k, v] of [["title", task.title], ["status", task.status], ["due", task.due], ["recurring", task.recurring], ["last-done", task.lastDone]]) {
     if (v !== null && v !== undefined && v !== "") lines.push(`${k}: ${v}`);
   }
   lines.push("---", "");
@@ -100,6 +101,15 @@ export function advanceDate(isoDate, n, unit) {
     d.setDate(Math.min(day, last));
   }
   return localIso(d);
+}
+
+/* Roll a date backward by one interval (for untick undo). */
+function rollBack(due, recurring) {
+  if (!due) return null;
+  const m = recurring.match(ROLL);
+  const n = m[1] ? Number(m[1].trim()) : 1;
+  const unit = m[2].toLowerCase();
+  return advanceDate(due, -n, unit);
 }
 
 /* Recurring roll: advance by the interval; if the result lands in the past
@@ -152,14 +162,28 @@ export async function create(vault, { title, due = null, recurring = null, statu
 }
 
 /* State changes. The transition table lives here so pages can't drift from it:
-   - `done` on a recurring task rolls the due date forward and stays open (todo)
-     — that is how the attendance mandate once vanished from the file.
-   - reopening (done/cancelled -> todo) keeps the due date untouched. */
+   - `done` on a recurring task: record last-done, roll the due date forward,
+     status stays todo. A completed copy renders from last-done; the open
+     occurrence stays in the list with its new due date.
+   - untick a completed recurring (done -> todo): clear last-done, roll the
+     due date BACK by one interval (undo the last roll).
+   - non-recurring: tick -> done, untick -> todo (due untouched). */
 export async function setStatus(vault, task, status, todayIso = null) {
+  const today = todayIso || localIso(new Date());
   const next = { ...task, status };
-  if (status === "done" && task.recurring) {
-    next.status = "todo";
-    next.due = rollRecurring(task.due || todayIso || localIso(new Date()), task.recurring, todayIso);
+  if (task.recurring) {
+    if (status === "done" && !task.lastDone) {
+      // tick: record completion, roll forward, stay open
+      next.status = "todo";
+      next.lastDone = today;
+      next.due = rollRecurring(task.due || today, task.recurring, today);
+    } else if (status === "todo" && task.lastDone) {
+      // untick: clear completion, roll back one interval
+      next.status = "todo";
+      next.lastDone = null;
+      next.due = rollBack(task.due, task.recurring);
+    }
+    // other transitions (e.g. backlog -> todo) are plain status changes
   }
   await vault.put(task.path, serialize(next), `task ${next.status}: ${task.title}`);
   return next;

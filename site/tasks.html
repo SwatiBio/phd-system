@@ -50,10 +50,51 @@
 
       <footer class="page-footer">
         Tick done here — it commits straight to the task's own file (<code>daily/tasks/&lt;slug&gt;.md</code>).
-        To add, rename or re-status tasks in detail, use <a href="/admin/#/collections/tasks">the CMS</a>.
       </footer>
     </div>
   </main>
+
+  <!-- edit panel overlay -->
+  <dialog id="edit-dialog" class="edit-dialog">
+    <form method="dialog" id="edit-form">
+      <div class="edit-header">
+        <h2 id="edit-title"></h2>
+        <button type="button" class="iconbtn" id="edit-close" aria-label="Close"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="edit-body">
+        <label class="edit-label">Status
+          <select class="input" id="edit-status">
+            <option value="backlog">Backlog</option>
+            <option value="todo">To do</option>
+            <option value="in-progress">In progress</option>
+            <option value="done">Done</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </label>
+        <label class="edit-label">Due date
+          <input class="input" type="date" id="edit-due" />
+        </label>
+        <label class="edit-label">Recurring
+          <select class="input" id="edit-recurring">
+            <option value="">None</option>
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+            <option value="2 weeks">Every 2 weeks</option>
+            <option value="month">Monthly</option>
+            <option value="6 months">Every 6 months</option>
+            <option value="year">Yearly</option>
+          </select>
+        </label>
+        <label class="edit-label">Notes
+          <textarea class="input" id="edit-notes" rows="4" placeholder="Optional notes…"></textarea>
+        </label>
+      </div>
+      <div class="edit-footer">
+        <button class="btn" type="submit" id="edit-save">Save</button>
+        <span class="add-note" id="edit-note"></span>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
@@ -64,39 +105,103 @@
     const $ = (id) => document.getElementById(id);
     const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
     const fmt = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
+    /* --- collapse state (per-group, persisted) --- */
+    const COLLAPSE_KEY = "phdos_task_groups";
+    let collapsed = {};
+    try { collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); } catch {}
+    function saveCollapse() {
+      try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); } catch {}
+    }
+
+    /* --- edit dialog --- */
+    let editingTask = null;
+    function openEdit(t) {
+      editingTask = t;
+      $("edit-title").textContent = t.title;
+      $("edit-status").value = t.status;
+      $("edit-due").value = t.due || "";
+      $("edit-recurring").value = t.recurring || "";
+      $("edit-notes").value = t.notes || "";
+      $("edit-note").textContent = "";
+      $("edit-dialog").showModal();
+    }
+    $("edit-close").addEventListener("click", () => $("edit-dialog").close());
+    $("edit-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!editingTask) return;
+      const btn = $("edit-save");
+      btn.disabled = true;
+      const next = {
+        ...editingTask,
+        status: $("edit-status").value,
+        due: $("edit-due").value || null,
+        recurring: $("edit-recurring").value || null,
+        notes: $("edit-notes").value,
+      };
+      try {
+        await vault.put(editingTask.path, serializeTask(next), `task edit: ${editingTask.title}`);
+        $("edit-dialog").close();
+        await renderAll(true);
+      } catch (err) {
+        $("edit-note").textContent = `Could not save: ${err.message.slice(0, 80)}`;
+      }
+      btn.disabled = false;
+    });
+
+    function serializeTask(t) {
+      const lines = ["---"];
+      for (const [k, v] of [["title", t.title], ["status", t.status], ["due", t.due], ["recurring", t.recurring], ["last-done", t.lastDone]]) {
+        if (v != null && v !== "") lines.push(`${k}: ${v}`);
+      }
+      lines.push("---", "");
+      const notes = (t.notes || "").trim();
+      return lines.join("\n") + (notes ? `${notes}\n` : "");
+    }
+
+    /* --- rendering --- */
     function row(t) {
       const li = document.createElement("li");
       li.dataset.text = t.title;
-      if (!tasks.isOpen(t)) li.className = "done";
+      const open = tasks.isOpen(t);
+      if (!open) li.className = "done";
+
+      // tick button
       const btn = document.createElement("button");
       btn.className = "tick";
       btn.type = "button";
       btn.textContent = "✓";
-      btn.setAttribute("aria-label", tasks.isOpen(t) ? "Mark done" : "Reopen (back to todo)");
-      btn.disabled = true;                       // enabled after render, so a failed save cannot double-fire
+      btn.setAttribute("aria-label", open ? "Mark done" : "Reopen");
+      btn.disabled = true;
+
       const body = document.createElement("div");
       body.className = "body";
-      const label = document.createElement("div");
-      label.textContent = t.title;
+
+      // title row
+      const titleRow = document.createElement("div");
+      titleRow.className = "task-title";
+      titleRow.textContent = t.title;
       if (t.recurring) {
-        const rec = document.createElement("span");
-        rec.className = "rec";
-        rec.textContent = t.recurring;
-        label.appendChild(rec);
+        const badge = document.createElement("span");
+        badge.className = "rec";
+        badge.textContent = t.recurring;
+        titleRow.appendChild(badge);
       }
-      if (t.status === "backlog" || t.status === "in-progress") {
-        const st = document.createElement("span");
-        st.className = "rec";
-        st.textContent = t.status;
-        label.appendChild(st);
+      if (t.lastDone) {
+        const doneBadge = document.createElement("span");
+        doneBadge.className = "rec rec-done";
+        doneBadge.textContent = `done ${fmt(t.lastDone)}`;
+        titleRow.appendChild(doneBadge);
       }
-      body.appendChild(label);
+      body.appendChild(titleRow);
+
+      // due line
       if (t.due) {
         const when = document.createElement("div");
         const d = daysUntil(t.due);
-        when.className = "when" + (d < 0 && tasks.isOpen(t) ? " overdue" : "");
-        when.textContent = !tasks.isOpen(t) ? `${t.status === "cancelled" ? "cancelled" : "was due"} ${fmt(t.due)}`
+        when.className = "when";
+        when.textContent = !open ? `${t.status === "cancelled" ? "cancelled" : "was due"} ${fmt(t.due)}`
           : d < 0 ? `overdue by ${-d} day${-d === 1 ? "" : "s"} · ${fmt(t.due)}`
           : d === 0 ? "due today"
           : `due ${fmt(t.due)} (in ${d} day${d === 1 ? "" : "s"})`;
@@ -107,30 +212,65 @@
         when.textContent = "no date";
         body.appendChild(when);
       }
+
+      // notes preview
+      if (t.notes) {
+        const preview = document.createElement("div");
+        preview.className = "task-notes-preview";
+        preview.textContent = t.notes.replace(/\n/g, " ").slice(0, 80);
+        body.appendChild(preview);
+      }
+
       li.append(btn, body);
-      btn.addEventListener("click", async () => {
+
+      // tick handler
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
         btn.disabled = true;
         try {
-          // tick = done (recurring tasks roll forward inside the module);
-          // untick = reopen to todo
           await tasks.setStatus(vault, t, tasks.isOpen(t) ? "done" : "todo");
           await renderAll(true);
-        } catch (e) {
+        } catch (err) {
           btn.disabled = false;
-          $("meta").textContent = `Could not save: ${e.message.slice(0, 80)}`;
+          $("meta").textContent = `Could not save: ${err.message.slice(0, 80)}`;
         }
       });
+
+      // click-to-edit (not on the tick button)
+      li.addEventListener("click", (e) => {
+        if (e.target === btn || btn.contains(e.target)) return;
+        openEdit(t);
+      });
+      li.style.cursor = "pointer";
+
       return li;
     }
 
-    function group(title, items) {
+    function group(title, items, key) {
       if (!items.length) return null;
       const wrap = document.createElement("section");
+      wrap.dataset.group = key;
       const h = document.createElement("h2");
-      h.textContent = `${title} · ${items.length}`;
+      h.className = "group-heading";
+      h.innerHTML = `<span>${esc(title)} · ${items.length}</span><i class="ph ph-caret-down group-chevron"></i>`;
+      h.style.cursor = "pointer";
       const ul = document.createElement("ul");
       for (const t of items) ul.appendChild(row(t));
       wrap.append(h, ul);
+
+      // collapse
+      if (collapsed[key]) {
+        ul.hidden = true;
+        h.querySelector(".group-chevron").style.transform = "rotate(-90deg)";
+      }
+      h.addEventListener("click", () => {
+        const now = ul.hidden;
+        ul.hidden = !now;
+        collapsed[key] = !now;
+        saveCollapse();
+        h.querySelector(".group-chevron").style.transform = now ? "" : "rotate(-90deg)";
+      });
+
       return wrap;
     }
 
@@ -145,29 +285,51 @@
         box.innerHTML = `<p class="empty">Could not load tasks: ${e.message}</p>`;
         return;
       }
+
+      // split open vs closed, then bucket open tasks
       const open = all.filter((t) => tasks.isOpen(t));
-      const backlog = open.filter((t) => t.status === "backlog");
-      const dated = open.filter((t) => t.status !== "backlog");
+      const closed = all.filter((t) => !tasks.isOpen(t)).sort((a, b) => (b.due || "").localeCompare(a.due || ""));
+
+      // for recurring tasks with lastDone: show a done-copy in the closed list
+      const doneCopies = [];
+      const realOpen = [];
+      for (const t of open) {
+        if (t.lastDone && t.recurring) {
+          doneCopies.push({ ...t, status: "done", _isCopy: true });
+          realOpen.push({ ...t, lastDone: null }); // the open occurrence
+        } else {
+          realOpen.push(t);
+        }
+      }
+
+      const backlog = realOpen.filter((t) => t.status === "backlog");
+      const dated = realOpen.filter((t) => t.status !== "backlog");
       const overdue = dated.filter((t) => t.due && daysUntil(t.due) < 0).sort((a, b) => a.due.localeCompare(b.due));
       const soon = dated.filter((t) => t.due && daysUntil(t.due) >= 0 && daysUntil(t.due) <= 14).sort((a, b) => a.due.localeCompare(b.due));
       const later = dated.filter((t) => t.due && daysUntil(t.due) > 14).sort((a, b) => a.due.localeCompare(b.due));
       const undated = dated.filter((t) => !t.due);
-      const closed = all.filter((t) => !tasks.isOpen(t));
-      closed.sort((a, b) => (b.due || "").localeCompare(a.due || ""));
+      const allClosed = [...closed, ...doneCopies].sort((a, b) => (b.due || "").localeCompare(a.due || ""));
 
-      $("meta").textContent = `${dated.length} open · ${overdue.length} overdue · ${closed.length} done/cancelled`;
+      $("meta").textContent = `${dated.length} open · ${overdue.length} overdue · ${allClosed.length} done/cancelled`;
       box.innerHTML = "";
       if (!all.length) {
         box.innerHTML = `<p class="empty">No tasks yet — add the first one above.</p>`;
         return;
       }
-      for (const [title, items] of [["Overdue", overdue], ["Next 14 days", soon], ["Later", later], ["No date", undated], ["Backlog", backlog], ["Done / cancelled", closed]]) {
-        const g = group(title, items);
+      for (const [title, items, key] of [
+        ["Overdue", overdue, "overdue"],
+        ["Next 14 days", soon, "soon"],
+        ["Later", later, "later"],
+        ["No date", undated, "undated"],
+        ["Backlog", backlog, "backlog"],
+        ["Done / cancelled", allClosed, "closed"],
+      ]) {
+        const g = group(title, items, key);
         if (g) box.appendChild(g);
       }
       for (const b of box.querySelectorAll(".tick")) b.disabled = false;
 
-      // arrived from the homepage list — put the task in view
+      // focus from homepage
       const focus = new URLSearchParams(location.search).get("focus");
       if (focus && !isReload) {
         const hit = [...box.querySelectorAll("li")].find((li) => li.dataset.text === focus);
@@ -186,7 +348,7 @@
       btn.disabled = true;
       $("add-note").textContent = "";
       try {
-        await create(vault, { title: text, due: $("add-due").value || null });
+        await tasks.create(vault, { title: text, due: $("add-due").value || null });
         $("add-text").value = "";
         $("add-due").value = "";
         $("add-note").textContent = "Added.";
