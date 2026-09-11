@@ -59,7 +59,7 @@
     <form method="dialog" id="edit-form">
       <header>
         <h2 id="edit-title"></h2>
-        <button type="button" class="btn" data-size="icon-sm" id="edit-close" aria-label="Close"><i class="ph ph-x"></i></button>
+        <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" id="edit-close" aria-label="Close"><i class="ph ph-x"></i></button>
       </header>
       <section>
         <label class="label">Status
@@ -173,6 +173,7 @@
       const btn = document.createElement("button");
       btn.className = "btn";
       btn.dataset.size = "icon-sm";
+      btn.dataset.variant = "ghost";
       btn.dataset.variant = "ghost";
       btn.type = "button";
       btn.textContent = "✓";
