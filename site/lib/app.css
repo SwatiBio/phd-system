@@ -422,11 +422,15 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 .app-bar  { view-transition-name: app-bar; }
 .content  { view-transition-name: app-content; }
 
+/* Constrain snapshots so the old/new images never bleed over the sidebar. */
+::view-transition-group(app-content) { overflow: hidden; }
+
 ::view-transition-old(app-content),
 ::view-transition-new(app-content) {
   animation-duration: var(--duration-fast);
   animation-timing-function: var(--ease-smooth-out);
   animation-fill-mode: both;
+  block-size: 100%; inline-size: 100%;
 }
 ::view-transition-old(app-content) { animation-name: vt-content-out; }
 ::view-transition-new(app-content) { animation-name: vt-content-in; }
