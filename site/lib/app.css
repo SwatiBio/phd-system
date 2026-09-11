@@ -120,6 +120,9 @@ main { transition: none !important; }
   background: var(--card);
   border-bottom: 1px solid var(--border);
 }
+
+/* Match sidebar header height to app bar */
+.sidebar nav > header { padding-block: .625rem; }
 @media (min-width: 48rem) {
   .app-bar { padding: .625rem 1.5rem; }
 }
