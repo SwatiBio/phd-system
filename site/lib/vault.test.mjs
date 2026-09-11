@@ -46,3 +46,43 @@ test("put posts the JSON write envelope and resolves on ok", async () => {
     message: "tags: thesis",
   });
 });
+
+/* --- write-through: a session write must beat the stale deployed snapshot ---
+   Production serves reads from the deployed asset snapshot, which lags a
+   GitHub commit by ~1–2 min. A second save that re-reads after its own first
+   save used to build on the stale text and the commit ERASED the first entry. */
+
+test("get serves the text of a put this session made, without the network", async () => {
+  const origFetch = globalThis.fetch;
+  let netCalls = 0;
+  globalThis.fetch = async () => { netCalls++; return { status: 200, ok: true, text: async () => "STALE deployed snapshot" }; };
+  try {
+    const p = `daily/logs/write-through-${Date.now()}.md`;
+    await put(p, "## 2026-09-11\n- entry one\n", "log: one");
+    const r = await get(p);
+    assert.equal(r.text, "## 2026-09-11\n- entry one\n"); // the written text, not the snapshot
+    assert.equal(netCalls, 1); // only the put reached the network; get served the cache
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
+
+test("get with an injected fetcher bypasses the write-through cache (test seam)", async () => {
+  const { fetcher } = fakeFetcher(200, "fresh from network");
+  await put("daily/tags.md", "old", "m", fakeFetcher(200, "").fetcher); // seed cache on another path
+  const r = await get("daily/logs/2099-W99.md", fetcher);
+  assert.equal(r.text, "fresh from network");
+});
+
+test("put failure surfaces the server's error detail, not a bare status", async () => {
+  const { fetcher } = fakeFetcher(502, JSON.stringify({ error: "github 409: sha was not supplied" }));
+  await assert.rejects(
+    () => put("daily/logs/2026-W37.md", "t", "m", fetcher),
+    /PUT daily\/logs\/2026-W37\.md: 502 — github 409: sha was not supplied/,
+  );
+});
+
+test("get failure surfaces the server's error detail too", async () => {
+  const { fetcher } = fakeFetcher(403, JSON.stringify({ error: "rate limited" }));
+  await assert.rejects(() => get("daily/tasks/tasks.md", fetcher), /GET daily\/tasks\/tasks\.md: 403 — rate limited/);
+});

@@ -239,6 +239,11 @@ body { font-feature-settings: "tnum" 1; }
   font: inherit; line-height: 1.45; max-height: 144px;
 }
 .chip-row { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .75rem; }
+/* Basecoat clips .card with overflow:hidden, which cut the chip tooltips
+   (a ~290px tip on a ~233px card lost its left third). Unclip only the card
+   that hosts the chips — tooltips escape it instead of being cut; other
+   cards keep their rounded-corner clipping. */
+.card:has(#chips) { overflow: visible; }
 .chip {
   position: relative;
   font: inherit; font-size: 13px; font-weight: 500;

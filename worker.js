@@ -190,6 +190,11 @@ export default {
       });
       if (!put.ok) {
         const detail = await put.json().then((j) => j && j.message).catch(() => "");
+        // A 401 from GitHub means the session's token is dead (revoked/expired).
+        // It MUST reach the browser as 401: vault.put redirects to /login then,
+        // giving the user a recovery path. Wrapped in 502 it surfaced as an
+        // unrecoverable "Could not save: PUT x: 502".
+        if (put.status === 401) return new Response(JSON.stringify({ error: `github 401${detail ? `: ${detail}` : ""}` }), { status: 401, headers: { "content-type": "application/json" } });
         return new Response(JSON.stringify({ error: `github ${put.status}${detail ? `: ${detail}` : ""}` }), { status: 502, headers: { "content-type": "application/json" } });
       }
       return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
