@@ -12,6 +12,7 @@ GitHub private repo (`SwatiBio/phd-system`, branch `main`) serving as a vault. C
 - `/review.html` — weekly review
 - `/digest.html` — paper digest (public, no login)
 - `/atlas.html` — knowledge graph (papers + concepts)
+- `/library.html` — paper library (browse, search, filter by status/tag)
 - `/admin/` — Sveltia CMS (separate login)
 - Branch preview: `https://<branch-name>.phd-os.swatibio.workers.dev/`
 
@@ -48,6 +49,8 @@ GitHub private repo (`SwatiBio/phd-system`, branch `main`) serving as a vault. C
 ## Rules
 
 **Deploy** — `npx wrangler deploy` uploads both `worker.js` and the entire repo as static assets. `git push` does NOT deploy. `run_worker_first = true` is critical — without it, Cloudflare skips the worker and serves vault files publicly. After deploy, the asset snapshot lags by 1-2 minutes. Secrets (OAuth, session key) live in the Cloudflare dashboard, preserved by `keep_vars = true`.
+
+**Adding a page** — a new `site/<name>.html` needs BOTH: the root-path regex in `worker.js` (`/^(digest|logbook|tasks|...)\.html$/` maps `<name>.html` -> `/site/<name>.html`) and a nav entry in `site/lib/shell.js`. Missing the regex means the page 404s at the worker even though the file exists (hit when `/library.html` shipped without it).
 
 **Write-through cache** — `site/lib/vault.js` keeps a session-local `lastWrites` map. A file this session wrote is served from memory, not the stale snapshot. Prevents second-save data loss. Do not bypass in page code.
 
