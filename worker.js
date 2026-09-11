@@ -210,6 +210,11 @@ export default {
       if (gh.status === 404) return new Response("[]", { headers: { "content-type": "application/json" } });
       if (!gh.ok) {
         const detail = await gh.json().then((j) => j && j.message).catch(() => "");
+        // Same rule as /api/write: a GitHub 401 means the session's token is
+        // dead. It MUST reach the browser as 401 so vault.list redirects to
+        // /login — wrapped in 502 it surfaced as an unrecoverable
+        // "Could not load: LIST daily/tasks: 502 — github 401: Bad credentials".
+        if (gh.status === 401) return new Response(JSON.stringify({ error: `github 401${detail ? `: ${detail}` : ""}` }), { status: 401, headers: { "content-type": "application/json" } });
         return new Response(JSON.stringify({ error: `github ${gh.status}${detail ? `: ${detail}` : ""}` }), { status: 502, headers: { "content-type": "application/json" } });
       }
       const entries = await gh.json().catch(() => []);
@@ -219,10 +224,17 @@ export default {
       return new Response(JSON.stringify(files), { headers: { "content-type": "application/json" } });
     }
 
-    // /api/whoami — lets public pages know if this browser has a session
+    // /api/whoami — lets public pages know if this browser has a session.
+    // token_ok: false means the session's GitHub token is dead (revoked or
+    // expired) — the cookie still verifies, but any vault call would 401.
+    // Pages use it to send the user to /login BEFORE the first vault call
+    // fails (the "502 — Bad credentials" class of bug, PHDOS seam fix).
+    // One cheap HEAD to GitHub per whoami; pages call this once per load.
     if (url.pathname === "/api/whoami") {
       const s = await verifySession(cfg.sessionSecret, parseCookies(request)[cfg.cookieName] || "");
-      return new Response(JSON.stringify(s ? { login: s.login } : { login: null }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
+      if (!s) return new Response(JSON.stringify({ login: null }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
+      const probe = await fetch(`${GH}/user`, { method: "HEAD", headers: { Authorization: `Bearer ${s.gh}`, "User-Agent": "phd-os-auth" } });
+      return new Response(JSON.stringify({ login: s.login, token_ok: probe.status !== 401 }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
     }
 
     // /api/zotero/save — DOI -> metadata from doi.org -> Zotero item in Phd-OS collection

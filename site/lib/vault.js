@@ -73,8 +73,23 @@ export async function get(path, fetcher = fetch) {
   // after the file starts existing — that read would lie for minutes.
   const r = await fetcher(`/${path}`, { cache: "no-store" });
   if (r.status === 404) return null;
+  if (r.status === 401) return sessionDied();
   if (!r.ok) throw new Error(`GET ${path}: ${r.status}${await detail(r)}`);
   return { text: await r.text() };
+}
+
+/* A 401 from the API means the session's GitHub token is dead (revoked or
+   expired) while the signed cookie still passes /api/whoami — so pages think
+   they are logged in. Every vault call reacts the same way: send the browser
+   to /login and stop. The hanging promise is deliberate: callers `await` and
+   must stop, not retry into another 401. (location is guarded so the fake
+   fetcher tests, which run in Node, can exercise this path.) */
+function sessionDied() {
+  try {
+    if (typeof location !== "undefined")
+      location.href = `/login?next=${encodeURIComponent(location.pathname)}`;
+  } catch {}
+  return new Promise(() => {});
 }
 
 export async function put(path, text, message, fetcher = fetch) {
@@ -84,10 +99,8 @@ export async function put(path, text, message, fetcher = fetch) {
     body: JSON.stringify({ path, text, message }),
   });
   if (r.status === 401) {
-    // Not signed in any more — go and come back. The hanging promise is
-    // deliberate: callers `await put(...)` and must stop, not double-write.
-    location.href = "/login";
-    return new Promise(() => {});
+    // Not signed in any more — go and come back (see sessionDied).
+    return sessionDied();
   }
   if (!r.ok) throw new Error(`PUT ${path}: ${r.status}${await detail(r)}`);
   if (fetcher === fetch) {
@@ -103,6 +116,7 @@ export async function put(path, text, message, fetcher = fetch) {
 export async function list(folder, fetcher = fetch) {
   const r = await fetcher(`/api/list?folder=${encodeURIComponent(folder)}`, { cache: "no-store" });
   if (r.status === 404) return [];
+  if (r.status === 401) return sessionDied();
   if (!r.ok) throw new Error(`LIST ${folder}: ${r.status}${await detail(r)}`);
   const entries = await r.json().catch(() => []);
   return Array.isArray(entries) ? entries.filter((e) => e.type === "file") : [];

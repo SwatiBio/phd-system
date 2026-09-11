@@ -6,7 +6,7 @@
    and the page read it for minutes after the first ad-hoc tag save). */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { get, put } from "./vault.js";
+import { get, put, list } from "./vault.js";
 
 function fakeFetcher(status, body = "") {
   const calls = [];
@@ -85,4 +85,57 @@ test("put failure surfaces the server's error detail, not a bare status", async 
 test("get failure surfaces the server's error detail too", async () => {
   const { fetcher } = fakeFetcher(403, JSON.stringify({ error: "rate limited" }));
   await assert.rejects(() => get("daily/tasks/tasks.md", fetcher), /GET daily\/tasks\/tasks\.md: 403 — rate limited/);
+});
+
+/* --- dead session token: 401 must send the browser to /login, not throw ---
+   The GitHub token in the session can die (revoked/expired) while the signed
+   cookie still passes /api/whoami, so pages believe they are logged in. A 401
+   from any vault call means the same thing: re-login. */
+
+function withLocation(run) {
+  const orig = globalThis.location;
+  globalThis.location = { href: "" };
+  return Promise.resolve(run()).finally(() => {
+    if (orig === undefined) delete globalThis.location;
+    else globalThis.location = orig;
+  });
+}
+
+function neverSettles(p) {
+  let settled = false;
+  p.then(() => (settled = true), () => (settled = true));
+  return async () => {
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(settled, false, "the 401 promise must hang so callers stop, not retry");
+  };
+}
+
+test("list 401 redirects to /login and hangs instead of throwing", async () => {
+  await withLocation(async () => {
+    const { fetcher } = fakeFetcher(401, JSON.stringify({ error: "github 401: Bad credentials" }));
+    const p = list("daily/tasks", fetcher);
+    await new Promise((r) => setTimeout(r, 10));
+    assert.equal(globalThis.location.href.startsWith("/login?next="), true, "must carry the page path so re-login returns here");
+    await neverSettles(p)();
+  });
+});
+
+test("get 401 redirects to /login too", async () => {
+  await withLocation(async () => {
+    const { fetcher } = fakeFetcher(401, JSON.stringify({ error: "authentication required" }));
+    const p = get("daily/tasks/x.md", fetcher);
+    await new Promise((r) => setTimeout(r, 10));
+    assert.equal(globalThis.location.href.startsWith("/login?next="), true, "must carry the page path so re-login returns here");
+    await neverSettles(p)();
+  });
+});
+
+test("put 401 redirects to /login (existing recovery path, now shared)", async () => {
+  await withLocation(async () => {
+    const { fetcher } = fakeFetcher(401, JSON.stringify({ error: "github 401: Bad credentials" }));
+    const p = put("daily/tasks/x.md", "t", "m", fetcher);
+    await new Promise((r) => setTimeout(r, 10));
+    assert.equal(globalThis.location.href.startsWith("/login?next="), true, "must carry the page path so re-login returns here");
+    await neverSettles(p)();
+  });
 });

@@ -132,10 +132,16 @@ if (pageH1) {
 /* let basecoat initialize the freshly injected sidebar */
 try { window.basecoat?.initAll?.(); } catch (_) {}
 
-/* hide Sign out when anonymous */
+/* hide Sign out when anonymous; send dead-token sessions to /login.
+   token_ok: false = the cookie verifies but the GitHub token inside it is
+   dead (revoked/expired) — every vault call would 401, so redirect now,
+   carrying this page as ?next so re-login returns here. Pages that call
+   /api/whoami themselves get the same field and can react earlier. */
 fetch("/api/whoami")
   .then((r) => (r.ok ? r.json() : {}))
   .then((j) => {
     if (!j.login) document.querySelectorAll('a[href="/logout"]').forEach((a) => (a.hidden = true));
+    else if (j.token_ok === false)
+      location.href = `/login?next=${encodeURIComponent(location.pathname)}`;
   })
   .catch(() => {});
