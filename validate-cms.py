@@ -79,7 +79,14 @@ try:
 except Exception as exc:                                       # noqa: BLE001
     problems.append(f"could not load zotero_import.py to compare paper sections: {exc}")
 
-# 2b. whatever any adapter already wrote must use declared fields
+# 2b. concepts folder must exist (created on first concept)
+concepts_coll = COLLECTIONS.get("concepts")
+if concepts_coll and concepts_coll.get("folder"):
+    concepts_dir = ROOT / concepts_coll["folder"]
+    if not concepts_dir.is_dir():
+        problems.append(f"concepts folder '{concepts_coll['folder']}' does not exist — create it")
+
+# 2c. whatever any adapter already wrote must use declared fields
 for name, coll in COLLECTIONS.items():
     folder = coll.get("folder")
     if not folder:

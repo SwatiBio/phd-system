@@ -128,4 +128,8 @@ Every paper note (`research/papers/*.md`) must have these body sections (defined
 ## Sparked
 ```
 
-The Zotero importer (`zotero_import.py`) produces these same sections. If you change them in `config.yml`, update the importer too.
+Three adapters create paper notes (all must agree): the CMS form, `zotero_import.py`, and the DOI box on the dashboard. Frontmatter fields: `title`, `category`, `status`, `tags`, `citekey`, `zotero-key`, `authors`, `concepts`, `related`.
+
+## Concepts
+
+One file per concept in `research/concepts/` (slug from title). Fields: `title`, `description`, `related-concepts` (list of slugs). Papers link to concepts via their `concepts` field (list of slugs). The Atlas page (`/atlas.html`) renders the knowledge graph from papers + concepts.

@@ -78,6 +78,14 @@ def render(item, citekey_):
     key = d["key"]
     title = (d.get("title") or "Untitled").strip()
     tags = ", ".join(f'"{t["tag"]}"' for t in d.get("tags") or [])
+    # authors: full names from Zotero creators
+    creators = d.get("creators") or []
+    authors_list = []
+    for c in creators:
+        name = c.get("name") or f"{c.get('firstName', '')} {c.get('lastName', '')}".strip()
+        if name:
+            authors_list.append(f'"{name}"')
+    authors_yaml = f"authors: [{', '.join(authors_list)}]" if authors_list else "authors: []"
     fm = (
         "---\n"
         f'title: "{title}"\n'
@@ -86,6 +94,8 @@ def render(item, citekey_):
         f"tags: [{tags}]\n"
         f'citekey: "{citekey_}"\n'
         f"zotero-key: {key}\n"
+        f"{authors_yaml}\n"
+        "concepts: []\n"
         "---\n"
     )
     uri = f"zotero://select/library/items/{key}"

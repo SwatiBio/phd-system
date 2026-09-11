@@ -73,6 +73,8 @@ collections:
       - { label: Subject tags, name: tags, widget: list, required: false, hint: "Subject areas — the reading queue groups by these" }
       - { label: Citekey, name: citekey, widget: string, required: false, hint: "Zotero/Better BibTeX key — leave empty unless importing" }
       - { label: Zotero key, name: zotero-key, widget: string, required: false }
+      - { label: Authors, name: authors, widget: list, required: false, hint: "Full names — seeded from Zotero/DOI metadata" }
+      - { label: Concepts, name: concepts, widget: list, required: false, hint: "Concept slugs — links to research/concepts/" }
       - { label: Related papers, name: related, widget: list, required: false }
       # Body sections are the module's interface for a Paper note — the importer
       # (zotero_import.py) must produce these same sections. validate-cms.py checks it.
@@ -159,6 +161,23 @@ collections:
       - { label: Protein / structure, name: protein, widget: string }
       - { label: PDB / source ID, name: pdb, widget: string, required: false }
       - { label: Notes, name: notes, widget: text, required: false }
+
+  - name: concepts
+    label: Concepts
+    description: Research concepts and ideas — linked from papers, browsable on the Atlas graph.
+    folder: research/concepts
+    create: true
+    slug: "{{title}}"
+    icon: lightbulb
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Description, name: description, widget: text, required: false, hint: "One paragraph — what this concept means for your research" }
+      - { label: Related concepts, name: related-concepts, widget: list, required: false, hint: "Slugs of other concepts this connects to" }
+      - label: Notes
+        name: body
+        widget: markdown
+        required: false
 
   # ---------- LATER ----------
   - name: journal-pubs
