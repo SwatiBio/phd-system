@@ -56,43 +56,49 @@
 
   <!-- edit panel overlay -->
   <dialog id="edit-dialog" class="dialog" aria-labelledby="edit-title" onclick="if (event.target === this) this.close()">
-    <form method="dialog" id="edit-form">
+    <div>
       <header>
         <h2 id="edit-title"></h2>
       </header>
       <section>
-        <label class="label">Status
-          <select class="input" id="edit-status">
-            <option value="backlog">Backlog</option>
-            <option value="todo">To do</option>
-            <option value="in-progress">In progress</option>
-            <option value="done">Done</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </label>
-        <label class="label">Due date
-          <input class="input" type="date" id="edit-due" />
-        </label>
-        <label class="label">Recurring
-          <select class="input" id="edit-recurring">
-            <option value="">None</option>
-            <option value="day">Daily</option>
-            <option value="week">Weekly</option>
-            <option value="2 weeks">Every 2 weeks</option>
-            <option value="month">Monthly</option>
-            <option value="6 months">Every 6 months</option>
-            <option value="year">Yearly</option>
-          </select>
-        </label>
-        <label class="label">Notes
-          <textarea class="input" id="edit-notes" rows="4" placeholder="Optional notes…"></textarea>
-        </label>
+        <form class="grid gap-4" method="dialog" id="edit-form">
+          <div class="grid gap-3">
+            <label class="label" for="edit-status">Status</label>
+            <select class="input" id="edit-status">
+              <option value="backlog">Backlog</option>
+              <option value="todo">To do</option>
+              <option value="in-progress">In progress</option>
+              <option value="done">Done</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="grid gap-3">
+            <label class="label" for="edit-due">Due date</label>
+            <input class="input" type="date" id="edit-due" />
+          </div>
+          <div class="grid gap-3">
+            <label class="label" for="edit-recurring">Recurring</label>
+            <select class="input" id="edit-recurring">
+              <option value="">None</option>
+              <option value="day">Daily</option>
+              <option value="week">Weekly</option>
+              <option value="2 weeks">Every 2 weeks</option>
+              <option value="month">Monthly</option>
+              <option value="6 months">Every 6 months</option>
+              <option value="year">Yearly</option>
+            </select>
+          </div>
+          <div class="grid gap-3">
+            <label class="label" for="edit-notes">Notes</label>
+            <textarea class="input" id="edit-notes" rows="4" placeholder="Optional notes…"></textarea>
+          </div>
+          <footer>
+            <button class="btn" type="submit" id="edit-save">Save</button>
+            <span class="add-note" id="edit-note"></span>
+          </footer>
+        </form>
       </section>
-      <footer>
-        <button class="btn" type="submit" id="edit-save">Save</button>
-        <span class="add-note" id="edit-note"></span>
-      </footer>
-    </form>
+    </div>
   </dialog>
 
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>

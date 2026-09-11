@@ -236,8 +236,7 @@ main { transition: none !important; }
 /* log form + chips (Today) */
 #chips { margin-top: .75rem; }
 
-/* Dialog form fields */
-.dialog .label { display: flex; flex-direction: column; gap: .375rem; }
+
 .log-row { display: flex; gap: .5rem; align-items: flex-start; }
 .log-field { flex: 1; min-width: 0; position: relative; }
 .log-input {
