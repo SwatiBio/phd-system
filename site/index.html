@@ -40,7 +40,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Due today -->
           <div class="card">
-            <header class="px-5 py-4">
+            <header>
               <h3>Due today</h3>
             </header>
             <section id="task-body"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2 mt-2"></div></section>
@@ -48,7 +48,7 @@
 
           <!-- Log what you did -->
           <div class="card">
-            <header class="px-5 py-4">
+            <header>
               <h3>Log what you did</h3>
               <p>A line or a paragraph — it becomes a logbook row.</p>
             </header>
@@ -68,7 +68,7 @@
 
           <!-- Next milestone -->
           <div class="card">
-            <header class="px-5 py-4">
+            <header>
               <h3>Next milestone</h3>
               <p>Computed from the registration date — nothing stored.</p>
             </header>
@@ -77,7 +77,7 @@
 
           <!-- New papers -->
           <div class="card" id="digest-section" hidden>
-            <header class="px-5 py-4">
+            <header>
               <h3>New papers this week</h3>
             </header>
             <section><p class="task-none" id="digest-line"></p></section>
@@ -85,11 +85,11 @@
 
           <!-- Add a paper -->
           <div class="card" id="doi-section" hidden>
-            <header class="px-5 py-4">
+            <header>
               <h3>Add a paper</h3>
               <p>Paste a DOI — saves to Zotero and creates a paper note instantly.</p>
             </header>
-            <section class="px-5 pb-4">
+            <section>
               <form class="log-row" id="doi-form">
                 <input class="input" type="text" id="doi-input" placeholder="10.1000/xyz123" autocomplete="off" aria-label="DOI" maxlength="100" style="flex:1" />
                 <button class="btn" type="submit" id="doi-btn">Save</button>
