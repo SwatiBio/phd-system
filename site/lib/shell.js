@@ -102,6 +102,13 @@ const main = document.querySelector("main");
 document.body.insertAdjacentHTML("afterbegin", sidebarHTML);
 if (main) main.insertAdjacentHTML("afterbegin", topRowHTML);
 
+/* Shell runs with blocking="render", so this happens before first paint.
+   Unhide static page skeleton here too: content must exist in the first
+   render, or a cross-document view transition snapshots an empty page
+   (content vanishes, then pops in after the fetch resolves). Data-driven
+   sections still fill in later via their own async reveals. */
+document.getElementById("app")?.removeAttribute("hidden");
+
 /* keep the app bar title in sync with the page's <h1> — so "Tasks" shows
    on tasks.html, and the Today page shows the live date once it renders.
    Falls back to the nav label until/unless the h1 has content. */

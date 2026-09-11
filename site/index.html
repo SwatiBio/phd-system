@@ -22,10 +22,10 @@
   <!-- Phosphor icons (regular weight) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
   <!-- Basecoat UI + Tailwind utilities (order: Tailwind first, Basecoat after) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" blocking="render"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
   <link rel="stylesheet" href="/site/lib/app.css" />
-  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
 </head>
 <body>
   <!-- sidebar + top row are injected by /site/lib/shell.js -->
@@ -91,7 +91,7 @@
     </div>
   </main>
 
-  <script type="module" src="/site/lib/shell.js"></script>
+  <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
     import * as tasks from "/site/lib/tasks.js";
