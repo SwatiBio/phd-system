@@ -200,8 +200,9 @@ body { font-feature-settings: "tnum" 1; }
 .page-head .meta { color: var(--muted-foreground); font-size: .875rem; margin: 0; }
 .meta { color: var(--muted-foreground); }
 
-.card > header h3 { font-size: 1rem; font-weight: 600; color: var(--card-foreground); }
-.card > header p { color: var(--muted-foreground); }
+.card > header h3 { font-size: 1.125rem; font-weight: 700; color: var(--foreground); }
+.card > header { border-bottom: 1px solid var(--border); padding-bottom: .75rem; margin-bottom: .75rem; }
+.card > header p { color: var(--muted-foreground); font-size: .8125rem; }
 .card > section { font-size: .9375rem; }
 
 .label {
@@ -368,23 +369,12 @@ table.grid tr.next td { background: var(--sidebar-accent); font-weight: 500; }
 table.grid tr.next td.date::after { content: " ●"; font-size: 10px; vertical-align: middle; }
 table.grid tr.daysep td { border-top: 1px solid var(--border); }
 
-/* Archive week rows */
-.weekrow {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
-  padding: .65rem .25rem; border-bottom: 1px solid var(--muted);
-  text-decoration: none; color: var(--card-foreground); border-radius: .375rem;
-}
-.weekrow:hover { background: var(--muted); }
-.weekrow .range { font-weight: 500; }
-.weekrow .stats { color: var(--muted-foreground); font-size: 13px; white-space: nowrap; }
-.weekrow.quiet .range { color: var(--muted-foreground); font-weight: 400; }
-.weekrow .thisweek { font-size: 12px; color: var(--muted-foreground); margin-left: 8px; }
 /* milestone card content */
 .deadline-title { font-weight: 600; color: var(--card-foreground); }
 .deadline-when { color: var(--muted-foreground); font-size: 14px; margin-top: .25rem; }
 .deadline-when strong { color: var(--card-foreground); font-weight: 600; }
 
-/* archive weeks + callouts */
+/* callouts */
 .note {
   padding: .75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); color: var(--muted-foreground); font-size: 14px;

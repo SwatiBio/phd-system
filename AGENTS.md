@@ -10,7 +10,6 @@ GitHub private repo (`SwatiBio/phd-system`, branch `main`) serving as a vault. C
 - `/logbook.html` — printable logbook
 - `/timeline.html` — milestone timeline
 - `/review.html` — weekly review
-- `/archive.html` — log archive
 - `/digest.html` — paper digest (public, no login)
 - `/admin/` — Sveltia CMS (separate login)
 - Branch preview: `https://<branch-name>.phd-os.swatibio.workers.dev/`

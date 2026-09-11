@@ -4,9 +4,8 @@
  * section per day and `- **HH:MM** text #tags` entries under it.
  *
  * Why a module: static assets cannot list a directory, so every reader has to
- * compute the exact filename blind — the app writes it, the logbook opens it,
- * the archive probes backwards and the weekly job reads it. Four call sites
- * inventing the same name is four chances to disagree. Cross this seam instead.
+ * compute the exact filename blind — the app writes it, the logbook opens it, and the weekly job reads it. Three call sites
+ * inventing the same name is three chances to disagree. Cross this seam instead.
  *
  * ISO weeks (Monday start, week-year may differ from the calendar year) so the
  * name matches the print artefact `week-YYYY-Www.html` and Python's
