@@ -2,8 +2,6 @@
 
 A private vault and web app for managing a multi-year PhD. GitHub stores the files, a Cloudflare Worker serves the dashboard, Sveltia CMS edits commit straight to the repo. No database.
 
-**Live:** https://phd-os.swatibio.workers.dev — sign in with GitHub
-
 ## What it does
 
 - **Log what you did** — one line, any time, from the dashboard or your phone. Becomes a Section 19 research logbook row.
@@ -14,5 +12,3 @@ A private vault and web app for managing a multi-year PhD. GitHub stores the fil
 - **Weekly review** — stats gathered automatically every Sunday. Verdicts happen in chat.
 
 Pages: dashboard (`/`), tasks, logbook, timeline, review, archive — plus `/digest.html`, the paper digest, which is public and needs no login.
-
-For repo internals, folder layout, deploy steps, and automation schedules, see [`AGENTS.md`](AGENTS.md).
