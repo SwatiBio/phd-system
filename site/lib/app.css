@@ -415,7 +415,7 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
    Browsers without support ignore all of this and navigate normally. */
 
 @view-transition {
-  navigation: auto;
+  navigation: none;
 }
 
 #sidebar { view-transition-name: app-sidebar; }
