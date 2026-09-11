@@ -105,12 +105,18 @@
 
     function renderNav(weeks) {
       const nav = $("lognav");
+      // prev/next ±7 days. An arrow is disabled when its target week has no
+      // file: prev when no probed week is earlier than the one viewed, next
+      // when already at the current week (future weeks never exist). The CSS
+      // aria-disabled rule greys it out and blocks the click.
       const prev = new Date(monday); prev.setDate(prev.getDate() - 7);
       const next = new Date(monday); next.setDate(next.getDate() + 7);
+      const hasPrev = weeks.some((w) => w.monday < prev);
+      const hasNext = !viewingCurrent;
 
       let html = `<span class="lognav-arrows">`;
-      html += `<a href="/digest.html?week=${iso(prev)}" class="lognav-arrow" aria-label="Previous week"><i class="ph ph-caret-left"></i></a>`;
-      html += `<a href="/digest.html?week=${iso(next)}" class="lognav-arrow" aria-label="Next week"><i class="ph ph-caret-right"></i></a>`;
+      html += `<a href="/digest.html?week=${iso(prev)}" class="lognav-arrow" aria-label="Previous week"${hasPrev ? "" : ' aria-disabled="true"'}><i class="ph ph-caret-left"></i></a>`;
+      html += `<a href="/digest.html?week=${iso(next)}" class="lognav-arrow" aria-label="Next week"${hasNext ? "" : ' aria-disabled="true"'}><i class="ph ph-caret-right"></i></a>`;
       html += `</span>`;
 
       html += `<select id="week-select" aria-label="Jump to week">`;
