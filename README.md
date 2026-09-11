@@ -1,6 +1,6 @@
 # PhD-OS
 
-A private vault and web app for managing a 3.5-year MAHE PhD. GitHub stores the files, a Cloudflare Worker serves the dashboard, Sveltia CMS edits commit straight to the repo. No database.
+A private vault and web app for managing a multi-year PhD. GitHub stores the files, a Cloudflare Worker serves the dashboard, Sveltia CMS edits commit straight to the repo. No database.
 
 **Live:** https://phd-os.swatibio.workers.dev — sign in with GitHub
 
