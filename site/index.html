@@ -82,6 +82,21 @@
             </header>
             <section><p class="task-none" id="digest-line"></p></section>
           </div>
+
+          <!-- Add a paper -->
+          <div class="card" id="doi-section" hidden>
+            <header class="px-5 py-4">
+              <h3>Add a paper</h3>
+              <p>Paste a DOI — saves to Zotero and creates a paper note instantly.</p>
+            </header>
+            <section class="px-5 pb-4">
+              <form class="log-row" id="doi-form">
+                <input class="input" type="text" id="doi-input" placeholder="10.1000/xyz123" autocomplete="off" aria-label="DOI" style="flex:1" />
+                <button class="btn" type="submit" id="doi-btn">Save</button>
+              </form>
+              <p class="saved" id="doi-saved" role="status" aria-live="polite"></p>
+            </section>
+          </div>
         </div>
 
         <footer class="page-footer">
@@ -388,6 +403,71 @@
       } catch {}
     }
 
+    /* --- DOI box: paste a DOI -> Zotero + vault paper note --- */
+    async function loadDoiBox() {
+      try {
+        const w = await fetch("/api/whoami");
+        if (!w.ok) return;
+        const j = await w.json();
+        if (!j.login) return;
+        $("doi-section").hidden = false;
+      } catch {}
+    }
+    function doiSlug(s) {
+      return String(s).toLowerCase().match(/[\p{L}\p{N}]+/gu)?.join("-").slice(0, 60) || "paper";
+    }
+    $("doi-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const raw = $("doi-input").value.trim().replace(/^https?:\/\/doi\.org\//, "").replace(/\s+/g, "");
+      if (!raw || !/^10\./.test(raw)) { $("doi-saved").textContent = "Enter a valid DOI (starts with 10.)"; return; }
+      const btn = $("doi-btn");
+      btn.disabled = true;
+      const flash = (msg) => { $("doi-saved").textContent = msg; };
+      try {
+        const r = await fetch("/api/zotero/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doi: raw }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { flash(j.error || "Failed"); btn.disabled = false; return; }
+        if (j.duplicate) { flash("Already in your library."); btn.disabled = false; return; }
+        // compose the paper note from CSL metadata
+        const m = j.meta || {};
+        const title = (m.title || "Untitled").replace(/"/g, "'");
+        const authors = (m.author || []).map((a) => `"${a.given || ""} ${a.family || a.name || ""}"`.trim());
+        const slug = doiSlug(title);
+        const zoteroKey = j.zoteroKey || "";
+        const fm = [
+          "---",
+          `title: "${title}"`,
+          "category: phd",
+          "status: to-read",
+          "tags: []",
+          `citekey: ""`,
+          `zotero-key: ${zoteroKey}`,
+          `authors: [${authors.join(", ")}]`,
+          "concepts: []",
+          "---",
+          "",
+        ].join("\n");
+        const body = [
+          `[Zotero](zotero://select/library/items/${zoteroKey})`,
+          "",
+          "## What it did", "", "## How", "", "## Key result", "",
+          "## What it means for me", "", "## Sparked", "",
+          `<!-- 1-3 lines, rough words: what idea did this paper give you? -->`,
+        ].join("\n");
+        const path = `research/papers/${slug}.md`;
+        await put(path, fm + body, `paper: ${title.slice(0, 60)}`);
+        flash("Saved — shows in the CMS in a minute.");
+        $("doi-input").value = "";
+      } catch (err) {
+        flash(`Could not save: ${err.message.slice(0, 80)}`);
+      }
+      btn.disabled = false;
+    });
+
     /* ---------- boot ---------- */
     function showError(e) {
       $("app").hidden = false;
@@ -406,7 +486,7 @@
           renderToday(allTasks);
           renderDeadline(nextMilestone(m.text));
           await Promise.all([loadStreakData(), loadTodayEntries(), loadRegistry()]);
-          await loadDigest();
+          await Promise.all([loadDigest(), loadDoiBox()]);
         })
         .catch(showError);
     }

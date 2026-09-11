@@ -272,7 +272,10 @@ export default {
         console.log("[zotero] item write failed:", msg);
         return new Response(JSON.stringify({ error: msg }), { status: 502, headers: { "content-type": "application/json" } });
       }
-      return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
+      // Return CSL metadata + zotero key so the page can compose the paper note
+      const zoteroKey = (report.success && Object.values(report.success)[0]?.key) || null;
+      const isDuplicate = !!(report.unchanged && Object.keys(report.unchanged).length);
+      return new Response(JSON.stringify({ ok: true, duplicate: isDuplicate, zoteroKey, meta }), { headers: { "content-type": "application/json" } });
     }
 
     // gated static assets — already mapped above
