@@ -414,7 +414,7 @@
     if (demo) {
       const d = new Date(); const mk = (n) => { const x = new Date(d); x.setDate(d.getDate() + n); return iso(x); };
       const dates = new Set([iso(d), mk(-1), mk(-2), mk(-4), mk(-5), mk(-6)]);
-      boot({ tasks: [{ done: false, due: mk(0), text: "Register coursework — Annexure 19, 12 credits" }], milestone: { title: "Joining & Registration", date: mk(5), days: 5 }, dates });
+      boot({ tasks: [{ status: "todo", due: mk(0), title: "Register coursework — Annexure 19, 12 credits" }], milestone: { title: "Joining & Registration", date: mk(5), days: 5 }, dates });
     } else {
       boot();
     }

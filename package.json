@@ -1,0 +1,10 @@
+{
+  "name": "phd-system",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "test": "node --test site/lib/*.test.mjs",
+    "validate:cms": "node scripts/validate-config.mjs site/admin/config.yml && py validate-cms.py"
+  }
+}
