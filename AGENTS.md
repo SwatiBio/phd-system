@@ -54,8 +54,10 @@ GitHub private repo (`SwatiBio/phd-system`, branch `main`) serving as a vault. C
 
 **Write-through cache** — `site/lib/vault.js` keeps a session-local `lastWrites` map. A file this session wrote is served from memory, not the stale snapshot. Prevents second-save data loss. Do not bypass in page code.
 
-**Sveltia CMS docs — fetch before editing CMS code.** `config.yml` is Decap-compatible, but Sveltia has its own schema. Before editing `site/admin/config.yml` or CMS-related code, fetch `https://sveltiacms.app/llms.txt` and read the relevant page it links as `/en/docs/<page>.md`. For validation, use the official checker: `node scripts/validate-config.mjs site/admin/config.yml` (from repo `sveltia/ai-tools`, needs Node).
+**Sveltia CMS specifics.** `config.yml` is Decap-compatible, but Sveltia has its own schema — fetch the docs (see llms.txt rule below) before editing `site/admin/config.yml` or CMS-related code. For validation, use the official checker: `node scripts/validate-config.mjs site/admin/config.yml` (from repo `sveltia/ai-tools`, needs Node).
 Watch for: Sveltia is still pre-1.0 beta (check releases for breaking changes); no Editorial Workflow/Git Gateway; `logo_url` deprecated. Docs live at `sveltiacms.app` (the `.org` domain fails). Our own `validate-cms.py` additionally checks adapter drift with `zotero_import.py`.
+
+**llms.txt doc sites** — before editing code governed by Basecoat or Sveltia, fetch their docs: `https://basecoatui.com/llms.txt`, `https://sveltiacms.app/llms.txt`. Find the page in the index and append `.md` if the link lacks it (Basecoat lists trailing-slash URLs: `.../badge/` -> `.../badge.md`; Sveltia links already end in `.md`). Fetch with `curl` first.
 
 **Object model** — `site/admin/config.yml` defines what a "paper", "material", "target", or "work-unit" is. Two adapters create objects: the CMS form and `.github/scripts/zotero_import.py`. `validate-cms.py` catches drift. Changing a field in `config.yml` means updating both adapters.
 
