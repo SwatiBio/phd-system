@@ -25,6 +25,7 @@ const NAV = [
     label: "Research",
     items: [
       { href: "/digest.html", icon: "newspaper", title: "Paper digest", page: "digest.html" },
+      { href: "/atlas.html", icon: "planet", title: "Atlas", page: "atlas.html" },
       { href: "/admin/", icon: "gear", title: "CMS", page: "admin" },
     ],
   },
