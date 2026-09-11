@@ -1,11 +1,13 @@
 ---
-title: "Biofilm inhibitory activity of Usnic acid and potassium usnate against Klebsiella pneumoniae, Acinetobacter baumannii, and MRSA in ventilator-associated pneumonia"
-category: phd
+category: personal
 status: to-read
 tags: []
-citekey: "raondbiofilm"
+citekey: raondbiofilm
 zotero-key: 37EDSP3I
+related: []
+title: Biofilm inhibitory activity of Usnic acid and potassium usnate against Klebsiella pneumoniae, Acinetobacter baumannii, and MRSA in ventilator-associated pneumonia
 ---
+
 # Biofilm inhibitory activity of Usnic acid and potassium usnate against Klebsiella pneumoniae, Acinetobacter baumannii, and MRSA in ventilator-associated pneumonia
 
 [Zotero](zotero://select/library/items/37EDSP3I)
