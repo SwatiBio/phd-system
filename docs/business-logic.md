@@ -130,6 +130,27 @@ Every paper note (`research/papers/*.md`) must have these body sections (defined
 
 Three adapters create paper notes (all must agree): the CMS form, `zotero_import.py`, and the DOI box on the dashboard. Frontmatter fields: `title`, `category`, `status`, `tags`, `citekey`, `zotero-key`, `authors`, `concepts`, `related`.
 
+## Agent paper workflows
+
+Two agent workflows run in chat with pi (the site has no LLM). Both were decided 2026-09-11; pi triggers them when asked, never automatically.
+
+### Drafting a paper note (Q4)
+
+When asked (e.g. during a reading session), pi fills a paper note from its abstract/PDF:
+
+- Drafts **What it did** and **Key result**, each ending with the marker `(drafted by agent — review)`.
+- Suggests `related` papers (sharing tags/topic) and `concepts` slugs, written into the frontmatter.
+- **What it means for me** and **Sparked** stay human-only — never auto-filled; they are the thinking record.
+- Everything is editable afterwards in the CMS.
+
+### Concept ideation (Q5)
+
+In chat: "what concepts am I missing around X?" → pi searches the web (exa), proposes concepts/ideas → on acceptance, concept files are created in `research/concepts/` and papers linked via their `concepts` field. Site pages cannot call exa; chat is the only home for fuzzy ideation.
+
+### Privacy rule
+
+Personal papers (`category: personal`) are NEVER referenced on public surfaces (digest page, dashboard, anything public). Login-gated pages (Atlas, Library) may show them.
+
 ## Concepts
 
 One file per concept in `research/concepts/` (slug from title). Fields: `title`, `description`, `related-concepts` (list of slugs). Papers link to concepts via their `concepts` field (list of slugs). The Atlas page (`/atlas.html`) renders the knowledge graph from papers + concepts.

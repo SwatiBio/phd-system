@@ -442,6 +442,19 @@
         const m = j.meta || {};
         const title = (m.title || "Untitled").replace(/"/g, "'");
         const authors = (m.author || []).map((a) => `"${a.given || ""} ${a.family || a.name || ""}"`.trim());
+        // tag seeding (PHDOS-44): OpenAlex subjects for the DOI, capped at 5,
+        // hyphenated to match the free-form tag style; empty when OpenAlex has nothing.
+        let tags = [];
+        try {
+          const oa = await fetch(
+            `https://api.openalex.org/works?filter=doi:${encodeURIComponent(raw)}&select=topics`,
+            { headers: { "User-Agent": "phd-os (mailto:phd-os-digest)" } }
+          ).then((r2) => (r2.ok ? r2.json() : null));
+          tags = [...new Set((oa?.results?.[0]?.topics || []).map((t) => t.display_name)
+            .filter(Boolean)
+            .map((t) => t.toLowerCase().replace(/\s+/g, "-").replace(/[^\p{L}\p{N}-]/gu, ""))
+            .filter(Boolean))].slice(0, 5);
+        } catch {}
         const slug = doiSlug(title);
         const zoteroKey = j.zoteroKey || "";
         const fm = [
@@ -449,7 +462,7 @@
           `title: "${title}"`,
           "category: phd",
           "status: to-read",
-          "tags: []",
+          `tags: [${tags.map((t) => `"${t}"`).join(", ")}]`,
           `citekey: ""`,
           `zotero-key: ${zoteroKey}`,
           `authors: [${authors.join(", ")}]`,

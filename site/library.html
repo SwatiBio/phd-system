@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — library</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" blocking="render"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
+  <style>
+    .lib-chips { display: flex; flex-wrap: wrap; gap: .375rem; align-items: center; }
+    .lib-chip {
+      font: inherit; font-size: 12px; font-weight: 500; padding: .2rem .5rem;
+      border: 1px solid var(--border); border-radius: 999px; background: transparent;
+      color: var(--muted-foreground); cursor: pointer; transition: all 120ms ease;
+    }
+    .lib-chip:hover { background: var(--muted); color: var(--foreground); }
+    .lib-chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+    .lib-tagindex { display: flex; flex-wrap: wrap; gap: .25rem .75rem; font-size: 12px; }
+    .lib-tagindex a { color: var(--muted-foreground); text-decoration: none; }
+    .lib-tagindex a:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+    .lib-row { display: block; padding: .625rem .25rem; border-bottom: 1px solid var(--border); }
+    .lib-row:last-child { border-bottom: none; }
+    .lib-row-title { font-weight: 600; }
+    .lib-row:hover .lib-row-title { text-decoration: underline; text-underline-offset: 3px; }
+    .lib-row-meta { font-size: 12px; color: var(--muted-foreground); margin-top: .125rem; }
+    .lib-preview { font-size: 13px; color: var(--muted-foreground); margin-top: .25rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .badge { font-size: 11px; font-weight: 500; padding: .05rem .4rem; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); }
+    .badge-status-read { color: #16a34a; border-color: #16a34a55; }
+    .badge-status-reading { color: #d97706; border-color: #d9770655; }
+    .badge-status-parked { color: var(--muted-foreground); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="content">
+      <header class="page-head">
+        <h1>Library</h1>
+        <p class="meta">Browse your papers. Edit in the <a href="/admin/#/collections/papers-phd">CMS</a>.</p>
+      </header>
+
+      <div id="app" hidden>
+        <div class="lib-chips" style="margin-bottom:.5rem">
+          <span id="status-chips" class="lib-chips"></span>
+          <span style="flex:1"></span>
+          <label class="flex items-center gap-2 text-sm" style="color:var(--muted-foreground)">
+            <input type="checkbox" id="personal-toggle" />
+            Show personal
+          </label>
+        </div>
+        <div class="flex gap-2" style="margin-bottom:.5rem">
+          <input class="input" type="search" id="lib-search" placeholder="Search title, author, tag…" aria-label="Search papers" style="flex:1" />
+          <select class="input" id="lib-sort" aria-label="Sort papers" style="width:auto">
+            <option value="title">Sort: title</option>
+            <option value="status">Sort: status</option>
+          </select>
+        </div>
+        <nav class="lib-tagindex" id="tag-index" aria-label="Tag index"></nav>
+        <div id="paper-groups"></div>
+        <p class="meta" id="lib-meta" style="margin-top:.75rem"></p>
+      </div>
+      <p class="task-none" id="lib-error" hidden></p>
+    </div>
+  </main>
+
+  <script src="/site/lib/shell.js" defer blocking="render"></script>
+  <script type="module" defer>
+    import * as vault from "/site/lib/vault.js";
+    import { STATUSES, load, filterStatus, search, statusCounts, groupByTag, sortPapers, preview } from "/site/lib/library.js";
+
+    const $ = (id) => document.getElementById(id);
+    let papers = [];
+    let state = { status: "all", personal: false, q: "", sort: "title" };
+
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const fmtAuthors = (p) => {
+      if (!p.authors.length) return "";
+      const first = p.authors[0].replace(/^["']|["']$/g, "");
+      return `${first}${p.authors.length > 1 ? " et al." : ""}`;
+    };
+
+    function renderChips() {
+      const counts = statusCounts(papers.filter((p) => state.personal || p.category === "phd"));
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      $("status-chips").innerHTML =
+        `<button type="button" class="lib-chip" data-status="all" aria-pressed="${state.status === "all"}">All · ${total}</button>` +
+        STATUSES.map(
+          (s) => `<button type="button" class="lib-chip" data-status="${s}" aria-pressed="${state.status === s}">${s} · ${counts[s]}</button>`
+        ).join("");
+      for (const b of $("status-chips").querySelectorAll("[data-status]"))
+        b.addEventListener("click", () => { state.status = b.dataset.status; render(); });
+    }
+
+    function render() {
+      const visible = filterStatus(search(papers.filter((p) => state.personal || p.category === "phd"), state.q), state.status);
+      renderChips();
+
+      const groups = sortPapers(visible, state.sort);
+      const byTag = groupByTag(groups);
+      $("tag-index").innerHTML = byTag
+        .map((g) => `<a href="#tag-${esc(g.tag)}">${esc(g.tag)} (${g.papers.length})</a>`)
+        .join("");
+
+      $("paper-groups").innerHTML = byTag
+        .map(
+          (g) => `
+        <section id="tag-${esc(g.tag)}" style="margin-top:1rem">
+          <h2 style="font-size:.95rem;font-weight:600">${esc(g.tag)} <span class="meta">· ${g.papers.length}</span></h2>
+          ${g.papers
+            .map(
+              (p) => `
+          <a class="lib-row" href="/admin/#/collections/${p.category === "personal" ? "papers-personal" : "papers-phd"}/${encodeURIComponent(p.slug)}">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="lib-row-title">${esc(p.title)}</span>
+              <span class="badge badge-status-${p.status}">${p.status}</span>
+            </div>
+            <div class="lib-row-meta">${esc(fmtAuthors(p))}</div>
+            ${preview(p) ? `<div class="lib-preview">${esc(preview(p))}</div>` : ""}
+          </a>`
+            )
+            .join("")}
+        </section>`
+        )
+        .join("") || `<p class="task-none">No papers match.</p>`;
+
+      $("lib-meta").textContent = `${visible.length} paper${visible.length === 1 ? "" : "s"} shown · ${papers.length} in the vault`;
+    }
+
+    async function boot() {
+      try {
+        const w = await fetch("/api/whoami");
+        if (!w.ok) { location.href = "/login"; return; }
+        const j = await w.json();
+        if (!j.login) { location.href = "/login"; return; }
+        papers = await load(vault);
+        $("personal-toggle").addEventListener("change", (e) => { state.personal = e.target.checked; render(); });
+        $("lib-search").addEventListener("input", (e) => { state.q = e.target.value; render(); });
+        $("lib-sort").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+        $("app").hidden = false;
+        render();
+      } catch (e) {
+        $("lib-error").hidden = false;
+        $("lib-error").textContent = `Could not load: ${e.message.slice(0, 100)}`;
+      }
+    }
+    boot();
+  </script>
+</body>
+</html>

@@ -58,16 +58,20 @@ collections:
       - { label: Fragments, name: body, widget: markdown }
 
   # ---------- RESEARCH ----------
-  - name: papers
-    label: Papers
-    description: Papers you read. Mostly created via Zotero import / paper pipeline — edit status, tags, Sparked here.
+  # Papers live in one folder but surface as two collections, filtered on
+  # category (PHDOS-42) — so Swati never opens a paper to check its category.
+  # Both collections MUST keep identical fields: they edit the same files.
+  - name: papers-phd
+    label: "Papers · PhD"
+    description: Shareable PhD papers. Mostly created via Zotero import / paper pipeline — edit status, tags, Sparked here.
     folder: research/papers
+    filter: { field: category, value: phd }
     create: true
     slug: "{{title}}"
     icon: menu_book
     sortable_fields: [status]
     summary: "{{title}} — {{status}}"
-    fields:
+    fields: &papers_fields
       - { label: Category, name: category, widget: select, options: [{label: PhD (shareable), value: phd}, {label: Personal (private), value: personal}], default: phd }
       - { label: Status, name: status, widget: select, options: [to-read, reading, read, parked], default: to-read, required: false }
       - { label: Subject tags, name: tags, widget: list, required: false, hint: "Subject areas — the reading queue groups by these" }
@@ -92,6 +96,18 @@ collections:
           ## What it means for me
 
           ## Sparked
+
+  - name: papers-personal
+    label: "Papers · Personal"
+    description: Personal (private) papers. Never referenced on public surfaces — digest, dashboard, anything public.
+    folder: research/papers
+    filter: { field: category, value: personal }
+    create: true
+    slug: "{{title}}"
+    icon: lock
+    sortable_fields: [status]
+    summary: "{{title}} — {{status}}"
+    fields: *papers_fields
 
   - name: work-units
     label: Work Units

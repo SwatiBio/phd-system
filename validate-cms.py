@@ -67,15 +67,23 @@ def body_default(name):
 
 
 # 2a. the importer is an adapter at the same seam as the CMS form
+#     Papers is split into two filtered collections (papers-phd / papers-personal,
+#     PHDOS-42) editing the same folder — every split must agree with the importer.
 sys.path.insert(0, str(ROOT / ".github" / "scripts"))
 try:
     import zotero_import
-    want, got = body_default("papers"), sections(zotero_import.TEMPLATE_BODY)
-    if want != got:
-        problems.append(
-            "papers: zotero_import.TEMPLATE_BODY sections do not match the CMS body default\n"
-            f"           CMS:      {want}\n           importer: {got}"
-        )
+    paper_splits = [n for n, c in COLLECTIONS.items()
+                    if c.get("folder") == "research/papers"]
+    if not paper_splits:
+        problems.append("no CMS collection covers research/papers — papers are uneditable")
+    importer_sections = sections(zotero_import.TEMPLATE_BODY)
+    for name in paper_splits:
+        want, got = body_default(name), importer_sections
+        if want != got:
+            problems.append(
+                f"{name}: zotero_import.TEMPLATE_BODY sections do not match the CMS body default\n"
+                f"           CMS:      {want}\n           importer: {got}"
+            )
 except Exception as exc:                                       # noqa: BLE001
     problems.append(f"could not load zotero_import.py to compare paper sections: {exc}")
 
