@@ -1,10 +1,10 @@
 # Week 37 · Mon 7 Sep – Sun 13 Sep 2026
 
-*Prepared 2026-09-11 10:03 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
+*Prepared 2026-09-13 16:31 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
 
 ## The week in numbers
 
-- **2** days logged · **9** entries · **0** tasks done · **1** overdue
+- **2** days logged · **10** entries · **0** tasks done · **0** overdue
 - **0** open questions · **0** ideas · **0** rough fragments awaiting refinement
 
 ## What you did
@@ -12,6 +12,7 @@
 ### Fri 11 Sep
 
 - **14:36** okkkkkkkkkkk
+- **17:05** #call hi
 
 ### Thu 10 Sep
 
@@ -26,7 +27,7 @@
 
 ## What slipped
 
-- okokok — due 2026-09-03 (10 days late)
+- Nothing overdue.
 
 ## Open questions (0)
 
@@ -36,9 +37,9 @@
 
 - None this week.
 
-## Rolled-over tasks (1)
+## Rolled-over tasks (0)
 
-- okokok — due 2026-09-03
+- None.
 
 ## Rough pile
 
