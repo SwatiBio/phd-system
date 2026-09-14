@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — concept</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" blocking="render"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
+  <style>
+    .concept-meta { font-size: 13px; color: var(--muted-foreground); }
+    .concept-meta a { color: var(--foreground); text-decoration: underline; text-underline-offset: 2px; }
+    .section-card {
+      border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin-bottom: .75rem; background: var(--card);
+    }
+    .section-card h3 {
+      font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+      color: var(--muted-foreground); margin-bottom: .5rem;
+    }
+    .section-card .section-body {
+      min-height: 1.5em; cursor: text; border-radius: 4px; padding: .25rem .5rem;
+      margin: -.25rem -.5rem; transition: background 120ms ease;
+    }
+    .section-card .section-body:hover { background: var(--muted); }
+    .section-card .section-body:focus {
+      outline: 2px solid var(--ring); outline-offset: 2px; background: var(--background);
+    }
+    .section-card .section-body[data-placeholder]::before {
+      content: attr(data-placeholder); color: var(--muted-foreground); font-style: italic;
+    }
+    .hl-blockquote {
+      border-left: 2px solid var(--muted-foreground, #999); padding-left: .75rem;
+      margin: .5rem 0; font-size: 14px;
+    }
+    .hl-comment { font-size: 13px; color: var(--muted-foreground); margin-top: .25rem; }
+    .hl-meta { font-size: 12px; color: var(--muted-foreground); margin-top: .125rem; }
+    .save-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; padding: .75rem 1.25rem;
+      background: var(--background); border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: .5rem; z-index: 50;
+    }
+    .save-bar.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="content" style="max-width: 48rem;">
+      <header class="page-head" id="concept-header">
+        <a href="/atlas.html" class="text-sm" style="color:var(--muted-foreground)"><i class="ph ph-planet"></i> Atlas</a>
+      </header>
+
+      <div id="app" hidden>
+        <div id="concept-meta" class="concept-meta" style="margin-bottom:1rem"></div>
+        <div id="description-section" class="section-card">
+          <h3><i class="ph ph-lightbulb"></i> Description <span class="text-xs font-normal" style="text-transform:none;letter-spacing:0">(what this concept means for your research)</span></h3>
+          <div id="description-body" class="section-body" contenteditable="true" role="textbox" aria-label="Description"
+               data-placeholder="Click to add a description…"></div>
+        </div>
+        <div id="notes-section" class="section-card">
+          <h3><i class="ph ph-notebook"></i> Notes</h3>
+          <div id="notes-body" class="section-body" contenteditable="true" role="textbox" aria-label="Notes"
+               data-placeholder="Click to add notes…"></div>
+        </div>
+        <div id="related-section" class="section-card">
+          <h3><i class="ph ph-link"></i> Related concepts</h3>
+          <div id="related-body"></div>
+        </div>
+        <div id="thread-section" class="section-card">
+          <h3><i class="ph ph-highlighter"></i> Tag thread <span class="text-xs font-normal" style="text-transform:none;letter-spacing:0">(every tagged highlight across linked papers)</span></h3>
+          <div id="thread-body"></div>
+        </div>
+        <div id="papers-section" class="section-card">
+          <h3><i class="ph ph-books"></i> Linked papers</h3>
+          <div id="papers-body"></div>
+        </div>
+      </div>
+      <div id="concept-error" class="text-sm" style="color:var(--destructive)" hidden></div>
+    </div>
+    <div class="save-bar hidden" id="save-bar">
+      <span class="text-sm" style="color:var(--muted-foreground)" id="save-status"></span>
+      <button type="button" class="btn" data-variant="outline" data-size="sm" id="discard-btn">Discard</button>
+      <button type="button" class="btn" data-size="sm" id="save-btn">Save</button>
+    </div>
+  </main>
+
+  <script src="/site/lib/shell.js" defer blocking="render"></script>
+  <script type="module" defer>
+    import * as vault from "/site/lib/vault.js";
+    import { parseNote } from "/site/lib/paper.js";
+    import { FOLDER, parseConcept, serializeConcept, threadFromPapers } from "/site/lib/concept.js";
+
+    const $ = (id) => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const slug = params.get("c");
+
+    let concept = null;
+    let originalText = "";
+    let dirty = false;
+
+    function esc(s) {
+      return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    /* The concept page IS the tag thread (PHDOS-49): linked papers are the
+       ones whose tagged highlights carry this slug — the shared-slug link,
+       no frontmatter relisting needed. Papers frontmatter-linking the concept
+       without tagged highlights still show under Linked papers. */
+    function renderRelated() {
+      const rel = concept.relatedConcepts;
+      $("related-body").innerHTML = rel.length
+        ? rel.map((c) => `<a href="/concept.html?c=${encodeURIComponent(c)}" class="badge" style="margin-right:.375rem">${esc(c)}</a>`).join("")
+        : '<p class="text-sm italic" style="color:var(--muted-foreground)">No related concepts yet — suggestions arrive in the weekly review.</p>';
+    }
+
+    function renderThread(papers) {
+      const snippets = threadFromPapers(slug, papers);
+      if (!snippets.length) {
+        $("thread-body").innerHTML = '<p class="text-sm italic" style="color:var(--muted-foreground)">No tagged highlights yet. Tag highlights in Zotero and sync.</p>';
+        return;
+      }
+      $("thread-body").innerHTML = snippets
+        .map((s) => {
+          const meta = [];
+          if (s.page) meta.push(`p. ${s.page}`);
+          return `<div class="hl-blockquote">
+            ${s.text ? `<p>${esc(s.text)}</p>` : ""}
+            ${s.comment ? `<p class="hl-comment">${esc(s.comment)}</p>` : ""}
+            <p class="hl-meta">
+              ${meta.length ? `<em>${esc(meta.join(" · "))}</em> · ` : ""}
+              <a href="/paper.html?path=${encodeURIComponent(s.paperPath)}" style="color:var(--foreground);text-decoration:underline;text-underline-offset:2px">${esc(s.paperTitle)}</a>
+            </p>
+          </div>`;
+        })
+        .join("");
+    }
+
+    function renderPapers(papers) {
+      const linked = [];
+      for (const p of papers) {
+        const inThread = (p.highlights || []).some((h) => (h.tags || []).some((t) => t.toLowerCase() === slug.toLowerCase()));
+        const inFrontmatter = (p.concepts || []).some((c) => c.toLowerCase() === slug.toLowerCase());
+        if (inThread || inFrontmatter) linked.push(p);
+      }
+      if (!linked.length) {
+        $("papers-body").innerHTML = '<p class="text-sm italic" style="color:var(--muted-foreground)">No papers link this concept yet.</p>';
+        return;
+      }
+      $("papers-body").innerHTML = linked
+        .map((p) => `<div style="margin:.25rem 0">
+          <a href="/paper.html?path=${encodeURIComponent(p.path)}" style="color:var(--foreground);text-decoration:underline;text-underline-offset:2px">${esc(p.title)}</a>
+        </div>`)
+        .join("");
+    }
+
+    function wireEditing() {
+      const desc = $("description-body");
+      const notes = $("notes-body");
+      const sync = (el, value, placeholder) => {
+        el.textContent = value;
+        if (value) el.removeAttribute("data-placeholder");
+        else el.setAttribute("data-placeholder", placeholder);
+      };
+      sync(desc, concept.description, "Click to add a description…");
+      sync(notes, concept.notes, "Click to add notes…");
+      const markDirty = (e) => {
+        const el = e.target;
+        if (el.classList.contains("section-body")) {
+          if (el.textContent.trim()) el.removeAttribute("data-placeholder");
+          else el.setAttribute("data-placeholder", el === desc ? "Click to add a description…" : "Click to add notes…");
+        }
+        if (!dirty) {
+          dirty = true;
+          $("save-bar").classList.remove("hidden");
+        }
+        $("save-status").textContent = "Unsaved changes";
+      };
+      desc.addEventListener("input", markDirty);
+      notes.addEventListener("input", markDirty);
+    }
+
+    async function save() {
+      const desc = $("description-body");
+      const notes = $("notes-body");
+      concept.description = desc.textContent.trim();
+      concept.notes = notes.textContent.trim();
+      if (concept.description) desc.removeAttribute("data-placeholder");
+      else desc.setAttribute("data-placeholder", "Click to add a description…");
+      if (concept.notes) notes.removeAttribute("data-placeholder");
+      else notes.setAttribute("data-placeholder", "Click to add notes…");
+      const text = serializeConcept(concept);
+      $("save-btn").disabled = true;
+      $("save-status").textContent = "Saving…";
+      try {
+        await vault.put(concept.path, text, `edit: concept ${concept.slug}`);
+        originalText = text;
+        dirty = false;
+        $("save-status").textContent = "Saved";
+        $("save-bar").classList.add("hidden");
+      } catch (e) {
+        $("save-status").textContent = `Error: ${e.message.slice(0, 80)}`;
+      } finally {
+        $("save-btn").disabled = false;
+      }
+    }
+
+    async function discard() {
+      concept = parseConcept(concept.path, originalText);
+      const desc = $("description-body");
+      const notes = $("notes-body");
+      desc.textContent = concept.description || "";
+      notes.textContent = concept.notes || "";
+      if (concept.description) desc.removeAttribute("data-placeholder");
+      else desc.setAttribute("data-placeholder", "Click to add a description…");
+      if (concept.notes) notes.removeAttribute("data-placeholder");
+      else notes.setAttribute("data-placeholder", "Click to add notes…");
+      renderRelated();
+      dirty = false;
+      $("save-bar").classList.add("hidden");
+    }
+
+    async function boot() {
+      if (!slug) {
+        $("concept-error").hidden = false;
+        $("concept-error").textContent = "No concept slug provided. Open from the Atlas.";
+        return;
+      }
+      const path = `${FOLDER}/${slug}.md`;
+      try {
+        const w = await fetch("/api/whoami");
+        if (!w.ok) { location.href = "/login"; return; }
+        const j = await w.json();
+        if (!j.login) { location.href = "/login"; return; }
+        if (j.token_ok === false) { location.href = `/login?next=${encodeURIComponent(location.pathname + location.search)}`; return; }
+
+        const r = await vault.get(path);
+        if (!r) {
+          $("concept-error").hidden = false;
+          $("concept-error").textContent = `Concept not found: ${path}. It may not be promoted yet.`;
+          return;
+        }
+        originalText = r.text;
+        concept = parseConcept(path, r.text);
+
+        document.title = `PhD-OS — ${concept.title}`;
+        $("concept-header").querySelector("a").insertAdjacentHTML("afterend",
+          ` <span style="color:var(--muted-foreground)">/</span> <span>${esc(concept.title)}</span>`);
+
+        renderRelated();
+
+        /* Thread + linked papers: read every paper through the vault. */
+        const files = await vault.list("research/papers");
+        const papers = [];
+        for (const f of files) {
+          if (!f.name.endsWith(".md") || f.name.startsWith("digest-")) continue;
+          const pr = await vault.get(f.path);
+          if (!pr) continue;
+          const p = parseNote(f.path, pr.text);
+          papers.push({ title: p.title, path: f.path, highlights: p.highlights, concepts: p.concepts });
+        }
+        renderThread(papers);
+        renderPapers(papers);
+
+        wireEditing();
+        $("app").hidden = false;
+        $("save-btn").addEventListener("click", save);
+        $("discard-btn").addEventListener("click", discard);
+
+        document.addEventListener("keydown", (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+            e.preventDefault();
+            if (dirty) save();
+          }
+        });
+      } catch (e) {
+        $("concept-error").hidden = false;
+        $("concept-error").textContent = `Could not load: ${e.message.slice(0, 100)}`;
+      }
+    }
+    boot();
+  </script>
+</body>
+</html>

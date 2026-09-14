@@ -1,6 +1,6 @@
 # Week 37 · Mon 7 Sep – Sun 13 Sep 2026
 
-*Prepared 2026-09-13 16:31 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
+*Prepared 2026-09-14 20:02 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
 
 ## The week in numbers
 
@@ -45,6 +45,14 @@
 
 - `daily/meetings/rough-2026-09.md` — 0 open fragments (refine with the refine-meeting skill, not here)
 
+## Concept promotion candidates (0, threshold: 3+ papers)
+
+- None crossed the threshold this week.
+
+## Concept link suggestions (0, threshold: 2+ shared papers)
+
+- None this week.
+
 ---
 
-Verdicts to work with pi, one pile at a time: open questions -> ideas -> rolled-over tasks. Then the logbook for your guide, then next week's one thing.
+Verdicts to work with pi, one pile at a time: open questions -> ideas -> rolled-over tasks -> concept promotion -> concept links. Then the logbook for your guide, then next week's one thing.

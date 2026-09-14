@@ -9,6 +9,11 @@
  * Adding a third view means writing renderX() and registering it — no other changes.
  */
 import { get, list } from "/site/lib/vault.js";
+import { conceptHref, conceptSlugIndex } from "/site/lib/concept.js";
+
+/* HTML-escape for safe interpolation. */
+const esc = (s) =>
+  String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* ── frontmatter parser ─────────────────────────────────────────────── */
 
@@ -23,12 +28,54 @@ function parseFM(text) {
     if (v.startsWith("[") && v.endsWith("]"))
       v = v.slice(1, -1).split(",").map((s) => s.trim().replace(/^"|"$/g, ""));
     else if (v === "[]") v = [];
+    else if (/^".*"$/.test(v) || /^'.*'$/.test(v)) v = v.slice(1, -1);
     attrs[kv[1]] = v;
   }
   const body = text.slice(m[0].length);
   const sparked = body.match(/## Sparked\n([\s\S]*?)(?=\n## |$)/);
   attrs._sparked = sparked ? sparked[1].trim() : "";
   return attrs;
+}
+
+/* ── highlights parser (for tag threads) ────────────────────────────── */
+
+/**
+ * Parse the ## Highlights section from a paper note's body text.
+ * Returns [{text, comment, page, tags}] — only tagged highlights appear
+ * in tag threads (untagged are visible on the paper page but excluded
+ * from threads by design, PHDOS-48).
+ */
+function parseHighlights(body) {
+  const m = body.match(/## Highlights\n([\s\S]*?)(?=\n## |$)/);
+  if (!m) return [];
+  const raw = m[1].trim();
+  if (!raw || raw === "_No highlights yet._") return [];
+  const blocks = raw.split(/\n\n+/);
+  const results = [];
+  for (const block of blocks) {
+    const lines = block.split("\n");
+    let text = "", comment = "", page = "", tags = [];
+    for (const line of lines) {
+      if (line.startsWith("> ")) {
+        text = line.slice(2);
+      } else if (line.startsWith("_<small>")) {
+        /* closing emphasis optional — tolerate both producer formats */
+        const meta = line.replace(/_<small>/, "").replace(/<\/small>_?/, "").trim();
+        const parts = meta.split(" · ");
+        for (const part of parts) {
+          const pm = part.trim().match(/^p\.\s*(.+)$/);
+          if (pm) page = pm[1];
+          else tags.push(...part.trim().split(/\s+/).map((t) => t.replace(/^#/, "")).filter(Boolean));
+        }
+      } else if (line.trim() && !line.startsWith(">")) {
+        comment = line.trim();
+      }
+    }
+    if (tags.length && (text || comment)) {
+      results.push({ text, comment, page, tags });
+    }
+  }
+  return results;
 }
 
 /* ── data loading ───────────────────────────────────────────────────── */
@@ -43,6 +90,7 @@ async function loadPapers() {
     const fm = parseFM(r.text);
     if (fm.category === "personal") continue;
     const year = fm.year || (fm.date ? String(new Date(fm.date).getFullYear()) : null);
+    const highlights = parseHighlights(r.text);
     papers.push({
       ...fm,
       _path: f.path,
@@ -50,6 +98,7 @@ async function loadPapers() {
       _type: "paper",
       _year: year ? Number(year) : null,
       _citations: Number(fm.citations) || 0,
+      _highlights: highlights,
     });
   }
   return papers;
@@ -72,6 +121,7 @@ async function loadConcepts() {
 
 function buildGraph(papers, concepts) {
   const conceptSlugs = new Set(concepts.map((c) => c._slug));
+  const canonical = conceptSlugIndex(concepts.map((c) => ({ slug: c._slug })));
   const nodes = [];
   const links = [];
   const nodeMap = {};
@@ -101,6 +151,26 @@ function buildGraph(papers, concepts) {
       const a2 = Array.isArray(papers[j].authors) ? papers[j].authors : [];
       if (a1.some((x) => a2.includes(x)) && a1.length) {
         links.push({ source: `p:${papers[i]._slug}`, target: `p:${papers[j]._slug}`, type: "author" });
+      }
+    }
+  }
+
+  // promoted-tag links (PHDOS-49): a paper whose tagged highlights carry a
+  // concept's slug is linked to that concept by the shared slug — zero
+  // relinking. One edge per paper-concept pair even across many highlights.
+  const conceptEdges = new Set(links.map((l) => `${l.source}->${l.target}`));
+  for (const p of papers) {
+    const id = `p:${p._slug}`;
+    for (const h of p._highlights || []) {
+      for (const t of h.tags) {
+        const slug = canonical.get(String(t).toLowerCase());
+        if (!slug) continue;
+        const cid = `c:${slug}`;
+        const edge = `${id}->${cid}`;
+        if (nodeMap[cid] && !conceptEdges.has(edge)) {
+          conceptEdges.add(edge);
+          links.push({ source: id, target: cid, type: "concept" });
+        }
       }
     }
   }
@@ -311,6 +381,85 @@ function renderTimeline(container, papers, concepts, links, onSelect) {
   container.appendChild(svg);
 }
 
+/* ── TAGS VIEW RENDERER ────────────────────────────────────────────── */
+
+/**
+ * Render the tag threads view: all tags from synced highlights, grouped
+ * by tag name. Each tag shows every tagged highlight snippet across papers
+ * (quote + page + paper link). Untagged highlights are excluded from
+ * threads by design but always visible on their paper page.
+ */
+function renderTags(container, papers, canonicalSlugs = new Map()) {
+  container.innerHTML = "";
+  /* conceptSlugIndex (concept.js) is the one place owning the dedupe rule. */
+
+  /* Collect all tagged highlights across papers. */
+  const tagMap = new Map(); // tag -> [{text, comment, page, paperTitle, paperPath}]
+  for (const p of papers) {
+    for (const h of (p._highlights || [])) {
+      for (const tag of h.tags) {
+        if (!tagMap.has(tag)) tagMap.set(tag, []);
+        tagMap.get(tag).push({
+          text: h.text,
+          comment: h.comment,
+          page: h.page,
+          paperTitle: p.title || "(untitled)",
+          paperPath: p._path,
+        });
+      }
+    }
+  }
+
+  if (tagMap.size === 0) {
+    container.innerHTML = '<p class="meta" style="padding:1rem">No tagged highlights yet. Add highlights with tags in Zotero and sync.</p>';
+    return;
+  }
+
+  /* Sort tags by count (most highlights first). */
+  const sorted = [...tagMap.entries()].sort((a, b) => b[1].length - a[1].length);
+  const totalHighlights = sorted.reduce((sum, [, h]) => sum + h.length, 0);
+
+  let html = `<div style="padding:1rem">
+    <p class="meta" style="margin-bottom:.75rem">${totalHighlights} tagged highlight${totalHighlights === 1 ? "" : "s"} across ${sorted.length} tag${sorted.length === 1 ? "" : "s"}</p>`;
+
+  for (const [tag, highlights] of sorted) {
+    const slug = canonicalSlugs.get(tag.toLowerCase());
+    if (slug) {
+      /* Promoted tag: the concept page IS the thread — link instead of the
+         inline view; un-promoted tags keep the lighter thread view. The href
+         uses the canonical slug, not the tag's case. */
+      html += `<section style="margin-bottom:1.25rem">
+      <h3 style="font-size:.95rem;font-weight:600;margin-bottom:.375rem">
+        <a href="${conceptHref(slug)}" style="color:inherit">#${esc(tag)}</a>
+        <span class="meta">· concept · ${highlights.length} highlight${highlights.length === 1 ? "" : "s"}</span>
+      </h3>
+      <p class="meta" style="margin:0">Promoted to a concept — the thread lives on <a href="${conceptHref(slug)}" style="color:var(--foreground);text-decoration:underline;text-underline-offset:2px">its concept page</a>.</p>
+    </section>`;
+      continue;
+    }
+    html += `<section style="margin-bottom:1.25rem">
+      <h3 style="font-size:.95rem;font-weight:600;margin-bottom:.375rem">
+        #${esc(tag)} <span class="meta">· ${highlights.length}</span>
+      </h3>`;
+    for (const h of highlights) {
+      const meta = [];
+      if (h.page) meta.push(`p. ${h.page}`);
+      html += `<div style="border-left:2px solid var(--border);padding-left:.75rem;margin:.375rem 0">
+        ${h.text ? `<p style="font-size:14px">${esc(h.text)}</p>` : ""}
+        ${h.comment ? `<p style="font-size:13px;color:var(--muted-foreground);margin-top:.125rem">${esc(h.comment)}</p>` : ""}
+        <p style="font-size:12px;color:var(--muted-foreground);margin-top:.125rem">
+          ${meta.length ? `<em>${esc(meta.join(" · "))}</em> · ` : ""}
+          <a href="/paper.html?path=${encodeURIComponent(h.paperPath)}" style="color:var(--foreground);text-decoration:underline;text-underline-offset:2px">${esc(h.paperTitle)}</a>
+        </p>
+      </div>`;
+    }
+    html += "</section>";
+  }
+
+  html += "</div>";
+  container.innerHTML = html;
+}
+
 /* ── UI WIRING ──────────────────────────────────────────────────────── */
 
 function wireFilters(container, papers, onUpdate) {
@@ -347,7 +496,17 @@ function wireInspect(panel, node) {
   const con = Array.isArray(d.concepts) ? d.concepts : [];
   document.getElementById("inspect-concepts").textContent = con.length ? `Concepts: ${con.join(", ")}` : "";
   document.getElementById("inspect-sparked").textContent = d._sparked ? `Sparked: ${d._sparked.slice(0, 120)}` : "";
-  document.getElementById("inspect-link").href = `/admin/#/collections/${node.type === "concept" ? "concepts" : "papers"}/entries/${d._slug}`;
+  const link = document.getElementById("inspect-link");
+  if (node.type === "concept") {
+    // the concept page IS the tag thread — the CMS stays the backup editor
+    link.href = conceptHref(d._slug);
+    link.textContent = "Open concept page →";
+    link.removeAttribute("target");
+  } else {
+    link.href = `/admin/#/collections/${node.type === "concept" ? "concepts" : "papers"}/entries/${d._slug}`;
+    link.textContent = "Open in CMS →";
+    link.setAttribute("target", "_blank");
+  }
 }
 
 /* ── PUBLIC INTERFACE ────────────────────────────────────────────────── */
@@ -362,6 +521,7 @@ export async function init(canvasEl, sidebarEl) {
     if (!activeFilter) return nodes;
     return nodes.map((n) => ({ ...n, _hidden: n.type === "paper" && n.status !== activeFilter }));
   };
+  const taggedPapers = () => papers.filter((p) => (p._highlights || []).length > 0);
 
   // --- wire toggle ---
   const toggleEl = sidebarEl.querySelector("#view-toggle");
@@ -381,7 +541,9 @@ export async function init(canvasEl, sidebarEl) {
 
   // --- draw ---
   function draw() {
-    if (viewMode === "graph") {
+    if (viewMode === "tags") {
+      renderTags(canvasEl, taggedPapers(), conceptSlugIndex(concepts.map((c) => ({ slug: c._slug }))));
+    } else if (viewMode === "graph") {
       renderGraph(canvasEl, { nodes: filtered(), links }, onSelect);
     } else {
       const vis = activeFilter ? papers.filter((p) => p.status === activeFilter) : papers;

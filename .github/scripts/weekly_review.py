@@ -7,6 +7,20 @@ verdicts (Step 3 of the weekly-review skill) happen with pi in chat.
 Writes daily/reviews/<ISO-week>.md and daily/reviews/latest.md.
 Log files are one per ISO week (daily/logs/2026-W37.md).
 
+The interface is "vault state -> review file": week stats plus two
+suggestion piles grown from the reading residue (PHDOS-49, all counting,
+never a verdict — approval is always human):
+
+  - Concept promotion candidates: a tag that appeared on tagged highlights
+    in >= threshold papers and does not name a concept yet. A tag becomes a
+    concept when it earns a description; approving creates
+    research/concepts/<slug>.md (Q5 workflow) — papers link via the shared
+    slug, zero relinking.
+  - Concept link suggestions: pairs of existing concepts sharing >=
+    threshold papers, minus edges already declared in related-concepts.
+    Two papers sharing a tag is evidence, not a verdict — nothing links
+    automatically.
+
 Run locally:  uv run --no-project .github/scripts/weekly_review.py
               uv run --no-project .github/scripts/weekly_review.py --date 2026-09-13
 """
@@ -19,7 +33,12 @@ LOGS = "daily/logs"
 TASKS = "daily/tasks"  # one file per task, YAML frontmatter
 MEETINGS = "daily/meetings"
 OUT = "daily/reviews"
+PAPERS = "research/papers"        # paper notes, YAML frontmatter + Highlights
+CONCEPTS = "research/concepts"    # one file per concept, slug = file name
 ISO = "%Y-%m-%d"
+
+PROMOTION_THRESHOLD = 3  # papers a tag must appear on to be flagged
+LINK_THRESHOLD = 2       # shared papers two concepts need to be suggested
 
 
 def read(path):
@@ -89,6 +108,130 @@ def tasks():
     return out
 
 
+# --------------------------------------------------------------- vault state
+
+def list_md(folder, skip_prefix="digest-"):
+    """Sorted .md file names in a vault folder (digest-* is generated, not a paper)."""
+    if not os.path.isdir(folder):
+        return []
+    return sorted(f for f in os.listdir(folder)
+                  if f.endswith(".md") and not f.startswith(skip_prefix))
+
+
+def slug_of(name):
+    """paper.md / concept.md -> the shared slug (file name without .md)."""
+    return name[:-3].lower()
+
+
+def frontmatter(text):
+    """Flat frontmatter attrs; empty values swallow a following block list
+    (`concepts:\n  - a` -> {concepts: ["a"]})."""
+    fm = re.match(r"^---\n(.*?)\n---", text, re.S)
+    attrs = {}
+    if not fm:
+        return attrs
+    lines = fm.group(1).splitlines()
+    i = 0
+    while i < len(lines):
+        kv = re.match(r"^([a-z-]+):\s*(.*)$", lines[i])
+        if not kv:
+            i += 1
+            continue
+        if kv.group(2).strip():
+            attrs[kv.group(1)] = kv.group(2).strip()
+            i += 1
+            continue
+        items, j = [], i + 1
+        while j < len(lines) and re.match(r"^\s+-\s*", lines[j]):
+            items.append(re.sub(r"^\s+-\s*", "", lines[j]).strip().strip('"').strip("'"))
+            j += 1
+        attrs[kv.group(1)] = items if items else ""
+        i = j
+    return attrs
+
+
+def parse_list(value):
+    """`[]` / `[a, b]` / already-a-list -> python list of slugs."""
+    if isinstance(value, list):
+        return value
+    s = (value or "").strip()
+    if not s or s == "[]":
+        return []
+    return [x.strip().strip('"').strip("'") for x in s.strip("[]").split(",") if x.strip()]
+
+
+def highlight_tags(text):
+    """Tags on this paper's tagged highlights — the `#tag` tokens in each
+    highlight's `_<small>...</small>` metadata line (zotero_import.py writes
+    them). Untagged highlights carry no tags: excluded by design."""
+    m = re.search(r"(?ms)^## Highlights\s*\n(.*?)(?=^## |\Z)", text)
+    tags = set()
+    if not m:
+        return tags
+    for meta in re.findall(r"_<small>(.*?)</small>", m.group(1)):
+        tags.update(t.lower() for t in re.findall(r"#([a-z0-9_-]+)", meta, re.I))
+    return tags
+
+
+def load_papers():
+    papers = []
+    for name in list_md(PAPERS):
+        text = read(f"{PAPERS}/{name}")
+        attrs = frontmatter(text)
+        title = attrs.get("title", slug_of(name))
+        papers.append({
+            "slug": slug_of(name),
+            "title": title.strip('"').strip("'"),
+            "tags": highlight_tags(text),
+            "concepts": {c.lower() for c in parse_list(attrs.get("concepts", ""))},
+        })
+    return papers
+
+
+def load_concepts():
+    """(slugs, existing related-concepts edges) from research/concepts/."""
+    slugs, edges = set(), set()
+    for name in list_md(CONCEPTS):
+        slug = slug_of(name)
+        slugs.add(slug)
+        attrs = frontmatter(read(f"{CONCEPTS}/{name}"))
+        for other in parse_list(attrs.get("related-concepts", "")):
+            edges.add(tuple(sorted((slug, other.lower()))))
+    return slugs, edges
+
+
+def promotion_candidates(papers, concept_slugs, threshold=PROMOTION_THRESHOLD):
+    """[(tag, [paper slugs])] — tags on tagged highlights in >= threshold
+    distinct papers that do not name a concept yet. Sorted by paper count
+    desc, then tag. Pure counting: whether to promote is a human verdict."""
+    tag_papers = {}
+    for p in papers:
+        for t in p["tags"]:
+            tag_papers.setdefault(t, set()).add(p["slug"])
+    out = [(tag, sorted(slugs)) for tag, slugs in tag_papers.items()
+           if tag not in concept_slugs and len(slugs) >= threshold]
+    out.sort(key=lambda x: (-len(x[1]), x[0]))
+    return out
+
+
+def concept_link_suggestions(papers, concept_slugs, existing_edges, threshold=LINK_THRESHOLD):
+    """[((a, b), [paper slugs])] — concept pairs sharing >= threshold papers
+    (papers' concepts field), minus edges already declared. Sorted by shared
+    count desc, then pair. Pure counting: nothing links automatically."""
+    existing_edges = {tuple(sorted(e)) for e in existing_edges}
+    pair_papers = {}
+    for p in papers:
+        cs = sorted(c for c in p["concepts"] if c in concept_slugs)
+        for i in range(len(cs)):
+            for j in range(i + 1, len(cs)):
+                pair_papers.setdefault((cs[i], cs[j]), set()).add(p["slug"])
+    out = [(pair, sorted(slugs)) for pair, slugs in pair_papers.items()
+           if pair not in existing_edges and len(slugs) >= threshold]
+    out.sort(key=lambda x: (-len(x[1]), x[0]))
+    return out
+
+# ------------------------------------------------------------------ the week
+
 def tagged(days, tag):
     hits = []
     for date, lines in days.items():
@@ -109,7 +252,7 @@ def rough_piles(day):
     return path, len(open_frags)
 
 
-def build(day):
+def build(day, promotion_threshold=PROMOTION_THRESHOLD, link_threshold=LINK_THRESHOLD):
     start, end = week_window(day)
     days = logged_days(day)
     all_tasks = tasks()
@@ -118,6 +261,12 @@ def build(day):
     overdue = [t for t in all_tasks if t["open"] and t["due"] and t["due"] < day.strftime(ISO)]
     questions, ideas = tagged(days, "#question"), tagged(days, "#idea")
     pile_path, pile_open = rough_piles(day)
+
+    # suggestion piles from the vault state (counting only, PHDOS-49)
+    papers = load_papers()
+    concept_slugs, existing_edges = load_concepts()
+    promotions = promotion_candidates(papers, concept_slugs, promotion_threshold)
+    link_suggestions = concept_link_suggestions(papers, concept_slugs, existing_edges, link_threshold)
 
     L = []
     L.append(f"# Week {day.isocalendar()[1]} · {nice(start)} – {nice(end)} {end.year}")
@@ -168,9 +317,33 @@ def build(day):
     L.append("")
     L.append(f"- `{pile_path}` — {pile_open} open fragment{'s' if pile_open != 1 else ''} (refine with the refine-meeting skill, not here)")
     L.append("")
+    L.append(f"## Concept promotion candidates ({len(promotions)}, threshold: {promotion_threshold}+ papers)")
+    L.append("")
+    if promotions:
+        for tag, slugs in promotions:
+            L.append(f"- `#{tag}` — {len(slugs)} paper{'s' if len(slugs) != 1 else ''}: {', '.join(slugs)}")
+        L.append("")
+        L.append("  Approving promotes a tag to a concept: it earns a description and "
+                 "`research/concepts/<slug>.md` is created (Q5 workflow, applied with pi in chat). "
+                 "Papers link via the shared slug — zero relinking. Not every tag graduates.")
+    else:
+        L.append("- None crossed the threshold this week.")
+    L.append("")
+    L.append(f"## Concept link suggestions ({len(link_suggestions)}, threshold: {link_threshold}+ shared papers)")
+    L.append("")
+    if link_suggestions:
+        for (a, b), slugs in link_suggestions:
+            L.append(f"- `{a}` + `{b}` — share {len(slugs)} paper{'s' if len(slugs) != 1 else ''}: {', '.join(slugs)}")
+        L.append("")
+        L.append("  Approving adds `related-concepts` between the two concept files. Two papers sharing "
+                 "a tag does not mean the concepts connect — decide per suggestion, nothing links automatically.")
+    else:
+        L.append("- None this week.")
+    L.append("")
     L.append("---")
     L.append("")
-    L.append("Verdicts to work with pi, one pile at a time: open questions -> ideas -> rolled-over tasks. "
+    L.append("Verdicts to work with pi, one pile at a time: open questions -> ideas -> rolled-over tasks -> "
+             "concept promotion -> concept links. "
              "Then the logbook for your guide, then next week's one thing.")
     L.append("")
     return "\n".join(L), f"{day.isocalendar()[0]}-W{day.isocalendar()[1]:02d}"
@@ -179,10 +352,14 @@ def build(day):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", help="the day the review runs (default: today)")
+    ap.add_argument("--promotion-threshold", type=int, default=PROMOTION_THRESHOLD,
+                    help="papers a tag must appear on to be flagged for promotion (default 3)")
+    ap.add_argument("--link-threshold", type=int, default=LINK_THRESHOLD,
+                    help="shared papers two concepts need to be suggested for linking (default 2)")
     args = ap.parse_args()
     day = dt.datetime.strptime(args.date, ISO).date() if args.date else dt.date.today()
 
-    body, label = build(day)
+    body, label = build(day, args.promotion_threshold, args.link_threshold)
     os.makedirs(OUT, exist_ok=True)
     week_path = f"{OUT}/{label}.md"
     for path in (week_path, f"{OUT}/latest.md"):

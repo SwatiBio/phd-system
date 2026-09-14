@@ -106,11 +106,87 @@ for name, coll in COLLECTIONS.items():
             continue
         for line in fm.group(1).splitlines():
             key = line.split(":", 1)[0].strip()
-            if key and key not in allowed:
+            if key.startswith("-") or not key:
+                continue  # block-list item, not a frontmatter key
+            if key not in allowed:
                 problems.append(
                     f"{path}: frontmatter key '{key}' is not declared in the '{name}' collection "
                     f"(declared: {sorted(allowed)})"
                 )
+
+# 2d. concepts — the promotion discipline (PHDOS-49). A concept is a tag that
+#     earned a description; whatever adapter created the file (CMS form,
+#     promotion in chat), the links it declares must resolve.
+def fm_list(raw):
+    """`[]` / `[a, b]` / already-a-list (block YAML via fm_attrs) -> slugs.
+    Sveltia list widgets may write either style."""
+    if isinstance(raw, list):
+        return raw
+    s = (raw or "").strip()
+    if not s or s == "[]":
+        return []
+    return [x.strip().strip('"').strip("'") for x in s.strip("[]").split(",") if x.strip()]
+
+
+def fm_attrs(fm_text):
+    """Flat frontmatter attrs; an empty value swallows a following block list
+    (same rule as weekly_review.py — one parser shape for both adapters)."""
+    attrs = {}
+    lines = fm_text.splitlines()
+    i = 0
+    while i < len(lines):
+        kv = re.match(r"^([a-z-]+):\s*(.*)$", lines[i])
+        if not kv:
+            i += 1
+            continue
+        if kv.group(2).strip():
+            attrs[kv.group(1)] = kv.group(2).strip()
+            i += 1
+            continue
+        items, j = [], i + 1
+        while j < len(lines) and re.match(r"^\s+-\s*", lines[j]):
+            items.append(re.sub(r"^\s+-\s*", "", lines[j]).strip().strip('"').strip("'"))
+            j += 1
+        attrs[kv.group(1)] = items if items else ""
+        i = j
+    return attrs
+
+
+concept_files = {}
+if concepts_coll and concepts_coll.get("folder"):
+    for path in sorted((ROOT / concepts_coll["folder"]).glob("*.md")):
+        fm = re.match(r"^---\n(.*?)\n---", path.read_text(encoding="utf-8"), re.S)
+        attrs = fm_attrs(fm.group(1)) if fm else {}
+        concept_files[path.stem.lower()] = attrs
+
+for slug, attrs in concept_files.items():
+    path = ROOT / concepts_coll["folder"] / f"{slug}.md"
+    # a concept exists because a tag earned a description — an empty one is drift
+    if not attrs.get("description", "").strip().strip('"').strip("'"):
+        problems.append(
+            f"{path}: concept has no description — a concept is a tag that earned one; "
+            f"promote only with a description draft in place"
+        )
+    for rel in fm_list(attrs.get("related-concepts", "")):
+        if rel.lower() not in concept_files:
+            problems.append(
+                f"{path}: related-concepts slug '{rel}' has no concept file "
+                f"(research/concepts/{rel}.md)"
+            )
+
+# 2e. papers' concepts field must resolve to concept files (PHDOS-49)
+for path in sorted((ROOT / "research" / "papers").glob("*.md")):
+    if path.name.startswith("digest-"):
+        continue
+    fm = re.match(r"^---\n(.*?)\n---", path.read_text(encoding="utf-8"), re.S)
+    if not fm:
+        continue
+    attrs = fm_attrs(fm.group(1))
+    for c in fm_list(attrs.get("concepts", "")):
+        if c.lower() not in concept_files:
+            problems.append(
+                f"{path}: concepts slug '{c}' has no concept file (research/concepts/{c}.md)"
+            )
 
 if problems:
     FAILED = True
