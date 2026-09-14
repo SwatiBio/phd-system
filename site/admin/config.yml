@@ -82,6 +82,7 @@ collections:
       - { label: Zotero key, name: zotero-key, widget: string, required: false }
       - { label: Authors, name: authors, widget: list, required: false, hint: "Full names — seeded from Zotero/DOI metadata" }
       - { label: Concepts, name: concepts, widget: list, required: false, hint: "Concept slugs — links to research/concepts/" }
+      - { label: Citations, name: citations, widget: number, hint: "OpenAlex cited_by_count — auto-populated on import", required: false }
       - { label: Related papers, name: related, widget: list, required: false }
       # Body sections are the module's interface for a Paper note — the importer
       # (zotero_import.py) must produce these same sections. validate-cms.py checks it.

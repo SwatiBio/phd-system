@@ -17,6 +17,7 @@ import urllib.request
 
 PAPERS_DIR = "research/papers"
 API = "https://api.zotero.org"
+OPENALEX_API = "https://api.openalex.org"
 
 # Field spec for a Paper note. These body sections must match the "papers" collection
 # default in site/admin/config.yml — validate-cms.py fails if they drift apart.
@@ -47,6 +48,24 @@ def api(path):
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8"))
+
+def fetch_citation_count(doi):
+    """Get cited_by_count from OpenAlex by DOI. Returns 0 on any failure."""
+    if not doi:
+        return 0
+    try:
+        clean = doi.strip()
+        if not clean.startswith("http"):
+            clean = f"https://doi.org/{clean}"
+        req = urllib.request.Request(
+            f"{OPENALEX_API}/works/doi:{clean}",
+            headers={"User-Agent": "phd-os-import (mailto:swati@example.com)"},
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read().decode("utf-8"))
+            return data.get("cited_by_count", 0)
+    except Exception:
+        return 0
 
 def citekey(item):
     """Stable readable filename key: lastAuthorYearFirstword (BBT-ish, best effort)."""
@@ -86,6 +105,9 @@ def render(item, citekey_):
         if name:
             authors_list.append(f'"{name}"')
     authors_yaml = f"authors: [{', '.join(authors_list)}]" if authors_list else "authors: []"
+    # citations: fetch from OpenAlex if DOI available
+    doi = d.get("DOI") or ""
+    citations = fetch_citation_count(doi)
     fm = (
         "---\n"
         f'title: "{title}"\n'
@@ -96,6 +118,7 @@ def render(item, citekey_):
         f"zotero-key: {key}\n"
         f"{authors_yaml}\n"
         "concepts: []\n"
+        f"citations: {citations}\n"
         "---\n"
     )
     uri = f"zotero://select/library/items/{key}"
