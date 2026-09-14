@@ -110,7 +110,7 @@ export default {
     let assetPath = url.pathname;
     if (assetPath === "/") assetPath = "/site/index.html";
     else if (assetPath.startsWith("/admin")) assetPath = "/site" + assetPath;
-    else if (/^\/(digest|logbook|timeline|review|tasks|atlas|library)\.html$/.test(assetPath)) assetPath = "/site" + assetPath;
+    else if (/^\/(digest|logbook|timeline|review|tasks|atlas|library|paper|concept)\.html$/.test(assetPath)) assetPath = "/site" + assetPath;
     if (assetPath.endsWith("/")) assetPath += "index.html";
     const assetRequest = new Request(new URL(assetPath, url.origin), request);
 
@@ -235,6 +235,25 @@ export default {
       if (!s) return new Response(JSON.stringify({ login: null }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
       const probe = await fetch(`${GH}/user`, { method: "HEAD", headers: { Authorization: `Bearer ${s.gh}`, "User-Agent": "phd-os-auth" } });
       return new Response(JSON.stringify({ login: s.login, token_ok: probe.status !== 401 }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
+    }
+
+    // /api/zotero/sync — trigger the zotero-import workflow on demand (PHDOS-48).
+    // Requires ZOTERO_SYNC_PAT (a fine-grained PAT with actions:write on the repo)
+    // and ZOTERO_SYNC_WORKFLOW_ID (the numeric workflow ID for zotero-import.yml).
+    if (url.pathname === "/api/zotero/sync") {
+      if (request.method !== "POST") return new Response(JSON.stringify({ error: "method" }), { status: 405, headers: { "content-type": "application/json" } });
+      if (!env.ZOTERO_SYNC_PAT || !env.ZOTERO_SYNC_WORKFLOW_ID)
+        return new Response(JSON.stringify({ error: "sync not configured" }), { status: 503, headers: { "content-type": "application/json" } });
+      const gh = await fetch(`${GH}/repos/${cfg.repo}/actions/workflows/${env.ZOTERO_SYNC_WORKFLOW_ID}/dispatches`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${env.ZOTERO_SYNC_PAT}`, Accept: "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "phd-os" },
+        body: JSON.stringify({ ref: cfg.branch }),
+      });
+      if (!gh.ok) {
+        const detail = await gh.json().then((j) => j && j.message).catch(() => "");
+        return new Response(JSON.stringify({ error: `github ${gh.status}${detail ? `: ${detail}` : ""}` }), { status: 502, headers: { "content-type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
     }
 
     // /api/zotero/save — DOI -> metadata from doi.org -> Zotero item in Phd-OS collection

@@ -86,11 +86,17 @@ collections:
       - { label: Related papers, name: related, widget: list, required: false }
       # Body sections are the module's interface for a Paper note — the importer
       # (zotero_import.py) must produce these same sections. validate-cms.py checks it.
+      # '## Highlights' is sync-owned: regenerated from Zotero on every sync run;
+      # human sections (What it did .. Sparked) are never clobbered.
       - label: Note
         name: body
         widget: markdown
         required: false
         default: |
+          ## Highlights
+
+          _No highlights yet._
+
           ## What it did
 
           ## How

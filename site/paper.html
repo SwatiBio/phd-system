@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — paper</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" blocking="render"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
+  <style>
+    .paper-meta { font-size: 13px; color: var(--muted-foreground); }
+    .paper-meta a { color: var(--foreground); text-decoration: underline; text-underline-offset: 2px; }
+    .section-card {
+      border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin-bottom: .75rem; background: var(--card);
+    }
+    .section-card h3 {
+      font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+      color: var(--muted-foreground); margin-bottom: .5rem;
+    }
+    .section-card .section-body {
+      min-height: 1.5em; cursor: text; border-radius: 4px; padding: .25rem .5rem;
+      margin: -.25rem -.5rem; transition: background 120ms ease;
+    }
+    .section-card .section-body:hover { background: var(--muted); }
+    .section-card .section-body:focus {
+      outline: 2px solid var(--ring); outline-offset: 2px; background: var(--background);
+    }
+    .section-card .section-body[data-placeholder]::before {
+      content: attr(data-placeholder); color: var(--muted-foreground); font-style: italic;
+    }
+    .hl-blockquote {
+      border-left: 2px solid var(--muted-foreground, #999); padding-left: .75rem;
+      margin: .5rem 0; font-size: 14px;
+    }
+    .hl-comment { font-size: 13px; color: var(--muted-foreground); margin-top: .25rem; }
+    .hl-meta { font-size: 12px; color: var(--muted-foreground); margin-top: .125rem; }
+    .save-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; padding: .75rem 1.25rem;
+      background: var(--background); border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: .5rem; z-index: 50;
+    }
+    .save-bar.hidden { display: none; }
+    .badge-reading { background: #fef3c7; color: #92400e; }
+    .badge-to-read { background: #f1f5f9; color: #475569; }
+    .badge-read { background: #dcfce7; color: #166534; }
+    .badge-parked { background: var(--muted); color: var(--muted-foreground); }
+    .dark .badge-reading { background: #78350f; color: #fef3c7; }
+    .dark .badge-to-read { background: #334155; color: #cbd5e1; }
+    .dark .badge-read { background: #14532d; color: #bbf7d0; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="content" style="max-width: 48rem;">
+      <header class="page-head" id="paper-header">
+        <a href="/library.html" class="text-sm" style="color:var(--muted-foreground)"><i class="ph ph-arrow-left"></i> Library</a>
+      </header>
+
+      <div id="app" hidden>
+        <div id="paper-meta" class="paper-meta" style="margin-bottom:1rem"></div>
+        <div id="highlights-section" class="section-card">
+          <h3><i class="ph ph-highlighter"></i> Highlights <span class="text-xs font-normal" style="text-transform:none;letter-spacing:0">(synced from Zotero)</span></h3>
+          <div id="highlights-body"></div>
+        </div>
+        <div id="human-sections"></div>
+      </div>
+      <div id="paper-error" class="text-sm" style="color:var(--destructive)" hidden></div>
+    </div>
+    <div class="save-bar hidden" id="save-bar">
+      <span class="text-sm" style="color:var(--muted-foreground)" id="save-status"></span>
+      <button type="button" class="btn" data-variant="outline" data-size="sm" id="discard-btn">Discard</button>
+      <button type="button" class="btn" data-size="sm" id="save-btn">Save</button>
+    </div>
+  </main>
+
+  <script src="/site/lib/shell.js" defer blocking="render"></script>
+  <script type="module" defer>
+    import * as vault from "/site/lib/vault.js";
+    import { parseNote, serializeNote, renderHighlights, renderSection, HUMAN_SECTIONS } from "/site/lib/paper.js";
+
+    const $ = (id) => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const paperPath = params.get("path");
+
+    let paper = null;
+    let originalText = "";
+    let dirty = false;
+
+    const BADGE = {
+      "to-read": "badge-to-read",
+      reading: "badge-reading",
+      read: "badge-read",
+      parked: "badge-parked",
+    };
+
+    function esc(s) {
+      return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function renderMeta() {
+      const p = paper;
+      const authors = p.authors.length ? p.authors.join(", ") : "";
+      const tags = p.tags.map((t) => `<span class="badge ${BADGE[p.status] || ""}">${esc(t)}</span>`).join(" ");
+      $("paper-meta").innerHTML = `
+        <div class="flex items-baseline gap-2 flex-wrap" style="margin-bottom:.375rem">
+          <span class="badge ${BADGE[p.status] || ""}">${esc(p.status)}</span>
+          ${p.citations ? `<span class="text-xs">${p.citations} citation${p.citations === 1 ? "" : "s"}</span>` : ""}
+        </div>
+        ${authors ? `<p style="margin-bottom:.25rem">${esc(authors)}</p>` : ""}
+        ${tags ? `<div class="flex gap-1 flex-wrap" style="margin-bottom:.25rem">${tags}</div>` : ""}
+        ${p.zoteroUri ? `<p><a href="${esc(p.zoteroUri)}" target="_blank" rel="noopener"><i class="ph ph-link"></i> Open in Zotero</a></p>` : ""}
+      `;
+    }
+
+    function renderHighlights_() {
+      const p = paper;
+      if (!p.highlights || p.highlights.length === 0) {
+        $("highlights-body").innerHTML = '<p class="text-sm italic" style="color:var(--muted-foreground)">No highlights yet. Add them in Zotero and sync.</p>';
+        return;
+      }
+      $("highlights-body").innerHTML = p.highlights
+        .map((h) => {
+          const meta = [];
+          if (h.page) meta.push(`p. ${h.page}`);
+          if (h.tags.length) meta.push(h.tags.map((t) => `#${t}`).join(" "));
+          return `<div class="hl-blockquote">
+            <p>${esc(h.text)}</p>
+            ${h.comment ? `<p class="hl-comment">${esc(h.comment)}</p>` : ""}
+            ${meta.length ? `<p class="hl-meta"><em>${esc(meta.join(" · "))}</em></p>` : ""}
+          </div>`;
+        })
+        .join("");
+    }
+
+    function renderHumanSections() {
+      const container = $("human-sections");
+      container.innerHTML = HUMAN_SECTIONS.map((name) => `
+        <div class="section-card" data-section="${name}">
+          <h3>${esc(name)}</h3>
+          <div class="section-body" contenteditable="true" data-section="${name}"
+               data-placeholder="Click to add ${esc(name.toLowerCase())}…"
+               role="textbox" aria-label="${esc(name)}"></div>
+        </div>
+      `).join("");
+
+      /* Fill content from parsed note. */
+      for (const name of HUMAN_SECTIONS) {
+        const el = container.querySelector(`[data-section="${name}"]`);
+        if (el && paper.sections[name]) {
+          el.textContent = paper.sections[name];
+          el.removeAttribute("data-placeholder");
+        }
+      }
+
+      /* Track edits; keep the placeholder attribute in sync with content —
+         the CSS shows it whenever the attribute exists, so an empty section
+         must carry it and a filled one must not. */
+      container.addEventListener("input", (e) => {
+        const el = e.target.closest(".section-body");
+        if (el) {
+          if (el.textContent.trim()) el.removeAttribute("data-placeholder");
+          else el.setAttribute("data-placeholder", `Click to add ${el.dataset.section.toLowerCase()}…`);
+        }
+        if (!dirty) {
+          dirty = true;
+          $("save-bar").classList.remove("hidden");
+        }
+        $("save-status").textContent = "Unsaved changes";
+      });
+    }
+
+    function collectSections() {
+      for (const name of HUMAN_SECTIONS) {
+        const el = document.querySelector(`.section-body[data-section="${name}"]`);
+        if (el) paper.sections[name] = el.textContent.trim();
+      }
+    }
+
+    async function save() {
+      collectSections();
+      const text = serializeNote(paper);
+      $("save-btn").disabled = true;
+      $("save-status").textContent = "Saving…";
+      try {
+        await vault.put(paperPath, text, `edit: ${paper.title}`);
+        originalText = text;
+        dirty = false;
+        $("save-status").textContent = "Saved";
+        $("save-bar").classList.add("hidden");
+      } catch (e) {
+        $("save-status").textContent = `Error: ${e.message.slice(0, 80)}`;
+      } finally {
+        $("save-btn").disabled = false;
+      }
+    }
+
+    function discard() {
+      /* Re-parse from original text to reset all sections. */
+      paper = parseNote(paperPath, originalText);
+      renderHumanSections();
+      for (const name of HUMAN_SECTIONS) {
+        const el = document.querySelector(`.section-body[data-section="${name}"]`);
+        if (el) {
+          if (el.textContent.trim()) el.removeAttribute("data-placeholder");
+          else el.setAttribute("data-placeholder", `Click to add ${name.toLowerCase()}…`);
+        }
+      }
+      dirty = false;
+      $("save-bar").classList.add("hidden");
+    }
+
+    async function boot() {
+      if (!paperPath) {
+        $("paper-error").hidden = false;
+        $("paper-error").textContent = "No paper path provided. Open from the Library.";
+        return;
+      }
+      try {
+        const w = await fetch("/api/whoami");
+        if (!w.ok) { location.href = "/login"; return; }
+        const j = await w.json();
+        if (!j.login) { location.href = "/login"; return; }
+        if (j.token_ok === false) { location.href = `/login?next=${encodeURIComponent(location.pathname + location.search)}`; return; }
+
+        const r = await vault.get(paperPath);
+        if (!r) {
+          $("paper-error").hidden = false;
+          $("paper-error").textContent = "Paper not found.";
+          return;
+        }
+        originalText = r.text;
+        paper = parseNote(paperPath, r.text);
+
+        /* Update page title. */
+        document.title = `PhD-OS — ${paper.title}`;
+        $("paper-header").querySelector("a").insertAdjacentHTML("afterend", ` <span style="color:var(--muted-foreground)">/</span> <span>${esc(paper.title)}</span>`);
+
+        renderMeta();
+        renderHighlights_();
+        renderHumanSections();
+        $("app").hidden = false;
+
+        $("save-btn").addEventListener("click", save);
+        $("discard-btn").addEventListener("click", discard);
+
+        /* Keyboard shortcut: Ctrl+S / Cmd+S to save. */
+        document.addEventListener("keydown", (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+            e.preventDefault();
+            if (dirty) save();
+          }
+        });
+      } catch (e) {
+        $("paper-error").hidden = false;
+        $("paper-error").textContent = `Could not load: ${e.message.slice(0, 100)}`;
+      }
+    }
+    boot();
+  </script>
+</body>
+</html>
