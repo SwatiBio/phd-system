@@ -26,6 +26,7 @@ const NAV = [
     items: [
       { href: "/digest.html", icon: "newspaper", title: "Paper digest", page: "digest.html" },
       { href: "/library.html", icon: "books", title: "Library", page: "library.html" },
+      { href: "/paper.html", icon: "file-text", title: "Paper reader", page: "paper.html" },
       { href: "/concept.html", icon: "lightbulb", title: "Concepts", page: "concept.html" },
       { href: "/atlas.html", icon: "planet", title: "Atlas", page: "atlas.html" },
       { href: "/admin/", icon: "gear", title: "CMS", page: "admin" },
