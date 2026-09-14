@@ -37,7 +37,7 @@
     }
     .filter-chip:hover { background: var(--muted); color: var(--foreground); }
     .filter-chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
-    .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+    .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; position: sticky; top: 0; z-index: 10; background: var(--card); }
     .view-toggle button {
       font: inherit; font-size: 12px; font-weight: 500; padding: .25rem .75rem;
       border: none; background: transparent; color: var(--muted-foreground); cursor: pointer;
@@ -74,7 +74,12 @@
           </div>
           <div class="atlas-filters" id="filters"></div>
           <div id="inspect" class="inspect-panel" hidden>
-            <h3 id="inspect-title"></h3>
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <h3 id="inspect-title" style="flex:1;min-width:0"></h3>
+              <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" id="inspect-close" aria-label="Close" style="flex-shrink:0;margin:-.25rem -.5rem 0 0">
+                <i class="ph ph-x"></i>
+              </button>
+            </div>
             <p id="inspect-meta"></p>
             <p id="inspect-concepts"></p>
             <p id="inspect-sparked"></p>

@@ -558,5 +558,10 @@ export async function init(canvasEl, sidebarEl) {
   }
 
   function onSelect(node) { wireInspect(document.getElementById("inspect"), node); }
+
+  // --- wire inspect close button ---
+  const closeBtn = document.getElementById("inspect-close");
+  if (closeBtn) closeBtn.addEventListener("click", () => onSelect(null));
+
   draw();
 }
