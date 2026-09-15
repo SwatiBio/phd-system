@@ -1,6 +1,6 @@
 ---
-reg: 2026-09-15
-reg-note: "PROVISIONAL — replace with the real date when the registration letter arrives (Month-1 checkpoint)."
+reg: 2026-10-01
+reg-note: "PROVISIONAL — held at 1 Oct 2026 while the college confirms the joining date; known not to be 18 Sep. Replace with the real date when the registration letter arrives (Month-1 checkpoint)."
 ---
 
 # Milestones — MAHE PhD (Dr. TMA Pai · 3.5 yrs)
