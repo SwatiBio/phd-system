@@ -232,6 +232,99 @@ def concept_link_suggestions(papers, concept_slugs, existing_edges, threshold=LI
 
 # ------------------------------------------------------------------ the week
 
+# ---------------------------------------------------------- ritual conformance
+
+CONFORMANCE_WEEKS = 12   # review-history window the conformance section reports over
+
+
+def review_runs(day, weeks=CONFORMANCE_WEEKS):
+    """Ran-on-schedule facts for the last `weeks` reviews (incl. this one).
+    The schedule is Sunday 12:30 UTC (.github/workflows/weekly-review.yml); a
+    manual run is recorded as off-schedule, not punished — counting only."""
+    rows = []
+    for back in range(weeks):
+        wk = day - dt.timedelta(days=7 * back)
+        label = f"{wk.isocalendar()[0]}-W{wk.isocalendar()[1]:02d}"
+        text = read(f"{OUT}/{label}.md")
+        if not text:
+            rows.append((label, None))
+            continue
+        m = re.search(r"Prepared (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}) UTC", text)
+        if not m:
+            rows.append((label, None))
+            continue
+        ran = dt.datetime.strptime(m.group(1) + " " + m.group(2), "%Y-%m-%d %H:%M")
+        on = ran.weekday() == 6 and 12 <= ran.hour < 14
+        rows.append((label, (ran, on)))
+    return rows
+
+
+def log_gaps():
+    """{gap length in days: count} between consecutive logged days across all
+    daily/logs/*.md files, plus the span of logged days (for context)."""
+    dates = set()
+    if os.path.isdir(LOGS):
+        for name in os.listdir(LOGS):
+            if not name.endswith(".md"):
+                continue
+            dates.update(re.findall(r"^## (\d{4}-\d{2}-\d{2})\s*$",
+                                    read(f"{LOGS}/{name}"), re.M))
+    if not dates:
+        return [], sorted(dates)
+    ordered = sorted(dt.datetime.strptime(d, ISO).date() for d in dates)
+    gaps = [(b - a).days for a, b in zip(ordered, ordered[1:])]
+    return gaps, ordered
+
+
+def conformance(day):
+    rows = review_runs(day)
+    gaps, dates = log_gaps()
+
+    L = []
+    L.append(f"## Ritual conformance (last {len(rows)} weeks)")
+    L.append("")
+    ran = [r for r in rows if r[1]]
+    on_sched = [r for r in ran if r[1][1]]
+    L.append(f"- **Review ran {len(ran)}/{len(rows)} weeks** · on schedule {len(on_sched)}/{len(ran)} "
+             f"(schedule: Sunday 12:30 UTC / 18:00 IST)")
+    if ran:
+        L.append("")
+        L.append("| Week | Ran | When (UTC) | On schedule |")
+        L.append("|---|---|---|---|")
+        for label, info in rows:
+            if info:
+                when, on = info
+                L.append(f"| {label} | yes | {when.strftime('%Y-%m-%d %H:%M')} | {'yes' if on else 'no (manual?)'} |")
+            else:
+                L.append(f"| {label} | no | — | — |")
+    else:
+        L.append("- No review files yet.")
+    if not dates:
+        L.append("")
+        L.append("- No logged days yet.")
+    elif len(dates) >= 2:
+        hist = {1: 0, "2-3": 0, "4-7": 0, "8+": 0}
+        for g in gaps:
+            k = 1 if g == 1 else "2-3" if g <= 3 else "4-7" if g <= 7 else "8+"
+            hist[k] += 1
+        span = f"{dates[0].strftime(ISO)} – {dates[-1].strftime(ISO)}"
+        longest = max(gaps)
+        hi = max(i for i, g in enumerate(gaps) if g == longest)
+        L.append("")
+        L.append(f"- **Logging gaps** ({span}, {len(dates)} days logged, {len(gaps)} gaps): "
+                 f"{hist[1]}x 1-day · {hist['2-3']}x 2–3-day · {hist['4-7']}x 4–7-day · {hist['8+']}x 8+-day")
+        if longest > 1:
+            lo = dates[hi]
+            L.append(f"- Longest gap: **{longest} days** ({nice(lo)} -> {nice(dates[hi + 1])})")
+    else:
+        L.append("")
+        L.append(f"- Only one logged day so far ({nice(dates[0])}) — no gaps to count.")
+    L.append("")
+    L.append("*Counting only — whether the gaps matter is a verdict for the review itself.*")
+    L.append("")
+    return L
+
+
 def tagged(days, tag):
     hits = []
     for date, lines in days.items():
@@ -340,6 +433,7 @@ def build(day, promotion_threshold=PROMOTION_THRESHOLD, link_threshold=LINK_THRE
     else:
         L.append("- None this week.")
     L.append("")
+    L.extend(conformance(day))
     L.append("---")
     L.append("")
     L.append("Verdicts to work with pi, one pile at a time: open questions -> ideas -> rolled-over tasks -> "
