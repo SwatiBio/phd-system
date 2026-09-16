@@ -185,6 +185,36 @@ def period_start(dac, months):
     return datetime.now() - timedelta(days=months * 30)
 
 
+def is_pre_phd(milestones):
+    """Pre-PhD mode: the registration date is provisional or in the future.
+    Until the real joining date lands in milestones.md, the monthly draft is
+    a plain work report, not an Annexure 28 (no DAC exists yet)."""
+    if "PROVISIONAL" in milestones.get("reg-note", "").upper():
+        return True
+    try:
+        return datetime.strptime(milestones.get("reg", ""), "%Y-%m-%d") > datetime.now()
+    except ValueError:
+        return True
+
+
+def write_outputs(md_content, output_dir, end):
+    """Write markdown + print-ready HTML, return (md_path, html_path, words)."""
+    word_count = len(md_content.split())
+    os.makedirs(output_dir, exist_ok=True)
+    md_path = os.path.join(output_dir, f"dac-report-{end.strftime('%Y-%m')}.md")
+    with open(md_path, "w", encoding="utf-8") as f:
+        f.write(md_content)
+    print(f"  markdown: {md_path} ({word_count} words)")
+
+    html_body = markdown_to_html(md_content)
+    html_content = HTML_TEMPLATE.substitute(body=html_body)
+    html_path = os.path.join(output_dir, f"dac-report-{end.strftime('%Y-%m')}.html")
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"  html:     {html_path}")
+    return md_path, html_path, word_count
+
+
 def gen_title_page(milestones, dac, period=None):
     """Section 1: Title page."""
     scholar = os.environ.get("PHD_SCHOLAR_NAME", "[Scholar Name]")
@@ -527,11 +557,14 @@ def markdown_to_html(md_text):
 def assemble(months=6, output_dir="daily/reviews"):
     """Assemble Annexure 28 from vault data."""
     end = datetime.now()
+    milestones = load_milestones()
+    if is_pre_phd(milestones):
+        return assemble_monthly(output_dir)
+
     # load all data
     logs = load_logs(months)
     work_units = load_work_units()
     pubs = load_publications()
-    milestones = load_milestones()
     dac = load_latest_dac()
     start = period_start(dac, months)          # real period: since last DAC
     meetings = load_meetings_with_guide(start, end)
@@ -555,27 +588,35 @@ def assemble(months=6, output_dir="daily/reviews"):
     ]
 
     md_content = "\n\n".join(sections)
+    md_content += f"\n\n---\n*Word count: ~{len(md_content.split())} (target: 2000-2500)*\n"
+    return write_outputs(md_content, output_dir, end)[:2]
 
-    # word count
-    word_count = len(md_content.split())
-    md_content += f"\n\n---\n*Word count: ~{word_count} (target: 2000-2500)*\n"
 
-    # write markdown
-    os.makedirs(output_dir, exist_ok=True)
-    md_path = os.path.join(output_dir, f"dac-report-{end.strftime('%Y-%m')}.md")
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write(md_content)
-    print(f"  markdown: {md_path} ({word_count} words)")
+def assemble_monthly(output_dir="daily/reviews"):
+    """Pre-PhD: reg not final yet -> plain monthly work report (not Annexure 28).
+    No DAC exists, so no DAC sections and no share-by deadline. The file keeps
+    the dac-report-YYYY-MM.md name so /report.html lists it; the title inside
+    says Pre-PhD. Flips to Annexure 28 automatically once milestones.md's
+    reg-note loses PROVISIONAL and the reg date arrives."""
+    end = datetime.now()
+    start = end - timedelta(days=30)
+    logs = load_logs(1)
+    work_units = load_work_units()
+    pubs = load_publications()
 
-    # write HTML
-    html_body = markdown_to_html(md_content)
-    html_content = HTML_TEMPLATE.substitute(body=html_body)
-    html_path = os.path.join(output_dir, f"dac-report-{end.strftime('%Y-%m')}.html")
-    with open(html_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
-    print(f"  html:     {html_path}")
+    sections = [
+        f"# Pre-PhD Monthly Report — {end.strftime('%Y-%m')}",
+        f"**Period Covered:** {start:%Y-%m-%d} to {end:%Y-%m-%d}\n",
+        "*Pre-registration mode: this is a plain monthly work summary. The real Annexure 28 draft starts once the joining date is confirmed in milestones.md.*",
+        gen_descriptionOfWork(logs, work_units, None),
+        gen_literatureDiscussion(logs, work_units),
+        gen_researchOutput(pubs),
+        "## Carry-forward\n\n[What continues into next month: papers in progress, pending experiments, open questions.]\n",
+    ]
 
-    return md_path, html_path
+    md_content = "\n\n".join(sections)
+    md_content += f"\n\n---\n*Word count: ~{len(md_content.split())}*\n"
+    return write_outputs(md_content, output_dir, end)[:2]
 
 
 def main():
@@ -584,7 +625,8 @@ def main():
     parser.add_argument("--output-dir", default="daily/reviews", help="Output directory")
     args = parser.parse_args()
 
-    print(f"Assembling Annexure 28 (last {args.months} months)...")
+    pre = is_pre_phd(load_milestones())
+    print(f"Assembling {'pre-PhD monthly report' if pre else 'Annexure 28 (last ' + str(args.months) + ' months)'}...")
     md_path, html_path = assemble(args.months, args.output_dir)
     print("Done. Review the draft, then edit as needed.")
 
