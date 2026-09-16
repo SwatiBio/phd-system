@@ -1,0 +1,29 @@
+name: DAC report draft
+
+# Rebuilds the Annexure 28 draft (daily/reviews/dac-report-*.md/.html) on the
+# 1st of every month so a fresh draft always exists when a DAC gets scheduled.
+# The script computes "share with DAC members by" (7 working days before the
+# DAC date) into the draft itself, so the deadline chain is visible without
+# guessing the next meeting date here.
+on:
+  schedule:
+    - cron: "0 2 1 * *" # 1st of every month, 07:30 IST
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the draft
+        run: python3 .github/scripts/dac_report.py
+      - name: Commit
+        run: |
+          git config user.name "phd-os-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add daily/reviews/
+          git diff --cached --quiet || git commit -m "dac report: draft refresh $(date -u +%F)"
+          git push

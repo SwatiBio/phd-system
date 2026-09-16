@@ -19,6 +19,7 @@ const NAV = [
     items: [
       { href: "/timeline.html", icon: "calendar-dots", title: "Timeline", page: "timeline.html" },
       { href: "/review.html", icon: "file-text", title: "Week in review", page: "review.html" },
+      { href: "/report.html", icon: "graduation-cap", title: "DAC report", page: "report.html" },
     ],
   },
   {

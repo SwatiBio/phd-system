@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>PhD-OS — DAC report</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("themeMode");
+        if (stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" blocking="render"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css" />
+  <link rel="stylesheet" href="/site/lib/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/js/all.min.js" defer blocking="render"></script>
+  <style>
+    .week-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .week-nav select { max-width: 14rem; }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li::before { content: "☐ "; }
+    .checklist li.done::before { content: "☑ "; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="content">
+      <header class="page-head">
+        <p class="meta" id="meta">Loading…</p>
+      </header>
+
+      <div class="week-nav">
+        <button type="button" class="btn" data-variant="outline" data-size="icon-sm" id="prev" aria-label="Previous month" hidden>
+          <i class="ph ph-caret-left"></i>
+        </button>
+        <select id="month" class="form-control" hidden></select>
+        <button type="button" class="btn" data-variant="outline" data-size="icon-sm" id="next" aria-label="Next month" hidden>
+          <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+
+      <div class="card">
+        <section class="prose" id="content"></section>
+      </div>
+
+      <a class="btn mt-8" data-variant="outline" id="print-link" hidden>Print view (A4) →</a>
+    </div>
+  </main>
+
+  <script type="module" src="/site/lib/shell.js" blocking="render"></script>
+  <script type="module">
+    import { get, list } from "/site/lib/vault.js";
+    import { render } from "/site/lib/md.js";
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+    /* dac-report-YYYY-MM.md — newest first */
+    function parseMonth(name) {
+      const m = name.match(/^dac-report-(\d{4}-\d{2})\.md$/);
+      return m ? m[1] : null;
+    }
+
+    let months = [];
+    let idx = 0;
+
+    async function init() {
+      const files = await list("daily/reviews");
+      months = files
+        .map((f) => parseMonth(f.name))
+        .filter(Boolean)
+        .sort()
+        .reverse();
+      if (!months.length) {
+        $("meta").textContent = "";
+        $("content").innerHTML =
+          `<p class="em">No DAC report draft yet — the workflow assembles it on the 1st of each month, or run it manually.</p>`;
+        return;
+      }
+      const sel = $("month");
+      sel.hidden = false;
+      sel.innerHTML = months
+        .map((m) => `<option value="${m}">${m}</option>`)
+        .join("");
+      $("prev").hidden = false;
+      $("next").hidden = false;
+      sel.addEventListener("change", () => load(months.indexOf(sel.value)));
+      $("prev").addEventListener("click", () => load(idx + 1));
+      $("next").addEventListener("click", () => load(idx - 1));
+      await load(0);
+    }
+
+    async function load(i) {
+      idx = Math.max(0, Math.min(months.length - 1, i));
+      const month = months[idx];
+      $("month").value = month;
+      $("prev").disabled = idx >= months.length - 1;
+      $("next").disabled = idx <= 0;
+      const r = await get(`daily/reviews/dac-report-${month}.md`);
+      if (!r) {
+        $("content").innerHTML = `<p class="em">Could not load the draft for ${esc(month)}.</p>`;
+        return;
+      }
+      const md = r.text;
+      const title = (md.match(/^# (.+)$/m) || [])[1] || `DAC report ${month}`;
+      const words = (md.match(/\*Word count: ~(\d+)/m) || [])[1];
+      $("meta").innerHTML = `${esc(title)}${words ? ` · ~${esc(words)} words` : ""}`;
+      const box = $("content");
+      box.innerHTML = "";
+      for (const n of render(md)) box.appendChild(n);
+      const print = $("print-link");
+      print.hidden = false;
+      print.href = `/daily/reviews/dac-report-${month}.html`;
+    }
+
+    init().catch((e) => {
+      $("meta").textContent = "";
+      $("content").innerHTML = `<p class="em">Could not load the DAC report: ${esc(e.message)}</p>`;
+    });
+  </script>
+</body>
+</html>

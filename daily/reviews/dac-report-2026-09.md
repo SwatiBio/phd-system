@@ -13,7 +13,8 @@
 [Department], [Institution]
 
 **DAC Date:** 2026-09-15
-**Period Covered:** [Start Date] to [End Date]
+**Period Covered:** 2026-09-15 to 2026-09-16
+**Share with DAC members by:** 2026-09-04 (7 working days before the meeting)
 
 
 ## Introduction
@@ -110,4 +111,4 @@ Based on DAC action items:
 
 
 ---
-*Word count: ~348 (target: 2000-2500)*
+*Word count: ~358 (target: 2000-2500)*

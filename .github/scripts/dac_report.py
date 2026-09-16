@@ -158,7 +158,34 @@ def load_meetings_with_guide(start_date, end_date):
 
 # ── section generators ─────────────────────────────────────────────────
 
-def gen_title_page(milestones, dac):
+def working_days_before(date_str, n):
+    """MAHE deadline chain: the report must be with DAC members n working
+    days (Mon-Fri, no holiday calendar) before the DAC meeting.
+    Returns an ISO date string, or the input untouched if unparseable."""
+    try:
+        d = datetime.strptime(date_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return date_str
+    left = n
+    while left > 0:
+        d -= timedelta(days=1)
+        if d.weekday() < 5:
+            left -= 1
+    return d.strftime("%Y-%m-%d")
+
+
+def period_start(dac, months):
+    """Annexure 28 covers work since the last DAC. Use the latest DAC date
+    when one is known; fall back to the calendar window."""
+    if dac and dac.get("date"):
+        try:
+            return datetime.strptime(dac["date"], "%Y-%m-%d")
+        except ValueError:
+            pass
+    return datetime.now() - timedelta(days=months * 30)
+
+
+def gen_title_page(milestones, dac, period=None):
     """Section 1: Title page."""
     scholar = os.environ.get("PHD_SCHOLAR_NAME", "[Scholar Name]")
     guide = os.environ.get("PHD_GUIDE_NAME", "[Guide Name]")
@@ -167,6 +194,9 @@ def gen_title_page(milestones, dac):
     reg = milestones.get("reg", "[Registration Date]")
     dac_date = dac.get("date", "[DAC Date]") if dac else "[DAC Date]"
     dac_num = dac.get("_slug", "").replace("dac-", "").replace("-", " / ") if dac else "[N]"
+    share_by = working_days_before(dac_date, 7)
+    start = period[0].strftime("%Y-%m-%d") if period else "[Start Date]"
+    end = period[1].strftime("%Y-%m-%d") if period else "[End Date]"
 
     return f"""# Ph.D. Progress Report — {dac_num}
 
@@ -183,7 +213,8 @@ def gen_title_page(milestones, dac):
 {dept}, {inst}
 
 **DAC Date:** {dac_date}
-**Period Covered:** [Start Date] to [End Date]
+**Period Covered:** {start} to {end}
+**Share with DAC members by:** {share_by} (7 working days before the meeting)
 """
 
 
@@ -496,19 +527,18 @@ def markdown_to_html(md_text):
 def assemble(months=6, output_dir="daily/reviews"):
     """Assemble Annexure 28 from vault data."""
     end = datetime.now()
-    start = end - timedelta(days=months * 30)
-
     # load all data
     logs = load_logs(months)
     work_units = load_work_units()
     pubs = load_publications()
     milestones = load_milestones()
     dac = load_latest_dac()
+    start = period_start(dac, months)          # real period: since last DAC
     meetings = load_meetings_with_guide(start, end)
 
     # assemble sections
     sections = [
-        gen_title_page(milestones, dac),
+        gen_title_page(milestones, dac, period=(start, end)),
         gen_introduction(logs, work_units),
         gen_objectives(work_units),
         gen_dac_suggestions(dac),
