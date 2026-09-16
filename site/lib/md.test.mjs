@@ -59,5 +59,5 @@ test("md: inline bold, code, link, escaping", () => {
   assert.match(out[0]._html, /<strong>b<\/strong>/);
   assert.match(out[0]._html, /<code>c<\/code>/);
   assert.match(out[0]._html, /<a href="\/y">x<\/a>/);
-  assert.match(out[0]._html, /&lt;script>/);
+  assert.match(out[0]._html, /&lt;script&gt;/);
 });

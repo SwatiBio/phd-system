@@ -88,12 +88,11 @@
   <script type="module" defer>
     import * as vault from "/site/lib/vault.js";
     import { STATUSES, load, filterStatus, search, statusCounts, groupByTag, sortPapers, preview } from "/site/lib/library.js";
+    import { esc } from "/site/lib/html.js";
 
     const $ = (id) => document.getElementById(id);
     let papers = [];
     let state = { status: "all", personal: false, q: "", sort: "title" };
-
-    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     /* Basecoat colored-badge pattern from the docs (contrast-checked both themes). */
     const BADGE = {
       "to-read": "bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300",

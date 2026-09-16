@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 # sibling import
 sys.path.insert(0, os.path.dirname(__file__))
-from dac_reader import load_latest_dac, load_all_dacs
+from dac_reader import load_latest_dac, load_all_dacs, _parse_frontmatter
 
 PAPERS_DIR = "research/papers"
 WORKUNITS_DIR = "research/work-units"
@@ -35,16 +35,10 @@ MEETINGS_DIR = "daily/meetings"
 # ── helpers ────────────────────────────────────────────────────────────
 
 def parse_fm(text):
-    """Minimal frontmatter parser (stdlib only)."""
-    m = re.match(r"^---\n([\s\S]*?)\n---", text)
-    if not m:
-        return {}
-    attrs = {}
-    for line in m[1].split("\n"):
-        kv = re.match(r"^([a-z_-]+):\s*(.*)$", line)
-        if kv:
-            attrs[kv.group(1).strip()] = kv.group(2).strip().strip('"')
-    return attrs
+    """Shared frontmatter parser — delegates to dac_reader's (handles
+    multi-line list values). One parser at the frontmatter seam, not two."""
+    fm, _ = _parse_frontmatter(text)
+    return fm
 
 
 def read_file(path):

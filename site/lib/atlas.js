@@ -9,11 +9,8 @@
  * Adding a third view means writing renderX() and registering it — no other changes.
  */
 import { get, list } from "/site/lib/vault.js";
+import { esc } from "/site/lib/html.js";
 import { conceptHref, conceptSlugIndex } from "/site/lib/concept.js";
-
-/* HTML-escape for safe interpolation. */
-const esc = (s) =>
-  String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* ── frontmatter parser ─────────────────────────────────────────────── */
 

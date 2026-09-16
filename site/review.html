@@ -47,13 +47,12 @@
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import { parseMilestones, daysUntil } from "/site/lib/milestones.js";
-    import { render } from "/site/lib/md.js";
+    import { render, esc } from "/site/lib/md.js";
 
     const pad2 = (n) => String(n).padStart(2, "0");
     /* local date, not UTC: toISOString is a day behind before ~5:30am IST */
     const todayIso = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(new Date().getDate())}`;
     const $ = (id) => document.getElementById(id);
-    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
     try {
       const r = await fetch("/daily/reviews/latest.md");

@@ -111,8 +111,8 @@
     const todayIso = localIso(new Date());
     const $ = (id) => document.getElementById(id);
     const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
+    import { esc } from "/site/lib/html.js";
     const fmt = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-    const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
     /* --- collapse state (per-group, persisted) --- */
     const COLLAPSE_KEY = "phdos_task_groups";

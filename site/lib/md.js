@@ -2,15 +2,11 @@
    Deep module: pages hand it raw markdown, it returns DOM nodes.
    Supports: h1/h2/h3 (h1 skipped — the page shows the title in its own
    header), tables, ul, checklists (- [ ] / - [x]), rules, emphasis lines,
-   inline bold/code/links. Used by review.html and report.html. */
+   inline bold/code/links. Used by review.html and report.html.
+   Escaping lives in html.js; re-exported here for the renderer's callers. */
 
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-
-const inline = (s) => esc(s)
-  .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-  .replace(/`([^`]+)`/g, "<code>$1</code>")
-  .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+import { esc, inline } from "./html.js";
+export { esc, inline } from "./html.js";
 
 function el(tag, html) {
   const n = document.createElement(tag);

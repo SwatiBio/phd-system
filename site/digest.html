@@ -63,10 +63,7 @@
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import { weekStart, weekLabel, weekKey, iso } from "/site/lib/logs.js";
-    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    const inline = (s) => esc(s)
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, txt, url) => `<a href="${url.replace(/"/g, "%22")}" target="_blank" rel="noopener">${txt}</a>`);
+    import { esc, inline } from "/site/lib/html.js";
 
     const now = new Date();
     const currentMonday = weekStart(now);
@@ -160,15 +157,15 @@
         for (const line of md) {
           if (line.startsWith("# ")) { closeList(); }
           else if (line.startsWith("## ")) { closeList(); out.push(el("h2", esc(line.slice(3)))); }
-          else if (line.startsWith("*") && line.endsWith("*")) { out.push(el("p", `<span class="em">${inline(line.replace(/^\*|\*$/g, ""))}</span>`)); }
+          else if (line.startsWith("*") && line.endsWith("*")) { out.push(el("p", `<span class="em">${inline(line.replace(/^\*|\*$/g, ""), { external: true })}</span>`)); }
           else if (line.startsWith("- ")) {
             if (!list) { list = document.createElement("ul"); out.push(list); }
             const li = document.createElement("li");
-            li.innerHTML = inline(line.slice(2));
+            li.innerHTML = inline(line.slice(2), { external: true });
             const doi = (line.match(/https:\/\/doi\.org\/(10\.[^)]+)/) || [])[1];
             if (doi) { li.dataset.doi = doi; pending.push(li); }
             list.appendChild(li);
-          } else if (line.trim()) { closeList(); out.push(el("p", inline(line))); }
+          } else if (line.trim()) { closeList(); out.push(el("p", inline(line, { external: true }))); }
         }
         try {
           const w = await fetch("/api/whoami");

@@ -59,10 +59,9 @@
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import { get, list } from "/site/lib/vault.js";
-    import { render } from "/site/lib/md.js";
+    import { render, esc } from "/site/lib/md.js";
 
     const $ = (id) => document.getElementById(id);
-    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
     /* dac-report-YYYY-MM.md — newest first */
     function parseMonth(name) {

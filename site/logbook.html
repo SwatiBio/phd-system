@@ -145,7 +145,7 @@
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import { weekPath, weekStart, weekLabel, weekKey, parseLog, iso } from "/site/lib/logs.js";
-    const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    import { esc } from "/site/lib/html.js";
 
     const now = new Date();
     const currentMonday = weekStart(now);
