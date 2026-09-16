@@ -21,7 +21,7 @@ function el(tag, html) {
 /* render(md) -> Node[] — one node per block (heading, list, table, rule, paragraph) */
 export function render(md) {
   const out = [];
-  let list = null, table = null; // list: "ul" | "checklist"
+  let list = null, table = null; // list: an open <ul>; className distinguishes checklist
   const close = () => { list = null; table = null; };
   for (const line of md.split("\n")) {
     if (line.startsWith("### ")) { close(); out.push(el("h3", esc(line.slice(4)))); }
@@ -38,7 +38,11 @@ export function render(md) {
     }
     else if (/^- \[[ x]\] /.test(line)) {
       table = null;
-      if (!list) { list = document.createElement("ul"); list.className = "checklist"; out.push(list); }
+      if (!list || list.className !== "checklist") {
+        list = document.createElement("ul");
+        list.className = "checklist";
+        out.push(list);
+      }
       const done = line.startsWith("- [x] ");
       const li = document.createElement("li");
       if (done) li.classList.add("done");
@@ -47,9 +51,8 @@ export function render(md) {
     }
     else if (line.startsWith("- ")) {
       table = null;
-      if (list !== "ul") { close(); list = document.createElement("ul"); out.push(list); }
+      if (!list || list.className === "checklist") { close(); list = document.createElement("ul"); out.push(list); }
       const li = document.createElement("li"); li.innerHTML = inline(line.slice(2)); list.appendChild(li);
-      list = "ul";
     }
     else if (/^\*.+\*$/.test(line.trim()) && line.trim().length > 2) {
       close(); out.push(el("p", `<span class="em">${inline(line.trim().replace(/^\*|\*$/g, ""))}</span>`));

@@ -46,6 +46,14 @@ test("md: table builds th row first then td", () => {
   assert.equal(t.children[1].children[0].tag, "td");
 });
 
+test("md: plain list followed by checklist does not crash", () => {
+  const out = render("- plain item\n- [ ] todo");
+  assert.equal(out.length, 2);
+  assert.equal(out[0].tag, "ul");
+  assert.equal(out[1].tag, "ul");
+  assert.match(out[1].className, /checklist/);
+});
+
 test("md: inline bold, code, link, escaping", () => {
   const out = render("**b** and `c` and [x](/y) and <script>");
   assert.match(out[0]._html, /<strong>b<\/strong>/);
