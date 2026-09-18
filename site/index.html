@@ -37,34 +37,34 @@
         <span class="streak" id="streak"></span>
       </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Log what you did: the hero card -->
+        <div class="card card-hero">
+          <header>
+            <h3>Log what you did</h3>
+            <p>A line or a paragraph, saved straight into this week's logbook.</p>
+          </header>
+          <section>
+            <div class="log-field">
+              <form class="log-row" id="log-form">
+                <textarea class="input log-input" id="log-text" rows="1" maxlength="2000" placeholder="What did you work on? Type # to tag…" autocomplete="off" aria-label="Log entry" aria-expanded="false" aria-controls="log-suggest"></textarea>
+                <button class="btn" type="submit" id="log-submit">Log it</button>
+              </form>
+              <div class="suggest" id="log-suggest" hidden></div>
+            </div>
+            <div class="chip-row" id="chips"></div>
+            <p class="log-hint">Ctrl / Cmd + Enter saves · # tags the entry</p>
+
+            <ul class="log-today" id="log-today" hidden></ul>
+          </section>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <!-- Due today -->
           <div class="card">
             <header>
               <h3>Due today</h3>
             </header>
             <section id="task-body"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2 mt-2"></div></section>
-          </div>
-
-          <!-- Log what you did -->
-          <div class="card">
-            <header>
-              <h3>Log what you did</h3>
-              <p>A line or a paragraph, saved straight into this week's logbook.</p>
-            </header>
-            <section>
-              <div class="log-field">
-                <form class="log-row" id="log-form">
-                  <textarea class="input log-input" id="log-text" rows="1" maxlength="2000" placeholder="What did you work on? Type # to tag…" autocomplete="off" aria-label="Log entry" aria-expanded="false" aria-controls="log-suggest"></textarea>
-                  <button class="btn" type="submit" id="log-submit">Log it</button>
-                </form>
-                <div class="suggest" id="log-suggest" hidden></div>
-              </div>
-              <div class="chip-row" id="chips"></div>
-              <p class="log-hint">Ctrl / Cmd + Enter saves · # tags the entry</p>
-
-              <ul class="log-today" id="log-today" hidden></ul>
-            </section>
           </div>
 
           <!-- Next milestone -->
@@ -75,29 +75,22 @@
             </header>
             <section id="deadline-body"><div class="skeleton h-4 w-2/3"></div><div class="skeleton h-4 w-1/3 mt-2"></div></section>
           </div>
+        </div>
 
-          <!-- New papers -->
-          <div class="card" id="digest-section" hidden>
-            <header>
-              <h3>New papers this week</h3>
-            </header>
-            <section><p class="task-none" id="digest-line"></p></section>
-          </div>
-
-          <!-- Add a paper -->
-          <div class="card" id="doi-section" hidden>
-            <header>
-              <h3>Add a paper</h3>
-              <p>Paste a DOI — saves to Zotero and creates a paper note instantly.</p>
-            </header>
-            <section>
-              <form class="log-row" id="doi-form">
-                <input class="input" type="text" id="doi-input" placeholder="10.1000/xyz123" autocomplete="off" aria-label="DOI" maxlength="100" style="flex:1" />
-                <button class="btn" type="submit" id="doi-btn">Save</button>
-              </form>
-              <p class="saved" id="doi-saved" role="status" aria-live="polite"></p>
-            </section>
-          </div>
+        <!-- Papers: digest matches + add a paper, one card -->
+        <div class="card mt-4" id="papers-card" hidden>
+          <header>
+            <h3>Papers</h3>
+            <p>New digest matches, or paste a DOI — saves to Zotero and creates a paper note instantly.</p>
+          </header>
+          <section>
+            <p class="task-none" id="digest-line" hidden></p>
+            <form class="log-row" id="doi-form" hidden>
+              <input class="input" type="text" id="doi-input" placeholder="10.1000/xyz123" autocomplete="off" aria-label="DOI" maxlength="100" style="flex:1" />
+              <button class="btn" type="submit" id="doi-btn">Save</button>
+            </form>
+            <p class="saved" id="doi-saved" role="status" aria-live="polite"></p>
+          </section>
         </div>
 
         <footer class="page-footer">
@@ -443,10 +436,20 @@
         const r = await fetch("/research/papers/digest-latest.md");
         if (!r.ok) return;
         const n = ((await r.text()).match(/^- \*\*/gm) || []).length;
-        if (!n) return;
-        $("digest-section").hidden = false;
-        $("digest-line").innerHTML = `<strong>${n} new papers</strong> matched your topics · <a href="/digest.html">open digest</a>`;
+        const line = $("digest-line");
+        line.hidden = false;
+        line.innerHTML = n
+          ? `<strong>${n} new papers</strong> matched your topics · <a href="/digest.html">open digest</a>`
+          : "No new papers this week.";
+        revealPapers();
       } catch {}
+    }
+
+    /* The merged papers card shows when either half has content: digest news
+       (even when empty — that reads as "No new papers this week.") or the
+       DOI box. Both loaders call this once their part is ready. */
+    function revealPapers() {
+      $("papers-card").hidden = $("digest-line").hidden && $("doi-form").hidden;
     }
 
     /* --- DOI box: paste a DOI -> Zotero + vault paper note --- */
@@ -456,7 +459,8 @@
         if (!w.ok) return;
         const j = await w.json();
         if (!j.login) return;
-        $("doi-section").hidden = false;
+        $("doi-form").hidden = false;
+        revealPapers();
       } catch {}
     }
     function doiSlug(s) {

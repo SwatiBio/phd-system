@@ -262,6 +262,9 @@ main { transition: none !important; }
 .s-item .s-desc { color: var(--muted-foreground); font-size: 12px; }
 .s-item.sel { background: var(--muted); }
 
+/* hero card: the log composer — tinted so it reads as the page's main thing */
+.card-hero { background: var(--muted); }
+
 /* today's entries under the form */
 .log-today { list-style: none; margin: .875rem 0 0; padding: 0; border-top: 1px solid var(--border); }
 .log-today li { display: flex; gap: .75rem; padding: .45rem 0; font-size: 14px; border-bottom: 1px solid var(--border); }
@@ -396,13 +399,13 @@ table.grid tr.daysep td { border-top: 1px solid var(--border); }
 @starting-style {
   #task-body > *,
   #deadline-body > *,
-  #digest-section,
+  #papers-card,
   #log-today > *,
   .suggest { opacity: 0; }
 }
 #task-body > *,
 #deadline-body > * { transition: opacity var(--duration-slow) var(--ease-smooth-out); }
-#digest-section,
+#papers-card,
 #log-today > * { transition: opacity var(--duration-fast) var(--ease-smooth-out); }
 
 
