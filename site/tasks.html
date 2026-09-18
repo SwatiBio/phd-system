@@ -28,6 +28,7 @@
   <main>
     <div class="content">
       <header class="page-head">
+        <h1>Tasks</h1>
         <p class="meta" id="meta">Loading…</p>
       </header>
 
@@ -49,7 +50,7 @@
       </div>
 
       <footer class="page-footer">
-        Tick done here — it commits straight to the task's own file (<code>daily/tasks/&lt;slug&gt;.md</code>).
+        Changes save straight to your vault.
       </footer>
     </div>
   </main>
@@ -94,13 +95,13 @@
           </div>
           <footer>
             <button class="btn" type="submit" id="edit-save">Save</button>
-            <span class="add-note" id="edit-note"></span>
           </footer>
         </form>
       </section>
     </div>
   </dialog>
 
+  <div id="toaster" class="toaster"></div>
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import * as tasks from "/site/lib/tasks.js";
@@ -122,6 +123,15 @@
       try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); } catch {}
     }
 
+    /* --- toast (toaster is injected per page, like index/library) --- */
+    const flash = (msg, category = "success") => {
+      document.getElementById("toaster")?.toast({
+        category,
+        title: msg,
+        cancel: { label: "Dismiss" },
+      });
+    };
+
     /* --- edit dialog --- */
     let editingTask = null;
     function openEdit(t) {
@@ -131,7 +141,6 @@
       $("edit-due").value = t.due || "";
       $("edit-recurring").value = t.recurring || "";
       $("edit-notes").value = t.notes || "";
-      $("edit-note").textContent = "";
       $("edit-dialog").showModal();
     }
     $("edit-form").addEventListener("submit", async (e) => {
@@ -151,7 +160,7 @@
         $("edit-dialog").close();
         await renderAll(true);
       } catch (err) {
-        $("edit-note").textContent = `Could not save: ${err.message.slice(0, 80)}`;
+        flash(`Could not save — ${err.message.slice(0, 80)}. Your changes are still in the form, try again.`, "error");
       }
       btn.disabled = false;
     });
@@ -177,7 +186,6 @@
       const btn = document.createElement("button");
       btn.className = "btn";
       btn.dataset.size = "icon-sm";
-      btn.dataset.variant = "ghost";
       btn.dataset.variant = "ghost";
       btn.type = "button";
       btn.textContent = "✓";
@@ -215,11 +223,6 @@
           : d === 0 ? "due today"
           : `due ${fmt(t.due)} (in ${d} day${d === 1 ? "" : "s"})`;
         body.appendChild(when);
-      } else {
-        const when = document.createElement("div");
-        when.className = "when";
-        when.textContent = "no date";
-        body.appendChild(when);
       }
 
       // notes preview
@@ -241,7 +244,7 @@
           await renderAll(true);
         } catch (err) {
           btn.disabled = false;
-          $("meta").textContent = `Could not save: ${err.message.slice(0, 80)}`;
+          flash(`Could not save — ${err.message.slice(0, 80)}. Try again.`, "error");
         }
       });
 
@@ -301,7 +304,7 @@
         all = await tasks.load(vault);
       } catch (e) {
         $("meta").textContent = "";
-        box.innerHTML = `<p class="empty">Could not load tasks: ${e.message}</p>`;
+        box.innerHTML = `<p class="empty">Could not load tasks — ${e.message.slice(0, 80)}. Reload the page to try again.</p>`;
         return;
       }
 
@@ -373,7 +376,7 @@
         $("add-note").textContent = "Added.";
         await renderAll(true);
       } catch (err) {
-        $("add-note").textContent = `Could not add: ${err.message.slice(0, 90)}`;
+        $("add-note").textContent = `Could not add — ${err.message.slice(0, 90)}. Your text is still in the box, try again.`;
       }
       btn.disabled = false;
     });
