@@ -32,15 +32,28 @@
     }
     .lib-chip:hover { background: var(--muted); color: var(--foreground); }
     .lib-chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+    .lib-toolbar { display: flex; gap: .5rem; align-items: center; margin-bottom: .75rem; }
+    .lib-search { flex: 1; max-width: 24rem; }
+    .lib-count { color: var(--muted-foreground); font-size: 12px; margin-left: auto; white-space: nowrap; }
     .lib-tagindex { display: flex; flex-wrap: wrap; gap: .25rem .75rem; font-size: 12px; }
     .lib-tagindex a { color: var(--muted-foreground); text-decoration: none; }
     .lib-tagindex a:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
-    .lib-row { display: block; padding: .625rem .25rem; border-bottom: 1px solid var(--border); }
-    .lib-row:last-child { border-bottom: none; }
+    .lib-row {
+      display: block; padding: .65rem .5rem;
+      border-bottom: 1px solid var(--muted); border-radius: .375rem;
+    }
+    .lib-row:hover { background: var(--muted); }
     .lib-row-title { font-weight: 600; }
-    .lib-row:hover .lib-row-title { text-decoration: underline; text-underline-offset: 3px; }
     .lib-row-meta { font-size: 12px; color: var(--muted-foreground); margin-top: .125rem; }
     .lib-preview { font-size: 13px; color: var(--muted-foreground); margin-top: .25rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    /* tag group headings follow the app's group-heading pattern (uppercase,
+       letterspaced, muted) and sit on a generous top margin so each tag
+       section reads as its own band, not a wall of rows */
+    .lib-group { margin-top: 1.75rem; }
+    .lib-group h2 {
+      font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--muted-foreground); margin: 0 0 .25rem;
+    }
     /* Status badges use the Basecoat badge component + its documented colored
        pattern (bg-*-50 text-*-700, dark:bg-*-950 dark:text-*-300) so both
        themes pass WCAG AA. The old hand-rolled colors were light-theme hex
@@ -51,36 +64,32 @@
   <main>
     <div class="content">
       <header class="page-head">
-        <div class="flex items-center gap-2 flex-wrap">
-          <p class="meta" style="margin:0">Browse your papers. Edit in the <a href="/admin/#/collections/papers">CMS</a>.</p>
-          <span style="flex:1"></span>
-          <button type="button" class="btn" data-variant="outline" data-size="sm" id="sync-btn">
-            <i class="ph ph-arrows-clockwise"></i> Sync from Zotero
-          </button>
-        </div>
+        <h1>Library</h1>
+        <p class="meta">Your papers · edit in the <a href="/admin/#/collections/papers">CMS</a></p>
+        <span style="flex:1"></span>
+        <button type="button" class="btn" data-variant="outline" data-size="sm" id="sync-btn">
+          <i class="ph ph-arrows-clockwise"></i> Sync from Zotero
+        </button>
       </header>
 
       <div id="app" hidden>
-        <div class="lib-chips" style="margin-bottom:.5rem">
-          <span id="status-chips" class="lib-chips"></span>
-          <span style="flex:1"></span>
-          <label class="flex items-center gap-2 text-sm" style="color:var(--muted-foreground)">
-            <input type="checkbox" id="personal-toggle" />
-            Show personal
-          </label>
-        </div>
-        <div class="flex gap-2" style="margin-bottom:.5rem">
-          <input class="input" type="search" id="lib-search" placeholder="Search title, author, tag…" aria-label="Search papers" style="flex:1" />
+        <div class="lib-toolbar">
+          <input class="input lib-search" type="search" id="lib-search" placeholder="Search title, author, tag…" aria-label="Search papers" />
           <select class="input" id="lib-sort" aria-label="Sort papers" style="width:auto">
             <option value="title">Sort: title</option>
             <option value="status">Sort: status</option>
           </select>
+          <span class="lib-count" id="lib-meta" aria-live="polite"></span>
+        </div>
+        <div class="lib-chips" style="margin-bottom:.5rem">
+          <span id="status-chips" class="lib-chips"></span>
+          <button type="button" class="lib-chip" id="personal-chip" aria-pressed="false" aria-label="Show personal papers">personal</button>
         </div>
         <nav class="lib-tagindex" id="tag-index" aria-label="Tag index"></nav>
         <div id="paper-groups"></div>
-        <p class="meta" id="lib-meta" style="margin-top:.75rem"></p>
       </div>
       <p class="task-none" id="lib-error" hidden></p>
+      <div id="toaster" class="toaster"></div>
     </div>
   </main>
 
@@ -119,8 +128,10 @@
     }
 
     function render() {
-      const visible = filterStatus(search(papers.filter((p) => state.personal || p.category === "phd"), state.q), state.status);
+      const pool = papers.filter((p) => state.personal || p.category === "phd");
+      const visible = filterStatus(search(pool, state.q), state.status);
       renderChips();
+      $("personal-chip").setAttribute("aria-pressed", String(state.personal));
 
       const groups = sortPapers(visible, state.sort);
       const byTag = groupByTag(groups);
@@ -128,11 +139,12 @@
         .map((g) => `<a href="#tag-${esc(g.tag)}">${esc(g.tag)} (${g.papers.length})</a>`)
         .join("");
 
-      $("paper-groups").innerHTML = byTag
-        .map(
-          (g) => `
-        <section id="tag-${esc(g.tag)}" style="margin-top:1rem">
-          <h2 style="font-size:.95rem;font-weight:600">${esc(g.tag)} <span class="meta">· ${g.papers.length}</span></h2>
+      $("paper-groups").innerHTML =
+        byTag
+          .map(
+            (g) => `
+        <section id="tag-${esc(g.tag)}" class="lib-group">
+          <h2>${esc(g.tag)} <span class="meta">· ${g.papers.length}</span></h2>
           ${g.papers
             .map(
               (p) => `
@@ -147,10 +159,25 @@
             )
             .join("")}
         </section>`
-        )
-        .join("") || `<p class="task-none">No papers match.</p>`;
+          )
+          .join("") || emptyState();
 
-      $("lib-meta").textContent = `${visible.length} paper${visible.length === 1 ? "" : "s"} shown · ${papers.length} in the vault`;
+      $("lib-meta").textContent = `${visible.length} of ${pool.length} shown`;
+      $("clear-search")?.addEventListener("click", () => {
+        state.q = "";
+        $("lib-search").value = "";
+        render();
+        $("lib-search").focus();
+      });
+    }
+
+    /* Empty states are doorways: say why it's empty and what to do next. */
+    function emptyState() {
+      if (!papers.length)
+        return `<p class="task-none">Your library is empty. Add a paper from the <a href="/">today page</a>, or sync from Zotero.</p>`;
+      if (state.q)
+        return `<p class="task-none">No papers match “${esc(state.q)}”. <button type="button" class="lib-chip" id="clear-search">Clear the search</button></p>`;
+      return `<p class="task-none">No papers match these filters.</p>`;
     }
 
     async function boot() {
@@ -161,11 +188,21 @@
         if (!j.login) { location.href = "/login"; return; }
         if (j.token_ok === false) { location.href = `/login?next=${encodeURIComponent(location.pathname)}`; return; }
         papers = await load(vault);
-        $("personal-toggle").addEventListener("change", (e) => { state.personal = e.target.checked; render(); });
+        $("personal-chip").addEventListener("click", () => { state.personal = !state.personal; render(); });
         $("lib-search").addEventListener("input", (e) => { state.q = e.target.value; render(); });
         $("lib-sort").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
-        // Sync from Zotero button — triggers the zotero-import workflow
+        // Sync from Zotero — triggers the zotero-import workflow, which runs
+        // in the background. The button only reports the request result; the
+        // toast carries what happens next. Pure logic stays in library.js;
+        // this is DOM wiring only.
         const syncBtn = $("sync-btn");
+        const flash = (msg, category = "success") => {
+          document.getElementById("toaster")?.toast({
+            category,
+            title: msg,
+            cancel: { label: "Dismiss" },
+          });
+        };
         syncBtn.addEventListener("click", async () => {
           syncBtn.disabled = true;
           syncBtn.innerHTML = '<i class="ph ph-spinner"></i> Syncing…';
@@ -173,15 +210,15 @@
             const res = await fetch("/api/zotero/sync", { method: "POST" });
             const data = await res.json().catch(() => ({}));
             if (res.ok) {
-              syncBtn.innerHTML = '<i class="ph ph-check"></i> Synced — reload in ~1 min';
+              flash("Sync started — new papers appear here within a minute.");
             } else {
-              syncBtn.innerHTML = `<i class="ph ph-warning"></i> ${data.error || "sync failed"}`;
-              setTimeout(() => { syncBtn.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Sync from Zotero'; syncBtn.disabled = false; }, 3000);
+              flash(`Sync failed — ${(data.error || "the server refused").slice(0, 60)}. Try again in a minute.`, "error");
             }
-          } catch (e) {
-            syncBtn.innerHTML = '<i class="ph ph-warning"></i> Network error';
-            setTimeout(() => { syncBtn.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Sync from Zotero'; syncBtn.disabled = false; }, 3000);
+          } catch {
+            flash("Sync failed — check your connection and try again.", "error");
           }
+          syncBtn.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Sync from Zotero';
+          syncBtn.disabled = false;
         });
         $("app").hidden = false;
         render();
