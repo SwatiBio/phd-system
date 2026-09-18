@@ -62,7 +62,7 @@ const sidebarHTML = `
   <nav aria-label="Sidebar navigation">
     <header>
       <a href="/" class="flex items-center gap-2">
-        <span class="text-lg font-semibold" style="color: var(--sidebar-foreground)">PhD-OS</span>
+        <span class="app-bar-title">PhD-OS</span>
       </a>
     </header>
     <section class="scrollbar-sm">

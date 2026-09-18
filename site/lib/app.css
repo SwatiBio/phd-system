@@ -121,18 +121,17 @@ main { transition: none !important; }
   border-bottom: 1px solid var(--border);
 }
 
-/* Match sidebar header height to app bar */
-.sidebar nav > header { padding-block: .625rem; }
+/* sidebar header height is matched to the app bar via min-height 3rem
+   in the .sidebar nav header rule below */
 @media (min-width: 48rem) {
   .app-bar { padding: .625rem 1.5rem; }
 }
 .app-bar-side { display: flex; align-items: center; gap: .25rem; min-width: 0; }
 .app-bar-title {
-  font-weight: 600; font-size: .9375rem; letter-spacing: -0.01em;
+  font-weight: 600; font-size: 1rem; line-height: 1.5rem; letter-spacing: -0.01em;
   color: var(--card-foreground); padding-left: .375rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
 .content {
   max-width: 72rem; margin-inline: auto;
   padding: 1.5rem 1.25rem 4rem;
@@ -149,16 +148,20 @@ main { transition: none !important; }
 
 /* ---- sidebar ---- */
 /* full-height fixed panel (Basecoat default: inset-block 0) */
+/* sidebar header: same 3rem strip + same title style as the app bar, so
+   "PhD-OS" and the page title read as one header line across the top */
 .sidebar nav header {
-  padding: 1rem .5rem .5rem;
+  display: flex; align-items: center; min-height: 3rem;
+  padding: .375rem .5rem;
   border-bottom: 1px solid var(--sidebar-border);
 }
 .sidebar nav header a {
   display: flex; align-items: center; gap: .5rem;
-  padding: .625rem .75rem; border-radius: .5rem;
+  padding: .375rem .75rem; border-radius: .5rem;
   color: var(--sidebar-foreground);
   transition: background 120ms ease;
 }
+.sidebar nav header .app-bar-title { color: inherit; padding-left: .25rem; }
 .sidebar nav header a:hover { background: var(--muted); }
 .sidebar nav footer {
   padding: .5rem;
