@@ -1,18 +1,22 @@
-# Week 38 · Mon 14 Sep – Wed 16 Sep 2026
+# Week 38 · Mon 14 Sep – Sun 20 Sep 2026
 
-*Prepared 2026-09-15 07:50 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
+*Prepared 2026-09-20 16:19 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
 
 ## The week in numbers
 
-- **0** days logged · **0** entries · **0** tasks done · **0** overdue
+- **1** day logged · **1** entry · **0** tasks done · **2** overdue
 - **0** open questions · **0** ideas · **0** rough fragments awaiting refinement
 
 ## What you did
 
-*No entries this week. That is data, not a failure.*
+### Sat 19 Sep
+
+- **01:48** have to take admission order from college
+
 ## What slipped
 
-- Nothing overdue.
+- Record attendance — workstation 9–5 — due 2026-09-16 (4 days late)
+- Print logbook for guide — Logbook in the app — due 2026-09-18 (2 days late)
 
 ## Open questions (0)
 
@@ -57,7 +61,8 @@
 | 2026-W28 | no | — | — |
 | 2026-W27 | no | — | — |
 
-- **Logging gaps** (2026-09-10 – 2026-09-11, 2 days logged, 1 gaps): 1x 1-day · 0x 2–3-day · 0x 4–7-day · 0x 8+-day
+- **Logging gaps** (2026-09-10 – 2026-09-19, 3 days logged, 2 gaps): 1x 1-day · 0x 2–3-day · 0x 4–7-day · 1x 8+-day
+- Longest gap: **8 days** (Fri 11 Sep -> Sat 19 Sep)
 
 *Counting only — whether the gaps matter is a verdict for the review itself.*
 
