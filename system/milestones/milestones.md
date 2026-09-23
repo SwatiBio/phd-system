@@ -1,6 +1,6 @@
 ---
-reg: 2026-10-01
-reg-note: "PROVISIONAL — held at 1 Oct 2026 while the college confirms the joining date; known not to be 18 Sep. Replace with the real date when the registration letter arrives (Month-1 checkpoint)."
+reg: 2026-09-23
+reg-note: "FINAL — registered and joined 23 Sep 2026; joining report submitted to CDS the same day. PhD effective start date."
 ---
 
 # Milestones — MAHE PhD (Dr. TMA Pai · 3.5 yrs)
@@ -13,10 +13,11 @@ reg-note: "PROVISIONAL — held at 1 Oct 2026 while the college confirms the joi
 
 ## 1 · Joining & Registration — 🔴 reg + 3 days
 **Target:** reg + 3 days
+- ✅ **DONE — registered 23 Sep 2026** — date of joining = date of registration, and every date below hangs off it
+- ✅ **DONE — joining report submitted to CDS on 23 Sep 2026** — Annexure 12 (TMA Pai) + undertaking (Annexure 14)
 - **Visit Admissions Office — bring originals:** all-semester marksheets (bachelor's + master's), degree certs, 2 passport photos, self-attested PAN + Aadhaar, fee receipt
 - **Complete institution joining** → ID card + learner email
-- **Submit joining report to CDS within 3 days** — Annexure 12 (TMA Pai) + undertaking (Annexure 14). ⚠️ Both forms are NOT on the MAHE annexures page — request them from CDS.
-- **Keep the registration letter safe** — the date of joining IS the date of registration, and every date below hangs off it
+- **Keep the registration letter safe** — it confirms the 23 Sep 2026 date
 
 ## 2 · Register Coursework — 🟡 reg + 1 week
 **Target:** reg + 1 week
