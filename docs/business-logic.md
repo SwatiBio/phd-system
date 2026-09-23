@@ -53,9 +53,10 @@ Dates in `system/milestones/milestones.md` use offsets from registration, never 
 ```
 **Target:** reg + 3 days
 **Targets:** reg + 6 months · reg + 12 months · reg + 18 months
+**Done:** 2026-09-23
 ```
 
-The `reg:` date in the file's YAML frontmatter is the single source. The app computes all dates from it. Changing `reg:` moves the whole timeline.
+The `reg:` date in the file's YAML frontmatter is the single source. The app computes all dates from it. Changing `reg:` moves the whole timeline. A milestone marked `**Done:** YYYY-MM-DD` is complete: the timeline shows it at that real date and "next" skips it.
 
 ### MAHE milestones (Section 19)
 

@@ -7,12 +7,13 @@ reg-note: "FINAL — registered and joined 23 Sep 2026; joining report submitted
 
 **Every date here is an offset from `reg`.** Nothing below stores a calendar date — the app computes them, so changing `reg:` in the CMS moves the whole timeline at once. Read it at `/timeline.html`.
 
-**Grammar the app understands:** `**Target:** reg + N day|week|month|year` for one date, `**Targets:** reg + ... · reg + ...` for a series. Keep that shape when editing.
+**Grammar the app understands:** `**Target:** reg + N day|week|month|year` for one date, `**Targets:** reg + ... · reg + ...` for a series. Mark a milestone complete with `**Done:** YYYY-MM-DD` — the timeline shows it as done and "next" skips it. Keep the bold-label shape exact.
 
 **🟡 = prep starts · 🔴 = urgent (7 days).** Rule sources: `PHDOS-DOC-1` (full MAHE rules + rubric).
 
 ## 1 · Joining & Registration — 🔴 reg + 3 days
 **Target:** reg + 3 days
+**Done:** 2026-09-23
 - ✅ **DONE — registered 23 Sep 2026** — date of joining = date of registration, and every date below hangs off it
 - ✅ **DONE — joining report submitted to CDS on 23 Sep 2026** — Annexure 12 (TMA Pai) + undertaking (Annexure 14)
 - **Visit Admissions Office — bring originals:** all-semester marksheets (bachelor's + master's), degree certs, 2 passport photos, self-attested PAN + Aadhaar, fee receipt

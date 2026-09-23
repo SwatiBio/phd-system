@@ -17,8 +17,11 @@ const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct
 /* git's autocrlf can hand us CRLF; every parser here is line-based. */
 export const norm = (t) => String(t == null ? "" : t).replace(/\r\n?/g, "\n");
 
+import { dayIso } from "./day.js";
+
 const pad = (n) => String(n).padStart(2, "0");
-export const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+/* Day identity is day.js's job (LOCAL day, never UTC) — same name, one home. */
+export const iso = dayIso;
 
 /* Every entry point takes a Date OR an ISO date string. Callers hold both (the app
    has a Date, appendEntry has the day string), and one coercion here is cheaper

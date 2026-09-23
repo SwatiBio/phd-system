@@ -32,6 +32,8 @@
  *   (no "every" prefix; parsed by ROLL below)
  */
 
+import { dayIso as localIso } from "./day.js";
+
 export const FOLDER = "daily/tasks";
 export const STATUSES = ["backlog", "todo", "in-progress", "done", "cancelled"];
 const OPEN = new Set(["backlog", "todo", "in-progress"]);
@@ -43,9 +45,6 @@ const ROLL = /^(\d+ )?(day|week|month|year)(?:s)?$/i;
 /* git's autocrlf can hand us CRLF; the parsers below are line-based and `.`
    never matches \r, so a CRLF file would silently parse as zero tasks. */
 const norm = (t) => String(t).replace(/\r\n?/g, "\n");
-
-const localIso = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 /* "every 6 months" (old syntax, CMS hints) -> "6 months"; junk -> null. */
 function normRecurring(s) {

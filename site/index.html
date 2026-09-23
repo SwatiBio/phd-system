@@ -109,6 +109,7 @@
       suggest, newAdHocs, parseRegistry, registryText, tagAtCaret,
     } from "/site/lib/tags.js";
     import { get, put, list } from "/site/lib/vault.js";
+    import { daysUntil } from "/site/lib/day.js";
     import { esc } from "/site/lib/html.js";
 
     const demo = new URLSearchParams(location.search).get("demo") === "1";
@@ -117,7 +118,6 @@
     const today = new Date();
     const todayIso = iso(today);
     const fmtDay = (d) => d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-    const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
 
     const $ = (id) => document.getElementById(id);
     /* escape for the log/ today spans — the week file is hand-authored */
@@ -125,7 +125,7 @@
 
     /* ---------- parsers ---------- */
     function nextMilestone(text) {
-      const m = parseMilestones(text).items.find((i) => daysUntil(i.date) >= 0);
+      const m = parseMilestones(text).items.find((i) => !i.done && daysUntil(i.date) >= 0);
       return m ? { title: m.title, date: m.date, days: daysUntil(m.date) } : null;
     }
     function loggedDates(text) {

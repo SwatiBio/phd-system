@@ -106,12 +106,10 @@
   <script type="module">
     import * as tasks from "/site/lib/tasks.js";
     import * as vault from "/site/lib/vault.js";
+    import { today, daysUntil } from "/site/lib/day.js";
 
-    /* local date, not UTC: toISOString is a day behind before ~5:30am IST */
-    const localIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const todayIso = localIso(new Date());
+    const todayIso = today();
     const $ = (id) => document.getElementById(id);
-    const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
     import { esc } from "/site/lib/html.js";
     const fmt = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 

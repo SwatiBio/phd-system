@@ -2,17 +2,14 @@
    The grammar lives in system/milestones/milestones.md:
      **Target:** reg + 3 days          (one date)
      **Targets:** reg + 6 months · reg + 12 months   (a series)
-   Keep the bold-label shape exact — `**Target: reg...**` silently matches nothing. */
-
-export const iso = (d) => d.toISOString().slice(0, 10);
+     **Done:** 2026-09-23              (complete: shown at its real date, skipped by "next")
+   Keep the bold-label shape exact — `**Target: reg...**` silently matches nothing.
+   Day identity/diff math belongs to day.js — don't re-derive it here. */
+import { dayIso } from "./day.js";
 
 /* CRLF-proof: git's autocrlf can hand us CRLF, and the frontmatter fence
    /^---\n/ would then never match, blanking the whole timeline. */
 const norm = (t) => String(t).replace(/\r\n?/g, "\n");
-
-export function daysUntil(dStr, todayIso) {
-  return Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
-}
 
 export function addOffset(regIso, n, unit) {
   const d = new Date(regIso + "T12:00:00");
@@ -25,7 +22,7 @@ export function addOffset(regIso, n, unit) {
     const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     d.setDate(Math.min(day, last));
   }
-  return iso(d);
+  return dayIso(d);
 }
 
 export function parseMilestones(text) {
@@ -37,6 +34,11 @@ export function parseMilestones(text) {
   if (!reg) return { reg: null, note, items };
   for (const s of text.split(/^## /m).slice(1)) {
     const title = s.split("\n")[0].split("—")[0].replace(/^\d+ · /, "").trim();
+    /* `**Done:** YYYY-MM-DD` marks the milestone complete: report the real
+       completion date and flag it, so "next/upcoming" views skip it. A done
+       section wins over its own Target line (the deadline no longer applies). */
+    const done = (s.match(/^\*\*Done:\*\* (\d{4}-\d{2}-\d{2})/m) || [])[1];
+    if (done) { items.push({ title, date: done, done: true }); continue; }
     const line = s.match(/^\*\*Targets?:\*\* (.+)$/m);
     if (!line) continue;
     for (const t of line[1].matchAll(/reg\s*\+\s*(\d+)\s*(day|week|month|year)/gi))

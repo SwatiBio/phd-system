@@ -47,11 +47,9 @@
   <script type="module" src="/site/lib/shell.js" blocking="render"></script>
   <script type="module">
     import { parseMilestones } from "/site/lib/milestones.js";
+    import { daysUntil } from "/site/lib/day.js";
     import { get } from "/site/lib/vault.js";
 
-    const iso = (d) => d.toISOString().slice(0, 10);
-    const todayIso = iso(new Date());
-    const daysUntil = (dStr) => Math.round((new Date(dStr + "T12:00:00") - new Date(todayIso + "T12:00:00")) / 86400000);
     const fmtDate = (dStr) => new Date(dStr + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
     function render({ reg, note, items }) {
@@ -67,11 +65,11 @@
         box.innerHTML = `<p class="empty">No milestones with a <code>reg + offset</code> target found.</p>`;
         return;
       }
-      const next = items.find((i) => daysUntil(i.date) >= 0);
+      const next = items.find((i) => !i.done && daysUntil(i.date) >= 0);
       const rows = items.map((i) => {
         const days = daysUntil(i.date);
-        const when = days < 0 ? `${-days}d ago` : days === 0 ? "today" : `in ${days}d`;
-        const cls = days < 0 ? "past" : (next && i.date === next.date && i.title === next.title) ? "next" : "";
+        const when = i.done ? (days === 0 ? "✓ done today" : "✓ done") : days < 0 ? `${-days}d ago` : days === 0 ? "today" : `in ${days}d`;
+        const cls = i.done || days < 0 ? "past" : (next && i.date === next.date && i.title === next.title) ? "next" : "";
         return `<tr class="${cls}"><td class="date">${fmtDate(i.date)}</td><td class="in">${when}</td><td>${i.title}</td></tr>`;
       });
       box.innerHTML = `<thead><tr><th>Date</th><th>When</th><th>Milestone</th></tr></thead><tbody>${rows.join("")}</tbody>`;
