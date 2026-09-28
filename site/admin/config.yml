@@ -44,6 +44,7 @@ collections:
       - { label: Status, name: status, widget: select, options: [backlog, todo, in-progress, done, cancelled], default: todo }
       - { label: Due, name: due, widget: datetime, date_format: YYYY-MM-DD, time_format: false, format: YYYY-MM-DD, required: false }
       - { label: Recurring, name: recurring, widget: select, options: ["", day, week, 2 weeks, month, 6 months, year], default: "", required: false, hint: "Ticking rolls the due date by this interval instead of closing the task" }
+      - { label: Last done, name: last-done, widget: hidden }
       - { label: Notes, name: body, widget: markdown, required: false }
 
   - name: meetings
