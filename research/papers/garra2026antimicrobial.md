@@ -2,6 +2,7 @@
 title: "Antimicrobial Activity and Integrated In Silico Evaluation of Bioactive Constituents from Trametes versicolor against Clinically Isolated Pathogens"
 category: phd
 status: to-read
+year: 2026
 tags: []
 citekey: "garra2026antimicrobial"
 zotero-key: XN49FM5W

@@ -2,6 +2,7 @@
 title: "BRITISH LICHENS: BIOLOGY, ECOLOGY, AND USE AS BIOINDICATORS"
 category: phd
 status: to-read
+year: 2026
 tags: []
 citekey: "walker2026british"
 zotero-key: 47IA8ZSA

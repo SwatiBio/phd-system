@@ -2,6 +2,7 @@
 title: "Secondary metabolites of lichens: The untapped biomedical and pharmaceutical potential of antimicrobial molecules"
 category: phd
 status: to-read
+year: 2025
 tags: []
 citekey: "poulsensilva2025secondary"
 zotero-key: JJZ5CVG7
@@ -19,12 +20,20 @@ _No highlights yet._
 
 ## What it did
 
+
+
 ## How
+
+
 
 ## Key result
 
+
+
 ## What it means for me
+
+
 
 ## Sparked
 
-<!-- 1-3 lines, rough words: what idea did this paper give you? Optional. -->
+

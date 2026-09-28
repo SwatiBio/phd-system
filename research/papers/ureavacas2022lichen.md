@@ -2,6 +2,7 @@
 title: "Lichen Depsidones with Biological Interest"
 category: phd
 status: to-read
+year: 2022
 tags: []
 citekey: "ureavacas2022lichen"
 zotero-key: PUF4TYZD
@@ -19,12 +20,20 @@ _No highlights yet._
 
 ## What it did
 
+
+
 ## How
+
+
 
 ## Key result
 
+
+
 ## What it means for me
+
+
 
 ## Sparked
 
-<!-- 1-3 lines, rough words: what idea did this paper give you? Optional. -->
+

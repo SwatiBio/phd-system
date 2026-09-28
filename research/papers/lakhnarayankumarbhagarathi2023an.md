@@ -2,6 +2,7 @@
 title: "An integrative review of the biology and chemistry of lichens and their ecological, ethnopharmacological, pharmaceutical and therapeutic potential"
 category: phd
 status: to-read
+year: 2023
 tags: []
 citekey: "lakhnarayankumarbhagarathi2023an"
 zotero-key: NHS8N48V
@@ -19,12 +20,20 @@ _No highlights yet._
 
 ## What it did
 
+
+
 ## How
+
+
 
 ## Key result
 
+
+
 ## What it means for me
+
+
 
 ## Sparked
 
-<!-- 1-3 lines, rough words: what idea did this paper give you? Optional. -->
+

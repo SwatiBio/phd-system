@@ -1,21 +1,15 @@
 ---
+title: "Unassuming Lichens: Nature’s Hidden Antimicrobial Warriors"
 category: phd
-status: read
+status: to-read
+year: 2025
 tags: []
-citekey: tian2025unassuming
+citekey: "tian2025unassuming"
 zotero-key: 4MNGQCWW
-authors:
-  - Hongqiao Tian
-  - Junlin Lu
-  - Fangrong Liang
-  - Haiyan Ding
-  - Chaojiang Xiao
+authors: ["Hongqiao Tian", "Junlin Lu", "Fangrong Liang", "Haiyan Ding", "Chaojiang Xiao"]
 concepts: []
 citations: 11
-related: []
-title: 'Unassuming Lichens: Nature’s Hidden Antimicrobial Warriors'
 ---
-
 # Unassuming Lichens: Nature’s Hidden Antimicrobial Warriors
 
 [Zotero](zotero://select/library/items/4MNGQCWW)
@@ -95,3 +89,5 @@ _<small>p. 70</small>_
 
 
 ## Sparked
+
+
