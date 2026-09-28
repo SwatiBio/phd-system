@@ -63,7 +63,7 @@ collections:
     description: Papers you read. Mostly created via Zotero import / paper pipeline — edit status, tags, Sparked here.
     folder: research/papers
     create: true
-    slug: "{{title}}"
+    slug: "{{slug}}"
     icon: menu_book
     sortable_fields: [status]
     summary: "{{title}} — {{status}}"
@@ -124,7 +124,7 @@ collections:
       - { label: Method, name: method, widget: string, required: false }
       - { label: Inputs, name: inputs, widget: list, required: false }
       - { label: Outputs, name: outputs, widget: list, required: false, hint: "Files this work produces — the orphan sweep checks these" }
-      - { label: Material, name: material, widget: relation, collection: materials, value_field: id, display_fields: [id], search_fields: [id, question], multiple: true, required: false }
+      - { label: Material, name: material, widget: relation, collection: materials, value_field: id, display_fields: [id], search_fields: [id, type], multiple: true, required: false }
       - { label: Target, name: target, widget: relation, collection: targets, value_field: id, display_fields: [id], search_fields: [id, pathogen], multiple: true, required: false }
       - label: Notes
         name: body
