@@ -287,14 +287,36 @@ def reconcile_highlights(old_body, new_highlights_md):
 
 def main():
     user = os.environ["ZOTERO_USER_ID"]
-    # only import from the user's "Phd-OS" collection (user decision 2026-09-10)
+    # only import from the user's "Phd-OS" collection tree (user decision 2026-09-10).
+    # Subcollections (e.g. "initial study") count too — items inside a
+    # subcollection are NOT returned by /collections/{key}/items, so the whole
+    # subtree of collection keys must be merged.
     colls = api(f"/users/{user}/collections")
     coll = next((c for c in colls if (c.get("data", {}).get("name") or "").lower() == "phd-os"), None)
     if not coll:
         print("collection 'Phd-OS' not found in Zotero library — nothing to import")
         return
-    coll_key = coll["data"]["key"]
-    items = api(f"/users/{user}/collections/{coll_key}/items?format=json&limit=100&sort=dateModified&direction=desc")
+    root_key = coll["data"]["key"]
+    # collect the collection subtree rooted at Phd-OS
+    subtree = [root_key]
+    parent_of = {c["data"]["key"]: (c["data"].get("parentCollection") or "") for c in colls}
+    changed = True
+    while changed:
+        changed = False
+        for key, parent in parent_of.items():
+            if parent in subtree and key not in subtree:
+                subtree.append(key)
+                changed = True
+    print(f"importing from Phd-OS collection subtree ({len(subtree)} collection(s))")
+    items = []
+    for key in subtree:
+        page = 1
+        while True:
+            batch = api(f"/users/{user}/collections/{key}/items?format=json&limit=100&sort=dateModified&direction=desc&page={page}")
+            items.extend(batch)
+            if len(batch) < 100:
+                break
+            page += 1
     have = existing_keys()
     SKIP_TYPES = {"attachment", "note", "annotation", "webpage"}
     created, updated, synced = 0, 0, 0
