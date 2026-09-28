@@ -77,6 +77,7 @@ collections:
     fields:
       - { label: Category, name: category, widget: select, options: [{label: PhD (shareable), value: phd}, {label: Personal (private), value: personal}], default: phd }
       - { label: Status, name: status, widget: select, options: [to-read, reading, read, parked], default: to-read, required: false }
+      - { label: Year, name: year, widget: number, required: false, hint: "Publication year — feeds the Atlas timeline x-axis" }
       - { label: Subject tags, name: tags, widget: list, required: false, hint: "Subject areas — the reading queue groups by these" }
       - { label: Citekey, name: citekey, widget: string, required: false, hint: "Zotero/Better BibTeX key — leave empty unless importing" }
       - { label: Zotero key, name: zotero-key, widget: string, required: false }

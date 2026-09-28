@@ -149,6 +149,15 @@ def fetch_citation_count(doi):
     except Exception:
         return 0
 
+def year_of(d):
+    """Publication year for the Atlas timeline. Falls back to the citekey
+    (which embeds the year) when Zotero's date field is empty."""
+    m = re.search(r"\d{4}", d.get("date") or "")
+    if m:
+        return m.group(0)
+    m = re.search(r"(1[89]\d{2}|20\d{2})", d.get("title") or "")
+    return m.group(1) if m else ""
+
 def citekey(item):
     """Stable readable filename key: lastAuthorYearFirstword (BBT-ish, best effort)."""
     d = item.get("data", {})
@@ -223,6 +232,7 @@ def render(item, citekey_, annotations=None):
         f'title: "{title}"\n'
         "category: phd\n"
         "status: to-read\n"
+        f"year: {year_of(d)}\n"
         f"tags: [{tags}]\n"
         f'citekey: "{citekey_}"\n'
         f"zotero-key: {key}\n"
