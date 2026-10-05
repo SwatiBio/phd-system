@@ -1,25 +1,15 @@
 ---
+title: "An expanded database of high-resolution MS/MS spectra for lichen-derived natural products"
 category: phd
-status: reading
+status: to-read
 year: 2025
-tags:
-  - Mass spectrometry
-  - Metabolomics
-  - Taxonomy
-citekey: bracegirdle2025an
+tags: ["Mass spectrometry", "Metabolomics", "Taxonomy"]
+citekey: "bracegirdle2025an"
 zotero-key: DS3RIFDS
-authors:
-  - Joe Bracegirdle
-  - John A. Elix
-  - Udayangani Mawalagedera
-  - Yit-Heng Chooi
-  - Cécile Gueidan
+authors: ["Joe Bracegirdle", "John A. Elix", "Udayangani Mawalagedera", "Yit-Heng Chooi", "Cécile Gueidan"]
 concepts: []
-citations: 4
-related: []
-title: An expanded database of high-resolution MS/MS spectra for lichen-derived natural products
+citations: 5
 ---
-
 # An expanded database of high-resolution MS/MS spectra for lichen-derived natural products
 
 [Zotero](zotero://select/library/items/DS3RIFDS)
@@ -45,3 +35,5 @@ _No highlights yet._
 
 
 ## Sparked
+
+

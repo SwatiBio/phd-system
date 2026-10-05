@@ -8,7 +8,7 @@ citekey: "ureavacas2022lichen"
 zotero-key: PUF4TYZD
 authors: ["Isabel Ureña-Vacas", "Elena González-Burgos", "Pradeep Kumar Divakar", "M. Pilar Gómez-Serranillos"]
 concepts: []
-citations: 59
+citations: 60
 ---
 # Lichen Depsidones with Biological Interest
 

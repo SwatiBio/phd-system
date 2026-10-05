@@ -16,7 +16,9 @@ citations: 30
 
 ## Highlights
 
-_No highlights yet._
+> The bioactivity of the secondary metabolites produced by the P1 and NP1 strains was then investigated using disc diffusion, MIC and MBC assays.
+
+_<small>p. 12</small>_
 
 ## What it did
 
