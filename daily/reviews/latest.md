@@ -1,6 +1,6 @@
-# Week 40 · Mon 28 Sep – Sun 4 Oct 2026
+# Week 41 · Mon 5 Oct – Sun 11 Oct 2026
 
-*Prepared 2026-10-04 16:54 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
+*Prepared 2026-10-11 17:43 UTC by the weekly-review job. Verdicts are made with pi — nothing here is decided.*
 
 ## The week in numbers
 
@@ -12,12 +12,12 @@
 *No entries this week. That is data, not a failure.*
 ## What slipped
 
-- Print logbook for guide — Logbook in the app — due 2026-09-18 (16 days late)
-- Create GitHub repo + connect remote — due 2026-09-20 (14 days late)
-- Create Zotero account + Better BibTeX — due 2026-09-20 (14 days late)
-- Weekly review — 30 min verdict session — due 2026-09-20 (14 days late)
-- Record attendance — workstation 9–5 — due 2026-09-29 (5 days late)
-- Check conference tracker — due 2026-10-01 (3 days late)
+- Print logbook for guide — Logbook in the app — due 2026-09-18 (23 days late)
+- Create GitHub repo + connect remote — due 2026-09-20 (21 days late)
+- Create Zotero account + Better BibTeX — due 2026-09-20 (21 days late)
+- Weekly review — 30 min verdict session — due 2026-09-20 (21 days late)
+- Record attendance — workstation 9–5 — due 2026-09-29 (12 days late)
+- Check conference tracker — due 2026-10-01 (10 days late)
 
 ## Open questions (0)
 
@@ -46,11 +46,12 @@
 
 ## Ritual conformance (last 12 weeks)
 
-- **Review ran 3/12 weeks** · on schedule 0/3 (schedule: Sunday 12:30 UTC / 18:00 IST)
+- **Review ran 4/12 weeks** · on schedule 0/4 (schedule: Sunday 12:30 UTC / 18:00 IST)
 
 | Week | Ran | When (UTC) | On schedule |
 |---|---|---|---|
-| 2026-W40 | no | — | — |
+| 2026-W41 | no | — | — |
+| 2026-W40 | yes | 2026-10-04 16:54 | no (manual?) |
 | 2026-W39 | yes | 2026-09-27 17:06 | no (manual?) |
 | 2026-W38 | yes | 2026-09-20 16:19 | no (manual?) |
 | 2026-W37 | yes | 2026-09-14 20:02 | no (manual?) |
@@ -61,7 +62,6 @@
 | 2026-W32 | no | — | — |
 | 2026-W31 | no | — | — |
 | 2026-W30 | no | — | — |
-| 2026-W29 | no | — | — |
 
 - **Logging gaps** (2026-09-10 – 2026-09-23, 4 days logged, 3 gaps): 1x 1-day · 0x 2–3-day · 1x 4–7-day · 1x 8+-day
 - Longest gap: **8 days** (Fri 11 Sep -> Sat 19 Sep)
