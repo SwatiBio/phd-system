@@ -8,7 +8,7 @@ citekey: "amudhan2011oxa"
 zotero-key: 8UITQUXD
 authors: ["Sm Amudhan", "U Sekar", "K Arunagiri", "B Sekar"]
 concepts: []
-citations: 77
+citations: 73
 ---
 # OXA beta-lactamase-mediated carbapenem resistance in Acinetobacter baumannii
 
@@ -20,12 +20,20 @@ _No highlights yet._
 
 ## What it did
 
+
+
 ## How
+
+
 
 ## Key result
 
+
+
 ## What it means for me
+
+
 
 ## Sparked
 
-<!-- 1-3 lines, rough words: what idea did this paper give you? Optional. -->
+

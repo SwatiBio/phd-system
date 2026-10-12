@@ -8,7 +8,7 @@ citekey: "luzina2018usnic"
 zotero-key: MHNU7JQX
 authors: ["Olga A. Luzina", "Nariman F. Salakhutdinov"]
 concepts: []
-citations: 107
+citations: 105
 ---
 # Usnic acid and its derivatives for pharmaceutical use: a patent review (2000–2017)
 
