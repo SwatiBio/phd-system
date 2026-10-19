@@ -8,7 +8,7 @@ citekey: "wong2019ompkmediated"
 zotero-key: 3JDDSE2W
 authors: ["Joshua L. C. Wong", "Maria Romano", "Louise E. Kerry", "Hok-Sau Kwong", "Wen-Wen Low", "Stephen J. Brett", "Abigail Clements", "Konstantinos Beis", "Gad Frankel"]
 concepts: []
-citations: 187
+citations: 186
 ---
 # OmpK36-mediated Carbapenem resistance attenuates ST258 Klebsiella pneumoniae in vivo
 
@@ -20,12 +20,20 @@ _No highlights yet._
 
 ## What it did
 
+
+
 ## How
+
+
 
 ## Key result
 
+
+
 ## What it means for me
+
+
 
 ## Sparked
 
-<!-- 1-3 lines, rough words: what idea did this paper give you? Optional. -->
+

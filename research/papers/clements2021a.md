@@ -8,7 +8,7 @@ citekey: "clements2021a"
 zotero-key: DST5XI6L
 authors: ["Tanya Clements", "Marina Rautenbach", "Thando Ndlovu", "Sehaam Khan", "Wesaal Khan"]
 concepts: []
-citations: 30
+citations: 29
 ---
 # A Metabolomics and Molecular Networking Approach to Elucidate the Structures of Secondary Metabolites Produced by Serratia marcescens Strains
 

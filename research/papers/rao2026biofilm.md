@@ -22,12 +22,20 @@ _<small>p. 5</small>_
 
 ## What it did
 
+
+
 ## How
+
+
 
 ## Key result
 
+
+
 ## What it means for me
+
+
 
 ## Sparked
 
-<!-- 1-3 lines, rough words: what idea did this paper give you? Optional. -->
+
