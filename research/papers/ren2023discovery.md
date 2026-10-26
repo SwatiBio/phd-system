@@ -8,7 +8,7 @@ citekey: "ren2023discovery"
 zotero-key: QK6DQVAR
 authors: ["Meirong Ren", "Shuhua Jiang", "Yanyan Wang", "Xinhua Pan", "Feng Pan", "Xinli Wei"]
 concepts: []
-citations: 41
+citations: 42
 ---
 # Discovery and excavation of lichen bioactive natural products
 

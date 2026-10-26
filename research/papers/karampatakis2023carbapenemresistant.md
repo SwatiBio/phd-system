@@ -8,7 +8,7 @@ citekey: "karampatakis2023carbapenemresistant"
 zotero-key: EGQ6NIVK
 authors: ["Theodoros Karampatakis", "Katerina Tsergouli", "Payam Behzadi"]
 concepts: []
-citations: 340
+citations: 343
 ---
 # Carbapenem-Resistant Klebsiella pneumoniae: Virulence Factors, Molecular Epidemiology and Latest Updates in Treatment Options
 
