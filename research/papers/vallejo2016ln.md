@@ -8,7 +8,7 @@ citekey: "vallejo2016ln"
 zotero-key: EE4PSSEU
 authors: ["Juan A. Vallejo", "Marta Martínez-Guitián", "Juan C. Vázquez-Ucha", "Concepción González-Bello", "Margarita Poza", "John D. Buynak", "Christopher R. Bethel", "Robert A. Bonomo", "German Bou", "Alejandro Beceiro"]
 concepts: []
-citations: 37
+citations: 38
 ---
 # LN-1-255, a penicillanic acid sulfone able to inhibit the class D carbapenemase OXA-48
 
