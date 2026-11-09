@@ -8,7 +8,7 @@ citekey: "muderris2018role"
 zotero-key: E45NKSCR
 authors: ["Tuba Muderris", "Rıza Durmaz", "Birsen Ozdem", "Tuba Dal", "Ozlem Unaldı", "Sibel Aydogan", "Nevreste Celikbilek", "Ziya Cibali Acıkgoz"]
 concepts: []
-citations: 32
+citations: 37
 ---
 # Role of efflux pump and OprD porin expression in carbapenem resistance of Pseudomonas aeruginosa clinical isolates
 

@@ -8,7 +8,7 @@ citekey: "ishii2010iin"
 zotero-key: 7SI35FYX
 authors: ["Yoshikazu Ishii", "Maki Eto", "Yoko Mano", "Kazuhiro Tateda", "Keizo Yamaguchi"]
 concepts: []
-citations: 65
+citations: 66
 ---
 # <i>In Vitro</i> Potentiation of Carbapenems with ME1071, a Novel Metallo-β-Lactamase Inhibitor, against Metallo-β-Lactamase- Producing <i>Pseudomonas aeruginosa</i> Clinical Isolates
 

@@ -8,7 +8,7 @@ citekey: "tian2025unassuming"
 zotero-key: 4MNGQCWW
 authors: ["Hongqiao Tian", "Junlin Lu", "Fangrong Liang", "Haiyan Ding", "Chaojiang Xiao"]
 concepts: []
-citations: 11
+citations: 13
 ---
 # Unassuming Lichens: Nature’s Hidden Antimicrobial Warriors
 

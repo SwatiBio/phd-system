@@ -8,7 +8,7 @@ citekey: "adenubi2022lichens"
 zotero-key: 566CG63H
 authors: ["Olubukola Tolulope Adenubi", "Ibukun Michael Famuyide", "Lyndy Joy McGaw", "Jacobus Nicolaas Eloff"]
 concepts: []
-citations: 51
+citations: 55
 ---
 # Lichens: An update on their ethnopharmacological uses and potential as sources of drug leads
 

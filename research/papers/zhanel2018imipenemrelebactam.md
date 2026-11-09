@@ -8,7 +8,7 @@ citekey: "zhanel2018imipenemrelebactam"
 zotero-key: KFSZHC4U
 authors: ["George G. Zhanel", "Courtney K. Lawrence", "Heather Adam", "Frank Schweizer", "Sheryl Zelenitsky", "Michael Zhanel", "Philippe R. S. Lagacé-Wiens", "Andrew Walkty", "Andrew Denisuik", "Alyssa Golden", "Alfred S. Gin", "Daryl J. Hoban", "Joseph P. Lynch", "James A. Karlowsky"]
 concepts: []
-citations: 381
+citations: 393
 ---
 # Imipenem–Relebactam and Meropenem–Vaborbactam: Two Novel Carbapenem-β-Lactamase Inhibitor Combinations
 

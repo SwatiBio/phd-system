@@ -8,7 +8,7 @@ citekey: "lakhnarayankumarbhagarathi2023an"
 zotero-key: NHS8N48V
 authors: ["Lakhnarayan Kumar Bhagarathi", "Phillip N. B. DaSilva", "Gomathinayagam Subramanian", "Gyanpriya Maharaj", "Sushmita Kalika-Singh", "Ferial Pestano", "Zenesia Phillips-Henry", "Chalasa Cossiah"]
 concepts: []
-citations: 14
+citations: 16
 ---
 # An integrative review of the biology and chemistry of lichens and their ecological, ethnopharmacological, pharmaceutical and therapeutic potential
 

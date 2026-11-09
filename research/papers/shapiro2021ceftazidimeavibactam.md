@@ -8,7 +8,7 @@ citekey: "shapiro2021ceftazidimeavibactam"
 zotero-key: I7MLKAW3
 authors: ["Adam B. Shapiro", "Samir H. Moussa", "Nicole M. Carter", "Ning Gao", "Alita A. Miller"]
 concepts: []
-citations: 26
+citations: 25
 ---
 # Ceftazidime–Avibactam Resistance MutationsV240G, D179Y, and D179Y/T243M in KPC-3 β-LactamaseDo Not Alter Cefpodoxime–ETX1317 Susceptibility
 

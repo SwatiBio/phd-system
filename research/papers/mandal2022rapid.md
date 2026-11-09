@@ -8,7 +8,7 @@ citekey: "mandal2022rapid"
 zotero-key: 43LA5LKH
 authors: ["Mihirbaran Mandal", "Li Xiao", "Weidong Pan", "Giovanna Scapin", "Guoqing Li", "Haiqun Tang", "Shu-Wei Yang", "Jianping Pan", "Yuriko Root", "Reynalda Keh De Jesus", "Christine Yang", "Winnie Prosise", "Priya Dayananth", "Asra Mirza", "Alex G. Therien", "Katherine Young", "Amy Flattery", "Charles Garlisi", "Rumin Zhang", "Donald Chu", "Payal Sheth", "Inhou Chu", "Jin Wu", "Carrie Markgraf", "Hai-Young Kim", "Ronald Painter", "Todd W. Mayhood", "Edward DiNunzio", "Daniel F. Wyss", "Alexei V. Buevich", "Thierry Fischmann", "Alexander Pasternak", "Shuzhi Dong", "Jacqueline D. Hicks", "Artjohn Villafania", "Lianzhu Liang", "Nicholas Murgolo", "Todd Black", "William K. Hagmann", "Jim Tata", "Emma R. Parmee", "Ann E. Weber", "Jing Su", "Haifeng Tang"]
 concepts: []
-citations: 32
+citations: 30
 ---
 # Rapid Evolution of a Fragment-like Molecule to Pan-Metallo-Beta-Lactamase Inhibitors: Initial Leads toward Clinical Candidates
 

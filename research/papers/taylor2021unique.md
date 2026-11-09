@@ -8,7 +8,7 @@ citekey: "taylor2021unique"
 zotero-key: ZT3HDHJF
 authors: ["Doris Mia Taylor", "Justin Anglin", "Liya Hu", "Lingfei Wang", "Banumathi Sankaran", "Jin Wang", "Martin M. Matzuk", "B.V. Venkataram Prasad", "Timothy Palzkill"]
 concepts: []
-citations: 7
+citations: 8
 ---
 # Unique Diacidic Fragments Inhibit the OXA-48 Carbapenemase and Enhance the Killing of E. coli Producing OXA-48
 
