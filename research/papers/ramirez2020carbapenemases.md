@@ -8,7 +8,7 @@ citekey: "ramirez2020carbapenemases"
 zotero-key: 7KMX73IZ
 authors: ["Maria Soledad Ramirez", "Robert A. Bonomo", "Marcelo E. Tolmasky"]
 concepts: []
-citations: 252
+citations: 257
 ---
 # Carbapenemases: Transforming Acinetobacter baumannii into a Yet More Dangerous Menace
 

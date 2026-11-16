@@ -8,7 +8,7 @@ citekey: "tsivkovski2020potency"
 zotero-key: 5ZHE8T5P
 authors: ["Ruslan Tsivkovski", "Olga Lomovskaya"]
 concepts: []
-citations: 47
+citations: 48
 ---
 # Potency of Vaborbactam Is Less Affected than That of Avibactam in Strains Producing KPC-2 Mutations That Confer Resistance to Ceftazidime-Avibactam
 

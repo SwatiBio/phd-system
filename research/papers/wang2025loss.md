@@ -8,7 +8,7 @@ citekey: "wang2025loss"
 zotero-key: 33D76GV4
 authors: ["Maofeng Wang", "Yuxiao Zhang", "Fengyan Pei", "Ying Liu", "Yan Zheng"]
 concepts: []
-citations: 35
+citations: 37
 ---
 # Loss of OprD function is sufficient for carbapenem-resistance-only but insufficient for multidrug resistance in Pseudomonas aeruginosa
 

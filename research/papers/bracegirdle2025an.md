@@ -8,7 +8,7 @@ citekey: "bracegirdle2025an"
 zotero-key: DS3RIFDS
 authors: ["Joe Bracegirdle", "John A. Elix", "Udayangani Mawalagedera", "Yit-Heng Chooi", "Cécile Gueidan"]
 concepts: []
-citations: 7
+citations: 8
 ---
 # An expanded database of high-resolution MS/MS spectra for lichen-derived natural products
 
